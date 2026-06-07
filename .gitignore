@@ -1,0 +1,61 @@
+# ==============================================================
+# StrictDocStarter .gitignore
+# ==============================================================
+
+# --- Claude / AI assistant (never commit) ---
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+.claude.json
+prompt.md
+
+# --- Private / internal working docs (kept local, not published) ---
+in-private-work/
+
+# --- StrictDoc generated HTML / cache (strictdoc server / export) ---
+output/
+
+# --- Python bytecode / cache / temp execution files ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+
+# --- Python build / packaging / virtualenv (local tooling) ---
+.venv/
+venv/
+env/
+*.egg-info/
+.eggs/
+build/
+dist/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# --- User-generated config (templates are committed instead) ---
+setup.config.json
+server.config.json
+uninstall.config.json
+env-report.json
+
+# --- Runtime logs (setup.log, manage.log, and any transient *.log) ---
+*.log
+
+# --- Px local proxy config ---
+px.ini
+
+# --- Temp / build artifacts ---
+/temp/
+*.zip
+
+# --- OS / editor cruft ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+desktop.ini
+.DS_Store
+*~
+*.tmp
