@@ -6,7 +6,7 @@
 | バージョン | v1.2 (D&D/プロンプト入力 + ポート自動割当。 v1.1: 公式委譲 & 可視ウィンドウ方式) |
 | テンプレート | ANMS v0.33 |
 | ツール名 | **manage-strictdoc** (StrictDocStarter 同梱) |
-| エントリ | `manage-strictdoc.bat` (ダブルクリック → server 窓 + ブラウザ。 v1.1: 最小メニュー Start/Open/Edit config/Quit — FR-1121/D-7) |
+| エントリ | `manage-strictdoc.bat` (フォルダ/ファイルを D&D または単体起動。 v1.2: 純ランチャ → strictdoc server CLI window + ブラウザ → 終了。 メニュー無し — FR-1121 / ADR-115) |
 | 対象 | strictdoc がインストール済み Windows 11 PC |
 | 親仕様 | [`docs/setup-spec.md`](setup-spec.md) (StrictDocStarter v1.0) |
 | リポジトリ | `https://github.com/GoodRelax/gr-tools/tree/main/StrictDocStarter` |
@@ -40,7 +40,7 @@
 
 ### 1.3 Goals
 
-1. **ダブルクリック → メニュー → 1 押し** で start / stop / status / logs / Edit config を選べる (→ v1.1 改訂: 最小メニュー Start/Open/Edit config/Quit へ。 Stop/Status/Logs は可視窓が担う。 G6-1 / FR-1121 / D-7)
+1. **ダブルクリック → メニュー → 1 押し** で start / stop / status / logs / Edit config を選べる (→ **v1.2 改訂 (option C / ADR-115): メニュー廃止・純ランチャ**へ。 D&D / プロンプトで開く文書を決め、 起動 → ブラウザ → 終了。 Stop/Status/Logs は strictdoc server CLI window と再ドロップが担う。 G6-1 / FR-1121)
 2. 設定は `server.config.json` 1 ファイルで宣言、 メニューから Edit config で更新可能
 3. server プロセスは確実に終了できる (PID file + 本人確認、 取りこぼしなし)
 4. メニュー .bat を Ctrl+C で終了しても server は影響なく稼働継続 (daemon-like)
@@ -133,6 +133,8 @@
 | `_lib\elevate.bat no_admin` | setup-spec.md FR-806 の共通ヘルパ、 引数 `no_admin` は UAC 昇格を要求せず MOTW strip + CWD 正規化のみ実行するモード |
 | BOM | Byte Order Mark。 UTF-8 ファイル先頭の `﻿`、 PowerShell 5.1 の `ConvertFrom-Json` が誤動作する原因 |
 | HasExited | PowerShell `Start-Process -PassThru` が返す Process object のプロパティ、 子プロセス終了済かを判定 |
+| `strictdoc server CLI window` | 公式 `strictdoc server` を**前景実行する Windows コンソール窓** (旧称「server 窓 / 可視窓」)。 StrictDoc 公式のサーバ起動バナー (`StrictDoc Web Server vX` / Server URL / Documentation / mailing list) と Uvicorn の `Uvicorn running on …` ログを表示する。 文書ごとに 1 窓。 **窓を閉じる / Ctrl+C でサーバ停止** (FR-1111)。 利用者が操作する UI は別途ブラウザの StrictDoc Web UI。 図中の短縮表記は `CLI window` |
+| manage cmd 窓 | `manage-strictdoc.bat`→`.ps1` が動く**ランチャ側**のコンソール窓。 入力解決・ポート割当・起動・起動失敗の原因表示 (FR-1157c) を担う。 上記 `strictdoc server CLI window` とは**別物** |
 
 ### 1.10 Notation
 
@@ -476,7 +478,7 @@ classDiagram
 
 #### ADR-102: メニュー対話方式 (vs サブコマンド引数方式)
 
-- **Status**: Accepted (v1.0)。 **v1.1 で一部 superseded by FR-1121 (D-7)**: 可視ウィンドウ方式採用後は **最小メニュー (Start / Open browser / Edit config / Quit)** に決定。 旧「5 メニュー対話 (start/stop/status/logs/edit)」前提は撤回
+- **Status**: Accepted (v1.0)。 **v1.1 で一部 superseded by FR-1121 (D-7)**: 可視ウィンドウ方式採用後は最小メニューに、 **さらに v1.2 (ADR-115 option C) でメニュー廃止・純ランチャに決定**。 旧「5 メニュー対話 (start/stop/status/logs/edit)」前提は撤回
 - **Context**: `manage-strictdoc.bat start <path>` 等のサブコマンド引数式と、 `manage-strictdoc.bat` ダブルクリック → メニュー番号選択式の 2 案を比較
 - **Decision**: メニュー対話方式。 1〜5 番号 + Q で全操作
 - **Consequences**: ダブルクリック完結。 CI/automation には不向きだが v1.0 スコープ外。 将来サブコマンド引数式を追加するなら互換性ありで拡張可
@@ -863,14 +865,14 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 
 ### 6.1 方針 (Goals 改訂)
 
-- **G6-1**: StrictDocStarter のコア価値を **① Windows ブートストラップ ② ドメイン教材サンプル ③ Windows 配慮 (プロキシ/MOTW/ブラウザ自動) ④ 薄いランチャ** に限定する。 サーバ起動・プロジェクト雛形・設定形式・readiness/error 表示は **公式に委譲**し再発明しない (D-5)。 → 1.3 Goal 1 (5 メニュー) は FR-1121 で薄いランチャ/最小メニューに改訂、 Goal 3-4 (PID 本人確認 / daemon-like) は撤回。
-- **G6-2**: server は **可視コンソール窓**で起動し、 ユーザが公式の readiness/error をその窓で直接視認できること (D-6)。
+- **G6-1**: StrictDocStarter のコア価値を **① Windows ブートストラップ ② ドメイン教材サンプル ③ Windows 配慮 (プロキシ/MOTW/ブラウザ自動) ④ 薄いランチャ** に限定する。 サーバ起動・プロジェクト雛形・設定形式・readiness/error 表示は **公式に委譲**し再発明しない (D-5)。 → 1.3 Goal 1 (5 メニュー) は FR-1121 で薄いランチャ (メニュー無し・ v1.2 option C / ADR-115) に改訂、 Goal 3-4 (PID 本人確認 / daemon-like) は撤回。
+- **G6-2**: server は **可視コンソール窓** (本仕様の用語: **`strictdoc server CLI window`**。 §1.9) で起動し、 ユーザが公式の readiness/error をその窓で直接視認できること (D-6)。
 
 ### 6.2 server start (FR-1100 系) — FR-301..312 を supersede
 
 | ID | パターン | 要求 |
 |---|---|---|
-| FR-1101 | When | 起動アクションは `strictdoc server <project_path> --host <host> --port <port> [--output-path <output_path>]` を **独立した可視コンソール窓**で起動すること。 **既定方式は `cmd /c start "StrictDoc Server (<host>:<port>)" strictdoc server …`** (タイトル付きの新規コンソール窓を確実に開く)。 `Start-Process strictdoc`(`-WindowStyle Hidden` 無し) 単独は **親コンソールを継承して独立窓が開かない場合があるため非推奨**。 引数 (空白/日本語を含むパス) は個別に正しく引用すること (FR-1133)。 **stdout/stderr の redirect は行わない** (窓がログそのもの) |
+| FR-1101 | When | 起動アクションは `strictdoc server <project_path> --host <host> --port <port> [--output-path <output_path>]` を **独立した可視コンソール窓** (= strictdoc server CLI window) で起動すること。 **既定方式は `Start-Process -FilePath <strictdoc.exe 絶対パス> -ArgumentList @('server', <quoted path>, '--host', <host>, '--port', <port>)`**: コンソールアプリを `-NoNewWindow` / `-WindowStyle Hidden` 無しで起動すると**新規可視窓が開く**(実機検証済)。 **`cmd /c start "<title>" …` 方式は採らない** — その引用済みコマンド行を `Start-Process -ArgumentList` に渡すと PowerShell が再引用し cmd パーサを壊す (タイトルの括弧で cmd 構文エラー) ため。 ⇒ 窓タイトルは既定 (各窓は内部の StrictDoc バナー `Server URL: http://<host>:<port>/` で識別)。 引数 (空白/日本語を含むパス) は `Quote-ArgIfNeeded` で個別に引用 (FR-1133)。 **stdout/stderr の redirect は行わない** (窓がログそのもの) |
 | FR-1102 | Ubiquitous | **PID file を作らない / port poll をしない / 固定タイムアウトを設けない**こと。 起動成否はユーザが窓で視認する: 成功は公式の `Uvicorn running on http://<host>:<port>` / `Application startup complete.` 行、 失敗 (文法エラー等) は `error: Could not parse … TextXSyntaxError` 行 + プロセス即終了 |
 | FR-1103 | If | もし `config.open_browser=true` ならば、 server 窓を起動した後に `Start-Process http://<host>:<port>/` で既定ブラウザを開くこと (host が `0.0.0.0`/`::` なら `127.0.0.1` に置換、 旧 FR-308 を踏襲)。 server の準備完了を待たずに開いてよい (ブラウザ側 reload で吸収。 大規模初回は数秒〜十数秒かかる旨を README に記載) |
 | FR-1104 | If | 二重起動検出は **ポート使用中チェック**で行うこと: 起動前に `Get-NetTCPConnection -LocalPort <port> -State Listen` が存在すれば「既に起動中」とみなし、 `[INFO] Server already running on port <port>. Opening browser…` としてブラウザを開くだけに留める (新規 server を起動しない)。 Start-Transcript ロック (旧 FR-110 / ADR-112) は使わない |
@@ -880,16 +882,16 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 
 | ID | パターン | 要求 |
 |---|---|---|
-| FR-1111 | Ubiquitous | **正規の停止手段は「server 窓を閉じる or Ctrl+C」**とすること。 README/メニューにその旨を明示 |
-| FR-1112 | Optional | メニューから遠隔 Stop を提供する場合は **ポート所有プロセス基準**で停止すること: `Get-NetTCPConnection -LocalPort <port> -State Listen` の OwningProcess (= 実 listener の `python.exe`) を取得し、 `taskkill /PID <pid> /T /F` (プロセスツリーごと) で停止すること。 PID file は使わない。 **本人確認**: OwningProcess の CommandLine に "strictdoc" を含めば即実行。 含まない場合 (pip launcher 経由で `python.exe` の CommandLine に "strictdoc" が出ないケースあり) は、 親プロセス (`strictdoc.exe` ランチャ) の CommandLine を辿るか、 それも不可なら **ユーザに `Stop port <port> owned by <process> (PID <pid>)? [y/N]` と確認**してから実行すること (旧 FR-905 安全側判定の趣旨を維持しつつ「止められない」も回避) |
+| FR-1111 | Ubiquitous | **正規の停止手段は「strictdoc server CLI window を閉じる or Ctrl+C」**とすること (1 窓 = 1 文書)。 README にその旨を明示 (メニューは持たない = FR-1121) |
+| FR-1112 | Optional | (**option C: メニュー廃止のため標準では遠隔 Stop を提供しない。 停止は FR-1111 = 窓を閉じる**。 将来 `--stop <port>` 等の任意 CLI フラグとして) 遠隔 Stop を提供する場合は **ポート所有プロセス基準**で停止すること: `Get-NetTCPConnection -LocalPort <port> -State Listen` の OwningProcess (= 実 listener の `python.exe`) を取得し、 `taskkill /PID <pid> /T /F` (プロセスツリーごと) で停止すること。 PID file は使わない。 **本人確認**: OwningProcess の CommandLine に "strictdoc" を含めば即実行。 含まない場合 (pip launcher 経由で `python.exe` の CommandLine に "strictdoc" が出ないケースあり) は、 親プロセス (`strictdoc.exe` ランチャ) の CommandLine を辿るか、 それも不可なら **ユーザに `Stop port <port> owned by <process> (PID <pid>)? [y/N]` と確認**してから実行すること (旧 FR-905 安全側判定の趣旨を維持しつつ「止められない」も回避) |
 | FR-1113 | Ubiquitous | status は **ポート基準の 3 状態**に簡素化すること: `RUNNING` (port LISTEN かつ owner の CommandLine に "strictdoc") / `OTHER_OWNS_PORT` (LISTEN だが strictdoc でない) / `STOPPED` (LISTEN 無)。 旧 `STARTING` / `STALE_PID_FILE` は PID file 廃止に伴い不要 |
 | FR-1114 | Ubiquitous | Status 表示時、 RUNNING なら **実 listener (`python.exe`) の PID** と「`strictdoc.exe` ランチャ → `python.exe` listener (ポート所有)」の関係を 1 行注記すること (Task Manager で「strictdoc」名検索では listener が出ない旨、 improvement-items #3) |
 
-### 6.4 起動 UX / メニュー (FR-1120 系)
+### 6.4 起動 UX / ランチャ (FR-1120 系)
 
 | ID | パターン | 要求 |
 |---|---|---|
-| FR-1121 | Ubiquitous | (**v1.1 決定 D-7**) UI は **最小メニュー**とすること: `manage-strictdoc.bat` ダブルクリックで **Start (server 窓を開く + ブラウザ) / Open browser (再オープン) / Edit config / Quit** の4項目を表示する。 **Stop / Status / Logs は載せない** (可視窓が担う: 窓を閉じる=停止 / 窓=状態とログ)。 隠れデーモン + 旧5メニューは採らない。 初回は config scaffold (FR-1142) + エディタ起動 (旧 FR-201/202 流儀) |
+| FR-1121 | Ubiquitous | (**v1.2 決定 D-7 / ADR-115 option C**) UI は **メニューを持たない一時ランチャ**とすること: `manage-strictdoc.bat` 起動 → project_path を **D&D (FR-1150 系)** または **単体起動時プロンプト (FR-1153)** で解決 → 重複確認 (FR-1158) → 空きポート (FR-1156) → **strictdoc server CLI window** 起動 (FR-1101) → ブラウザ (FR-1159) → 最終使用保存 (FR-1155) を行い、 **成功時はそのまま終了**する。 永続 UI は strictdoc server CLI window が担う (状態=窓の有無 / ログ=窓 / 停止=窓を閉じる FR-1111)。 **Start/Stop/Status/Logs/常駐メニューは持たない**。 **再オープン=同一文書を再ドロップ** (FR-1158 がブラウザのみ再オープン)、 **設定変更=`server.config.json` を直接編集**。 起動失敗時のみ原因を表示 (FR-1157c) して pause→終了。 初回は config scaffold (FR-1142) |
 | FR-1122 | Ubiquitous | `manage.log` の **Start-Transcript 排他ロックによる二重起動検出 (旧 FR-110/ADR-112) は廃止**すること。 manage 操作ログが必要なら追記専用で残してよいが、 **ロック目的では使わない**。 → これにより OneDrive/SharePoint 同期との競合 (S-2 根本原因) が解消する |
 
 ### 6.5 OneDrive / 空白 / 日本語パス対応 (FR-1130 系) — S-2
@@ -1032,7 +1034,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 |---|---|---|
 | FR-1156 | When | server 起動時、 `server.config.json` の `port` を**開始ポート** `start` とし、 `start` から **`ceiling = min(start + 20, 64999)`** まで +1 ずつ `Get-NetTCPConnection -LocalPort <p> -State Listen` が**存在しない**最初のポートを**候補ポート**として選定すること。 host は変更しないこと (IP は config の host のまま)。 |
 | FR-1156b | If | もし `start..ceiling` に空きポートが 1 つも無ければ、 `[ERROR] No free port in range <start>..<ceiling>` を表示し abort すること。 |
-| FR-1157 | When | 候補ポートで起動後、 **採用確認**を 1 秒間隔でポーリングすること (FR-1102 を §6.10.2/§6.10.5 で narrow した採用確認専用 probe。 **固定 8 秒タイムアウトは設けず**、 下記の確定シグナルで分岐する。 安全弁の上限のみ 60 秒)。 各反復で: **(a)** 候補ポートが LISTEN かつ owner の CommandLine に `strictdoc` を含む → **採用** (FR-1159)。 **(b)** 候補ポートが LISTEN だが strictdoc 以外が所有 (= 選定と bind の間に他プロセスが取得した TOCTOU 競合) → `候補+1` から FR-1156 を継続し次の空きで**再試行** (最大 5 回 または `ceiling` のいずれか早い方。 全滅時 `[ERROR] Could not bind a free port near <start> (tried N ports)`)。 **(c)** 起動した server プロセス (この project_path / `--port p` を提供する strictdoc。 `Get-CimInstance` の CommandLine 解析で判定。 起動直後の spawn 猶予 ~3 秒を置く) が **bind せず消滅** (= 大半は .sdoc 文法エラー。 strictdoc 未導入は FR-1105 が起動前に abort 済のため該当しない) → **再試行せず FR-1157c** へ。 **(d)** server プロセスは**生存中だが未 bind** (= 起動中。 大規模初回は数秒〜十数秒かかる) → 次反復へ待機継続 (**これにより valid な大規模プロジェクトを false 失敗にしない**)。 60 秒上限到達時は `[WARN] Server still starting on port <p>; check the server window.` とし **hard fail しない**。 (b) はツール同士 (同時 2 ドロップ) の競合にも適用される。 |
+| FR-1157 | When | 候補ポートで起動後、 **採用確認**を 1 秒間隔でポーリングすること (FR-1102 を §6.10.2/§6.10.5 で narrow した採用確認専用 probe。 **固定 8 秒タイムアウトは設けず**、 下記の確定シグナルで分岐する。 安全弁の上限のみ 60 秒)。 各反復で: **(a)** 候補ポートが LISTEN かつ owner の CommandLine に `strictdoc` を含む → **採用** (FR-1159)。 **(b)** 候補ポートが LISTEN だが strictdoc 以外が所有 (= 選定と bind の間に他プロセスが取得した TOCTOU 競合) → `候補+1` から FR-1156 を継続し次の空きで**再試行** (最大 5 回 または `ceiling` のいずれか早い方。 全滅時 `[ERROR] Could not bind a free port near <start> (tried N ports)`)。 **(c)** 起動した server プロセス (この project_path / `--port p` を提供する strictdoc。 `Get-CimInstance` の CommandLine 解析で判定。 **一度生存を確認後に消滅すれば即失敗**、 まだ未出現なら spawn 猶予 ~12 秒 (strictdoc.exe→python のコールド起動を考慮) 経過で失敗扱い) が **bind せず消滅** (= 大半は .sdoc 文法エラー。 strictdoc 未導入は FR-1105 が起動前に abort 済のため該当しない) → **再試行せず FR-1157c** へ。 **(d)** server プロセスは**生存中だが未 bind** (= 起動中。 大規模初回は数秒〜十数秒かかる) → 次反復へ待機継続 (**これにより valid な大規模プロジェクトを false 失敗にしない**)。 60 秒上限到達時は `[WARN] Server still starting on port <p>; check the server window.` とし **hard fail しない**。 (b) はツール同士 (同時 2 ドロップ) の競合にも適用される。 |
 | FR-1157c | When | FR-1157(c) の起動失敗時: server 窓は parse error で即閉じることがあるため、 **manage の cmd 窓 (バッチ画面) を確実な表示先**とすること: (i) `[ERROR] StrictDoc server failed to start on port <p> (it exited before binding).` を表示、 (ii) 原因可視化のため `strictdoc export <project_path> --output-dir <一時 dir>` を**同期実行** (.sdoc 文法エラーは export の parse 段階で**即失敗**するため遅くない) し、 出力の `error: Could not parse ... TextXSyntaxError` 行を cmd 窓へエコー、 (iii) 一時 dir を削除し `Fix the .sdoc and re-drop the folder.` を表示すること。 export が parse 以外の理由で失敗した場合はその出力をそのままエコーし **原因を断定しない**。 ブラウザは開かない。 |
 | FR-1158 | If | もし起動前の時点で、 解決 project_path と**同一ディレクトリ**を既に提供中の strictdoc サーバが在れば、 **新規起動せず**そのサーバの URL (`http://<host>:<its-port>/`) をブラウザで開くに留め `[INFO] Already serving <path> on port <p>. Opening browser...` を表示すること。 稼働サーバ列挙は `Get-CimInstance Win32_Process` で CommandLine に `strictdoc` と `server` を含むプロセスを抽出し、 served path と `--port` を解析。 パス比較は両辺を `[System.IO.Path]::GetFullPath` 正規化・末尾区切り除去・大小無視で行う。 (a) **served path 引数が相対 / 解析不能**で正規化できないときは「一致なし」とみなし新規起動に進む (誤再利用を回避)。 (b) **複数一致**時は最小ポートの URL を開く。 (c) WMI 利用不可等で列挙失敗時は安全側として新規起動に進む (FR-1112 の安全側判定に準拠。 = 同一文書の二重 tab が出るが機能上の害はない)。 |
 | FR-1159 | Where | open_browser=true のとき、 ブラウザ open は **FR-1103 の手順**に従い、 **実際に採用したポート** (FR-1156 / 1157) を対象に行うこと (host=`0.0.0.0`/`::` の `127.0.0.1` 置換も FR-1103 に従う)。 |
@@ -1075,6 +1077,14 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | §4.2 `project_path` 必須 / `port` 固定 | §6.10.4 (`project_path` 任意・最終使用 / `port` 開始ポート) | |
 | FR-1102 (port poll / 固定タイムアウトを設けない) | FR-1157 が「ポート採用確認 probe」に限り narrow | 採用確認は 1s 間隔・成功/失敗とも即判定・60s 非致命上限の限定 probe。 公式 readiness/error の固定ポーリング廃止は維持 |
 | §3.4 Domain Model (single server / PidFile entity) | v1.2: N-servers-by-port、 PID file entity 廃止 | §6.7 で §3.x は既に historical |
+
+#### ADR-115: manage は純ランチャ (メニュー廃止) — option C
+
+- **Status**: Accepted (v1.2)。 **supersedes** FR-1121 の「最小メニュー」(v1.1 D-7)。
+- **Context**: D&D + 可視ウィンドウ方式では永続 UI (状態 / ログ / 停止) を **strictdoc server CLI window** が担う。 manage に常駐メニューを置くと責務が重複し、 文書ごとに窓が 2 枚になる。
+- **Decision**: manage を **メニュー無しの一時ランチャ**とする (FR-1121)。 フロー: 入力解決 (FR-1150/1153) → 重複確認 (FR-1158) → 空きポート (FR-1156) → CLI window 起動 (FR-1101) → ブラウザ (FR-1159) → 最終使用保存 (FR-1155) → 成功で終了。 「1 窓 = 1 文書 / 閉じる = 停止」。 再オープン = 再ドロップ (FR-1158)、 設定 = config 直接編集。
+- **採否根拠 (DA)**: A (自動起動+最小メニュー) / B (メニュー先) / C (純ランチャ) を **ユーザー視点 (U1 drop-and-go, U2 複数文書, U3 停止明快, U4 発見性, U5 窓の散らからなさ, U6 エラー視認, U7 アプリらしさ) と実装視点 (I1 複雑度, I2 spec 整合, I3 状態管理, I4 テスト容易性)** で比較。 C が U1/U2/U3/U5/U7/I1/I3/I4 で優位、 弱点の U4 は FR-1158 (再ドロップ=再オープン) が吸収。 実機で「窓を閉じる=停止」も確認のうえ **C を採用**。
+- **Consequences**: 最小・最単純。 遠隔 Stop は FR-1112 の任意 CLI へ降格。
 
 ### 6.10.6 シナリオ (Gherkin)
 
@@ -1151,7 +1161,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
     Scenario: SC-V19 文書エラーでサーバ起動不可 (traces: FR-1157c, FR-1102)
       Given project_path に文法エラーの .sdoc がある
       When フォルダを D&D して起動する
-      Then 可視窓に error: Could not parse ... TextXSyntaxError が出てプロセスが即終了する
+      Then strictdoc server CLI window に error: Could not parse ... TextXSyntaxError が出てプロセスが即終了する
       And manage は server プロセスが bind せず消滅したことを検出する (FR-1157c)
       And cmd 窓に [ERROR] failed to start と Could not parse ... TextXSyntaxError がエコーされる
       But 別ポートでの再試行は行われない (ポート競合ではないため)
@@ -1185,7 +1195,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 
 ### 6.10.8 Behavior — 可視ウィンドウ + ポート管理 (v1.2。 §3.5 の v1.0 図を置換)
 
-> **登場アクターを統一**: `User` / `manage-strictdoc.ps1` (= メニュー + `lib/server-process.ps1`) / `Windows` (port/process 表: `Get-NetTCPConnection` / `Get-CimInstance` / `taskkill`) / `Server窓` (可視コンソールで動く `strictdoc server`。 文書ごとに 1 窓) / `Browser`。 `Start-Process` / `cmd /c start` 等のコマンドレットはアクターではなく**メッセージ (操作)** として描く (§3.5 の旧 `Start-Process` ライフラインは廃止)。
+> **登場アクターを統一**: `User` / `manage-strictdoc.ps1` (= メニュー + `lib/server-process.ps1`) / `Windows` (port/process 表: `Get-NetTCPConnection` / `Get-CimInstance` / `taskkill`) / `strictdoc server CLI window` (図中 `strictdoc server CLI window` / `CLI window`。 §1.9 Glossary 参照。 公式 `strictdoc server` を前景実行する可視コンソール窓。 文書ごとに 1 窓) / `Browser`。 `Start-Process` / `cmd /c start` 等のコマンドレットはアクターではなく**メッセージ (操作)** として描く (§3.5 の旧 `Start-Process` ライフラインは廃止)。
 
 #### (1) 起動 — 単一文書・ポート自動割当 (FR-1150..1159)
 
@@ -1194,7 +1204,7 @@ sequenceDiagram
     actor User
     participant M as manage-strictdoc.ps1
     participant OS as Windows
-    participant SV as Server窓
+    participant SV as strictdoc server CLI window
     participant BR as Browser
     User->>M: フォルダ/ファイルを D&D (無ければプロンプト)
     M->>M: project_path 解決 (FR-1151 / 1153)
@@ -1202,7 +1212,7 @@ sequenceDiagram
     OS-->>M: なし
     M->>OS: 開始ポートから空き探索 (FR-1156)
     OS-->>M: 5111 が空き
-    M->>SV: strictdoc server projA --port 5111 を可視窓で起動 (FR-1101)
+    M->>SV: strictdoc server projA --port 5111 を起動 (FR-1101)
     Note over SV: 窓に Uvicorn running ... 5111 (readiness)。 manage は窓 stdout を読まない
     M->>OS: 採用確認: 5111 LISTEN かつ owner=strictdoc か (FR-1157a)
     OS-->>M: 採用OK
@@ -1217,8 +1227,8 @@ sequenceDiagram
     actor User
     participant M as manage-strictdoc.ps1
     participant OS as Windows
-    participant A as Server窓A
-    participant B as Server窓B
+    participant A as CLI window A (projA)
+    participant B as CLI window B (projB)
     participant BR as Browser
     User->>M: projA を D&D
     M->>OS: 空き探索 (結果 5111)
@@ -1248,7 +1258,7 @@ flowchart TD
     CEIL -->|超過| E1["ERROR: No free port in range (FR-1156b)"]
     CEIL -->|以内| INC["p = p + 1"]
     INC --> SCAN
-    SCAN -->|空き| LAUNCH["strictdoc server --port p を可視窓で起動"]
+    SCAN -->|空き| LAUNCH["strictdoc server --port p を起動"]
     LAUNCH --> PROBE{"採用確認 poll (1s毎・上限60s): p の状態? (FR-1157)"}
     PROBE -->|"(a) LISTEN かつ owner=strictdoc"| OK["採用: ブラウザで開く / config 保存"]
     PROBE -->|"(b) LISTEN だが別プロセス=TOCTOU 競合"| RETRY{"再試行 5回未満 かつ p が ceiling 未満か?"}
@@ -1265,10 +1275,10 @@ sequenceDiagram
     actor User
     participant M as manage-strictdoc.ps1
     participant OS as Windows
-    participant SV as Server窓
+    participant SV as strictdoc server CLI window
     User->>M: 文法エラーを含む projX を D&D
     M->>OS: 空き探索 (結果 5111)
-    M->>SV: strictdoc server projX --port 5111 を可視窓で起動 (FR-1101)
+    M->>SV: strictdoc server projX --port 5111 を起動 (FR-1101)
     SV-->>SV: error: Could not parse ... TextXSyntaxError (窓に表示, FR-1102)
     SV-->>SV: プロセス即終了 (ポート bind せず)
     M->>OS: 採用確認: server プロセス生存? port LISTEN? (FR-1157)

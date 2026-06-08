@@ -1,46 +1,35 @@
-# lib/server-process.ps1 - StrictDoc server lifecycle (start / stop / status / logs).
-# Functions: Get-ServerState, Invoke-StartAction, Invoke-StopAction,
-#            Show-ServerStatusDetail, Show-ServerLogs, Show-MenuHeader.
-# Spec: FR-301..312 (start), FR-401..411 (stop), FR-501..509 (5-state),
-#       FR-601..604 (logs), FR-701..706 (PID/log paths), FR-901..905 (errors).
-# Output language: English ASCII only (per NFR-005 / ADR-008).
+# lib/server-process.ps1 - StrictDoc server launcher engine (v1.2).
+# Model: visible "strictdoc server CLI window" + auto-port + dedup + adoption re-probe.
+# Spec: FR-1101..1105 (visible launch), FR-1111..1114 (stop/status),
+#       FR-1156..1159 (auto-port / dedup / re-probe / browser), FR-1157c (startup-error diag).
+# Output language: English ASCII only (NFR-005 / ADR-008).
 #
-# IMPORTANT (Glossary, 1.7 Constraints):
-#   - $pid is a PowerShell RESERVED automatic variable (current process PID).
-#     Use $serverPid for the strictdoc server process PID.
-#   - $host is also reserved; use $bindHost / $urlHost for server host strings.
+# IMPORTANT (Glossary 1.9 / 1.7 Constraints):
+#   $pid  is a PowerShell RESERVED automatic variable (current process PID).
+#         Use $serverPid / $ownerPid / $targetPid for other processes.
+#   $host is also reserved; use $bindHost / $urlHost for server host strings.
+#
+# NOTE: dot-sourced from manage-strictdoc.ps1 (not a module).
 
-function Get-LocalAppDataDir {
-    $dir = Join-Path $env:LOCALAPPDATA 'StrictDocStarter'
-    if (-not (Test-Path $dir)) {
-        # FR-310: auto-create on first start.
-        New-Item -Path $dir -ItemType Directory -Force | Out-Null
-    }
-    return $dir
-}
-
-# B1: pre-quote argument if it contains whitespace.
-# PowerShell 5.1 Start-Process -ArgumentList @(...) does NOT auto-quote
-# array elements containing spaces -- e.g. "C:\My Project" becomes 2 args.
-function Quote-ArgIfNeeded {
-    param([string]$Value)
-    if ([string]::IsNullOrEmpty($Value)) { return $Value }
-    if ($Value -match '\s') { return '"' + $Value + '"' }
-    return $Value
-}
-
-# M3: resolve strictdoc to an absolute path so Start-Process CreateProcess
-# does not fail in unusual PATH/venv states. Returns $null if not found.
+# M3: resolve strictdoc to an absolute path (FR-1105). Returns $null if not found.
 function Resolve-StrictDocExecutable {
     $cmd = Get-Command strictdoc -ErrorAction SilentlyContinue
     if ($null -eq $cmd) { return $null }
     return $cmd.Source
 }
 
-# Mi4: shared helper for opening the StrictDoc URL in default browser.
-function Open-BrowserForConfig {
-    param($Config)
-    $url = Get-BrowserOpenUrl -Config $Config
+function Get-BrowserOpenUrl {
+    # FR-1103 / FR-1159: 0.0.0.0 and :: get rewritten to 127.0.0.1.
+    param([string]$BindHost, [int]$Port)
+    $urlHost = $BindHost
+    if ($urlHost -eq '0.0.0.0' -or $urlHost -eq '::') { $urlHost = '127.0.0.1' }
+    return ("http://{0}:{1}/" -f $urlHost, $Port)
+}
+
+function Open-BrowserAt {
+    # FR-1159: open default browser at the adopted port.
+    param([string]$BindHost, [int]$Port)
+    $url = Get-BrowserOpenUrl -BindHost $BindHost -Port $Port
     try {
         Start-Process $url -ErrorAction Stop
         Write-Host "[INFO]  Opened browser at $url"
@@ -49,544 +38,247 @@ function Open-BrowserForConfig {
     }
 }
 
-function Get-PidFilePath    { param([int]$Port) Join-Path (Get-LocalAppDataDir) ("server-{0}.pid"     -f $Port) }
-function Get-StdoutLogPath  { param([int]$Port) Join-Path (Get-LocalAppDataDir) ("server-{0}.log"     -f $Port) }
-function Get-StderrLogPath  { param([int]$Port) Join-Path (Get-LocalAppDataDir) ("server-{0}.err.log" -f $Port) }
-
-function Read-PidFile {
-    # FR-704: read 1-line integer, trailing newline tolerant.
-    param([Parameter(Mandatory)] [string]$Path)
-    if (-not (Test-Path $Path)) { return $null }
-    try {
-        $line = (Get-Content -Path $Path -TotalCount 1 -ErrorAction Stop)
-        if ($null -eq $line) { return $null }
-        $trimmed = $line.ToString().Trim()
-        $parsedPid = 0
-        if ([int]::TryParse($trimmed, [ref]$parsedPid)) {
-            return $parsedPid
-        }
-    } catch {}
-    return $null
-}
-
-function Test-ProcessIsStrictdoc {
-    # FR-403 + FR-905: CommandLine contains "strictdoc" (case-insensitive).
-    # WMI failure / empty CommandLine -> treat as NOT strictdoc (safe side).
-    param([int]$ProcessId)
-    try {
-        $procInfo = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId=$ProcessId" -ErrorAction Stop
-        if ($null -eq $procInfo) { return $false }
-        $cmdLine = $procInfo.CommandLine
-        if ([string]::IsNullOrEmpty($cmdLine)) { return $false }
-        return ($cmdLine -match '(?i)strictdoc')
-    } catch {
-        return $false
-    }
-}
-
-function Get-ProcessCommandLine {
-    param([int]$ProcessId)
-    try {
-        $procInfo = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId=$ProcessId" -ErrorAction Stop
-        if ($null -ne $procInfo) { return $procInfo.CommandLine }
-    } catch {}
-    return '<unavailable>'
-}
-
-function Get-PortOwner {
-    # FR-402 / FR-506: returns @{ Pid; Name } or $null if no LISTEN, or
-    # @{ Pid=0; Name='<unknown owner>' } if LISTEN but OwningProcess not available.
-    # M1: when host=0.0.0.0 LISTENs on both IPv4 and IPv6, multiple rows can be
-    # returned; pick the first row that has a valid OwningProcess.
+function Get-PortListenerPid {
+    # Returns OwningProcess PID of the LISTEN socket on $Port:
+    #   >0  = listening, this PID owns it
+    #   -1  = listening but OwningProcess not resolvable (unknown owner)
+    #    0  = not listening
+    # (host=0.0.0.0 can LISTEN on both IPv4/IPv6; pick first row with a valid owner.)
     param([int]$Port)
     try {
         $conns = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
-        if ($null -eq $conns) { return $null }
-        $validConn = $conns | Where-Object {
-            $null -ne $_.OwningProcess -and [int]$_.OwningProcess -gt 0
-        } | Select-Object -First 1
-        if ($null -ne $validConn) {
-            $ownerPid = [int]$validConn.OwningProcess
-            $procName = '<unknown>'
-            try {
-                $p = Get-Process -Id $ownerPid -ErrorAction SilentlyContinue
-                if ($null -ne $p) { $procName = $p.ProcessName }
-            } catch {}
-            return [pscustomobject]@{ Pid = $ownerPid; Name = $procName }
-        }
-        # No row has a usable OwningProcess but there IS a LISTEN -- unknown owner.
-        $anyConn = $conns | Select-Object -First 1
-        if ($null -ne $anyConn) {
-            return [pscustomobject]@{ Pid = 0; Name = '<unknown owner>' }
-        }
-        return $null
+        if ($null -eq $conns) { return 0 }
+        $valid = $conns | Where-Object { $null -ne $_.OwningProcess -and [int]$_.OwningProcess -gt 0 } | Select-Object -First 1
+        if ($null -ne $valid) { return [int]$valid.OwningProcess }
+        if ($null -ne ($conns | Select-Object -First 1)) { return -1 }
+        return 0
+    } catch {
+        return 0
+    }
+}
+
+function Test-PidIsStrictdoc {
+    # FR-1157a: the listening process is a strictdoc server (CommandLine contains "strictdoc").
+    # WMI failure / empty CommandLine -> NOT strictdoc (safe side).
+    param([int]$ProcessId)
+    if ($ProcessId -le 0) { return $false }
+    try {
+        $p = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId=$ProcessId" -ErrorAction Stop
+        if ($null -eq $p -or [string]::IsNullOrEmpty($p.CommandLine)) { return $false }
+        return ($p.CommandLine -match '(?i)strictdoc')
+    } catch {
+        return $false
+    }
+}
+
+function ConvertTo-NormalizedPath {
+    # Normalize for comparison: full path, trailing separators removed, lower-case.
+    # Returns $null if the input is empty or cannot be made absolute (FR-1158a).
+    param([string]$Path)
+    if ([string]::IsNullOrWhiteSpace($Path)) { return $null }
+    try {
+        $full = [System.IO.Path]::GetFullPath($Path)
     } catch {
         return $null
     }
+    $full = $full.TrimEnd('\', '/')
+    return $full.ToLowerInvariant()
 }
 
-function Get-ServerState {
-    # FR-501..506: returns one of RUNNING / STARTING / STOPPED / STALE_PID_FILE / OTHER_OWNS_PORT.
-    param($Config)
-
-    $port = [int]$Config.port
-    $pidFile = Get-PidFilePath -Port $port
-    $serverPid = Read-PidFile -Path $pidFile
-    $portOwner = Get-PortOwner -Port $port
-
-    $state = [pscustomobject]@{
-        Status      = 'STOPPED'
-        Pid         = $null
-        Port        = $port
-        Uptime      = $null
-        ElapsedSecs = $null
-        LogPath     = Get-StdoutLogPath -Port $port
-        ErrLogPath  = Get-StderrLogPath -Port $port
-        OwnerName   = $null
-        Detail      = ''
+function Get-RunningStrictDocServers {
+    # FR-1158 / FR-1157: enumerate live 'strictdoc server' processes via CIM, parsing
+    # the served input_path (best-effort) and --port from each CommandLine.
+    # Returns @() of [pscustomobject]@{ Pid; Port; NormPath }.
+    # Limitation (spec 6.10.3 Limitations 1): CommandLine-dependent; WMI failure -> @().
+    $servers = @()
+    $procs = $null
+    try {
+        $procs = Get-CimInstance -ClassName Win32_Process -ErrorAction Stop |
+            Where-Object { $_.CommandLine -and ($_.CommandLine -match '(?i)strictdoc') -and ($_.CommandLine -match '(?i)(^|\s)server(\s|$)') }
+    } catch {
+        return $servers
     }
-
-    if ($null -ne $serverPid) {
-        # PID file exists; classify by process + port state.
-        $proc = Get-Process -Id $serverPid -ErrorAction SilentlyContinue
-        if ($null -eq $proc) {
-            $state.Status = 'STALE_PID_FILE'
-            $state.Pid = $serverPid
-            $state.Detail = "PID $serverPid does not exist"
-            return $state
+    foreach ($p in $procs) {
+        $cl = $p.CommandLine
+        $port = 0
+        if ($cl -match '(?i)--port[\s=]+"?(\d{1,5})"?') { $port = [int]$matches[1] }
+        # served path = first token after the 'server' subcommand (quoted or bare),
+        # excluding option flags. Best-effort.
+        $normPath = $null
+        if ($cl -match '(?i)\bserver\b\s+(?:"([^"]+)"|([^\s"-][^\s"]*))') {
+            $rawPath = if ($matches[1]) { $matches[1] } else { $matches[2] }
+            $normPath = ConvertTo-NormalizedPath -Path $rawPath
         }
-        if (-not (Test-ProcessIsStrictdoc -ProcessId $serverPid)) {
-            $state.Status = 'STALE_PID_FILE'
-            $state.Pid = $serverPid
-            $state.Detail = "PID $serverPid is not a strictdoc process"
-            return $state
-        }
-        # PID alive + strictdoc; check LISTEN.
-        $portListening = ($null -ne $portOwner -and $portOwner.Pid -eq $serverPid)
-        if ($portListening) {
-            $state.Status = 'RUNNING'
-            $state.Pid = $serverPid
-            try { $state.Uptime = (Get-Date) - $proc.StartTime } catch {}
-            return $state
-        }
-        # Not LISTEN yet: STARTING if <30s, STALE otherwise (FR-503 / FR-505).
-        $elapsed = 9999
-        try { $elapsed = [int]((Get-Date) - $proc.StartTime).TotalSeconds } catch {}
-        if ($elapsed -lt 30) {
-            $state.Status = 'STARTING'
-            $state.Pid = $serverPid
-            $state.ElapsedSecs = $elapsed
-            return $state
-        } else {
-            $state.Status = 'STALE_PID_FILE'
-            $state.Pid = $serverPid
-            $state.Detail = "process alive but not listening (elapsed ${elapsed}s)"
-            return $state
-        }
+        $servers += [pscustomobject]@{ Pid = [int]$p.ProcessId; Port = $port; NormPath = $normPath }
     }
-
-    # No PID file.
-    if ($null -ne $portOwner) {
-        $state.Status = 'OTHER_OWNS_PORT'
-        $state.Pid = $portOwner.Pid
-        $state.OwnerName = $portOwner.Name
-        return $state
-    }
-
-    return $state
+    return $servers
 }
 
-function Format-Uptime {
-    param($Span)
-    if ($null -eq $Span) { return '00:00:00' }
-    if ($Span.Days -gt 0) {
-        return ("{0}.{1:D2}:{2:D2}:{3:D2}" -f $Span.Days, $Span.Hours, $Span.Minutes, $Span.Seconds)
+function Find-ServerPortForPath {
+    # FR-1158: if a running strictdoc server already serves $ProjectPath, return its port; else 0.
+    # (a) unparseable served paths are skipped (treated as no match -> new launch).
+    # (b) multiple matches: smallest port. (c) enumeration failure -> 0 (-> new launch).
+    param([string]$ProjectPath)
+    $target = ConvertTo-NormalizedPath -Path $ProjectPath
+    if ($null -eq $target) { return 0 }
+    $hits = Get-RunningStrictDocServers | Where-Object { $_.NormPath -eq $target -and $_.Port -gt 0 }
+    if (($hits | Measure-Object).Count -eq 0) { return 0 }
+    return ([int](($hits | Sort-Object Port | Select-Object -First 1).Port))
+}
+
+function Test-StrictDocServerAliveOnPort {
+    # FR-1157 (c/d): is a strictdoc server process (launched with --port $Port) still alive?
+    param([int]$Port)
+    $alive = Get-RunningStrictDocServers | Where-Object { $_.Port -eq $Port }
+    return (($alive | Measure-Object).Count -gt 0)
+}
+
+function Get-FreePort {
+    # FR-1156 / FR-1156b: first free port from $Start up to ceiling = min($Start+20, 64999).
+    # Returns the free port, or 0 if none (caller emits FR-1156b error).
+    param([int]$Start)
+    $ceiling = [Math]::Min($Start + 20, 64999)
+    for ($p = $Start; $p -le $ceiling; $p++) {
+        if ((Get-PortListenerPid -Port $p) -eq 0) { return $p }
     }
-    return ("{0:D2}:{1:D2}:{2:D2}" -f $Span.Hours, $Span.Minutes, $Span.Seconds)
+    return 0
 }
 
-function Get-BrowserOpenUrl {
-    # FR-307 / FR-308: 0.0.0.0 and :: get rewritten to 127.0.0.1.
-    param($Config)
-    $urlHost = $Config.host
-    if ($urlHost -eq '0.0.0.0' -or $urlHost -eq '::') { $urlHost = '127.0.0.1' }
-    return ("http://{0}:{1}/" -f $urlHost, $Config.port)
+function Get-PortCeiling {
+    param([int]$Start)
+    return [Math]::Min($Start + 20, 64999)
 }
 
-function Show-MenuHeader {
+function Quote-ArgIfNeeded {
+    # PS 5.1 Start-Process -ArgumentList does NOT auto-quote array elements containing
+    # whitespace; pre-quote so "C:\My Project" stays a single argument (FR-1133).
+    param([string]$Value)
+    if ([string]::IsNullOrEmpty($Value)) { return $Value }
+    if ($Value -match '\s') { return '"' + $Value + '"' }
+    return $Value
+}
+
+function Start-StrictDocCliWindow {
+    # FR-1101: launch 'strictdoc server <path> --host <h> --port <p> [--output-path <o>]'
+    # in an independent, visible console window (the "strictdoc server CLI window").
+    #
+    # Method: Start-Process on strictdoc.exe DIRECTLY. For a console app, Start-Process with
+    # UseShellExecute (the default; no -NoNewWindow, no -WindowStyle Hidden) opens a NEW visible
+    # console window -- verified to bind the port. We deliberately do NOT route through
+    # 'cmd /c start "<title>" ...': passing that quoted command line through
+    # Start-Process -ArgumentList makes PowerShell re-quote it, which corrupts cmd's parser
+    # (e.g. the parenthesised title caused a cmd syntax error). No stdout/stderr redirect
+    # (FR-1102: the window IS the log). The window uses the default title; the StrictDoc banner
+    # inside it (Server URL: http://<host>:<port>/) identifies each window/document.
     param(
-        [Parameter(Mandatory)] [string]$ConfigPath,
-        $Config,
-        $Validation,
-        $ServerState
+        [Parameter(Mandatory)] [string]$StrictDocExe,
+        [Parameter(Mandatory)] [string]$ProjectPath,
+        [Parameter(Mandatory)] [string]$BindHost,
+        [Parameter(Mandatory)] [int]$Port,
+        [string]$OutputPath = ''
     )
-    $line = '=' * 60
-    Write-Host $line
-    Write-Host "                StrictDocStarter Server Menu"
-    Write-Host $line
-    Write-Host "Config:  $ConfigPath"
-    if ($null -ne $Config) {
-        Write-Host "Project: $($Config.project_path)"
-        Write-Host "Host:    $($Config.host)"
-        Write-Host "Port:    $($Config.port)"
+    $argList = @('server', (Quote-ArgIfNeeded $ProjectPath), '--host', $BindHost, '--port', $Port.ToString())
+    if (-not [string]::IsNullOrWhiteSpace($OutputPath)) {
+        $argList += @('--output-path', (Quote-ArgIfNeeded $OutputPath))
     }
-    if ($null -ne $Validation -and -not $Validation.Ok) {
-        Write-Host ""
-        Write-Host "[CONFIG ERROR] $($Validation.ErrorField): $($Validation.ErrorMessage)" -ForegroundColor Red
-        return
-    }
-    if ($null -eq $ServerState) { return }
-    $tag = "[$($ServerState.Status)]"
-    switch ($ServerState.Status) {
-        'RUNNING' {
-            $up = Format-Uptime -Span $ServerState.Uptime
-            Write-Host "Status:  $tag PID $($ServerState.Pid) (uptime: $up)" -ForegroundColor Green
-        }
-        'STARTING' {
-            Write-Host "Status:  $tag PID $($ServerState.Pid) (waiting for LISTEN, $($ServerState.ElapsedSecs)s/30s)" -ForegroundColor Yellow
-        }
-        'STOPPED' {
-            Write-Host "Status:  $tag" -ForegroundColor Gray
-        }
-        'STALE_PID_FILE' {
-            Write-Host "Status:  $tag $($ServerState.Detail)" -ForegroundColor Yellow
-        }
-        'OTHER_OWNS_PORT' {
-            $owner = $ServerState.OwnerName
-            if ([string]::IsNullOrEmpty($owner)) { $owner = '<unknown owner>' }
-            $ownerPid = $ServerState.Pid
-            $pidText = if ($ownerPid -gt 0) { "PID $ownerPid" } else { 'PID unknown' }
-            Write-Host "Status:  $tag port $($ServerState.Port) is in use by $owner ($pidText)" -ForegroundColor Yellow
-        }
-    }
-}
-
-function Wait-ForPortListen {
-    # FR-303 (a): wait up to 30s for LISTEN.
-    param([int]$Port, [int]$TimeoutSec = 30)
-    for ($i = 0; $i -lt $TimeoutSec; $i++) {
-        if ($null -ne (Get-PortOwner -Port $Port)) { return $true }
-        Start-Sleep -Seconds 1
-    }
-    return $false
-}
-
-function Wait-ForHttpReady {
-    # FR-303 (b): wait up to 5s for HTTP response (any status code counts as ready).
-    param([string]$BindHost, [int]$Port, [int]$TimeoutSec = 5)
-    $urlHost = $BindHost
-    if ($urlHost -eq '0.0.0.0' -or $urlHost -eq '::') { $urlHost = '127.0.0.1' }
-    $url = ("http://{0}:{1}/" -f $urlHost, $Port)
-    for ($i = 0; $i -lt $TimeoutSec; $i++) {
-        try {
-            $null = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 1 -ErrorAction Stop
-            return $true
-        } catch {
-            # 4xx / 5xx responses are still "server responding" -> ready.
-            if ($null -ne $_.Exception -and $null -ne $_.Exception.Response) {
-                return $true
-            }
-        }
-        Start-Sleep -Seconds 1
-    }
-    return $false
-}
-
-function Start-StrictDocServerProcess {
-    # FR-301..311.
-    param($Config)
-    $port      = [int]$Config.port
-    $stdoutLog = Get-StdoutLogPath -Port $port
-    $stderrLog = Get-StderrLogPath -Port $port
-    $pidFile   = Get-PidFilePath  -Port $port
-
-    $null = Get-LocalAppDataDir  # ensure dir (FR-310)
-
-    # FR-309: append separator line BEFORE Start-Process (race avoidance).
-    $sep = ("=== Server started {0} ===" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))
-    try { Add-Content -Path $stdoutLog -Value $sep -Encoding UTF8 -ErrorAction SilentlyContinue } catch {}
-
-    # M3: resolve strictdoc absolute path to avoid CreateProcess PATH issues.
-    $strictdocExe = Resolve-StrictDocExecutable
-    if ($null -eq $strictdocExe) {
-        Write-Host "[ERROR] strictdoc not found on PATH. Run setup-strictdoc.bat first, or activate the venv that has strictdoc installed." -ForegroundColor Red
-        return $false
-    }
-
-    # FR-301 + B1: launch strictdoc with separate stdout/stderr redirect.
-    # Pre-quote path args because PowerShell 5.1 Start-Process -ArgumentList
-    # does NOT auto-quote array elements containing whitespace.
-    $argList = @(
-        'server',
-        (Quote-ArgIfNeeded $Config.project_path),
-        '--host', $Config.host,
-        '--port', $port.ToString()
-    )
-    if (-not [string]::IsNullOrWhiteSpace($Config.output_path)) {
-        $argList += @('--output-path', (Quote-ArgIfNeeded $Config.output_path))
-    }
-
     $eap = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-    $proc = $null
     try {
-        $proc = Start-Process -FilePath $strictdocExe `
-            -ArgumentList $argList `
-            -WindowStyle Hidden `
-            -RedirectStandardOutput $stdoutLog `
-            -RedirectStandardError  $stderrLog `
-            -PassThru -ErrorAction Stop
-    } catch {
-        Write-Host "[ERROR] Failed to launch strictdoc: $($_.Exception.Message)" -ForegroundColor Red
+        Start-Process -FilePath $StrictDocExe -ArgumentList $argList -ErrorAction Stop
         $ErrorActionPreference = $eap
-        return $false
-    }
-    $ErrorActionPreference = $eap
-
-    if ($null -eq $proc) {
-        Write-Host "[ERROR] Start-Process returned null (strictdoc launch failed)" -ForegroundColor Red
-        return $false
-    }
-
-    # FR-302: write PID file with trailing newline (Set-Content adds newline by default).
-    try {
-        Set-Content -Path $pidFile -Value $proc.Id -Encoding ASCII -ErrorAction Stop
+        return $true
     } catch {
-        Write-Host "[ERROR] Failed to write PID file: $($_.Exception.Message)" -ForegroundColor Red
+        $ErrorActionPreference = $eap
+        Write-Host "[ERROR] Failed to launch strictdoc server window: $($_.Exception.Message)" -ForegroundColor Red
         return $false
     }
-
-    Write-Host "[INFO]  strictdoc launched (PID $($proc.Id)). Waiting for port $port to LISTEN..."
-
-    # FR-303 (a): port LISTEN.
-    if (-not (Wait-ForPortListen -Port $port -TimeoutSec 30)) {
-        Write-Host "[WARN]  Timeout waiting for server to listen. Check Logs (menu 4) for details." -ForegroundColor Yellow
-        return $false
-    }
-
-    # pip-generated 'strictdoc.exe' is a launcher that spawns python.exe as a
-    # child; the child owns the LISTEN socket. After LISTEN is confirmed,
-    # update the PID file to point at the actual listener so subsequent
-    # Status / Stop track the correct process (FR-302 amendment).
-    $listenerOwner = Get-PortOwner -Port $port
-    if ($null -ne $listenerOwner -and $listenerOwner.Pid -gt 0 -and $listenerOwner.Pid -ne $proc.Id) {
-        if (Test-ProcessIsStrictdoc -ProcessId $listenerOwner.Pid) {
-            try {
-                Set-Content -Path $pidFile -Value $listenerOwner.Pid -Encoding ASCII -ErrorAction Stop
-                Write-Host "[INFO]  Listener is child process; PID file updated to $($listenerOwner.Pid)."
-            } catch {
-                Write-Host "[WARN]  Failed to update PID file to listener PID: $($_.Exception.Message)" -ForegroundColor Yellow
-            }
-        }
-    }
-
-    Write-Host "[INFO]  Port $port is LISTENing. Verifying HTTP response..."
-
-    # FR-303 (b): HTTP response.
-    if (-not (Wait-ForHttpReady -BindHost $Config.host -Port $port -TimeoutSec 5)) {
-        Write-Host "[WARN]  Timeout waiting for HTTP response (TCP open but app not ready). Check Logs (menu 4)." -ForegroundColor Yellow
-        return $false
-    }
-
-    Write-Host "[OK]    Server started (PID $($proc.Id) on port $port)." -ForegroundColor Green
-
-    # FR-307: open browser if configured.
-    if ($Config.open_browser) {
-        Open-BrowserForConfig -Config $Config
-    }
-    return $true
 }
 
-function Stop-StrictDocServerProcess {
-    # FR-401..411.
-    param($Config, [int]$KnownPid = 0)
-
-    $port    = [int]$Config.port
-    $pidFile = Get-PidFilePath -Port $port
-
-    $serverPid = 0
-    if ($KnownPid -gt 0) {
-        $serverPid = $KnownPid
-    } else {
-        $fromFile = Read-PidFile -Path $pidFile  # FR-401
-        if ($null -ne $fromFile) {
-            $serverPid = $fromFile
-        } else {
-            # FR-402: port-based fallback.
-            $owner = Get-PortOwner -Port $port
-            if ($null -ne $owner -and $owner.Pid -gt 0) {
-                $serverPid = $owner.Pid
-                Write-Host "[INFO]  PID file missing; using port-based fallback (PID $serverPid)."
+function Confirm-PortAdoption {
+    # FR-1157: poll (1s) after launch until a definitive signal. NO fixed 8s timeout;
+    # 60s is only a non-fatal safety cap. Branches:
+    #   (a) port LISTEN by a strictdoc PID            -> @{ Result='adopted' }
+    #   (b) port LISTEN by a non-strictdoc PID        -> @{ Result='race' }     (TOCTOU)
+    #   (c) our server process gone, port not bound   -> @{ Result='failed' }   (after spawn grace)
+    #   (d) our server alive but not yet bound        -> keep waiting (no false-fail on big projects)
+    #   safety cap reached                            -> @{ Result='timeout' }
+    # SpawnGraceSec: how long to allow for the process to FIRST appear (strictdoc.exe ->
+    # python cold start can take several seconds before it is queryable via CIM).
+    param([int]$Port, [int]$SpawnGraceSec = 12, [int]$MaxWaitSec = 60)
+    $startTime = Get-Date
+    $everSeenAlive = $false
+    while ($true) {
+        $elapsed = [int]((Get-Date) - $startTime).TotalSeconds
+        $ownerPid = Get-PortListenerPid -Port $Port
+        if ($ownerPid -gt 0) {
+            if (Test-PidIsStrictdoc -ProcessId $ownerPid) {
+                return [pscustomobject]@{ Result = 'adopted'; OwnerPid = $ownerPid }     # (a)
             }
+            return [pscustomobject]@{ Result = 'race'; OwnerPid = $ownerPid }            # (b)
         }
+        if ($ownerPid -lt 0) {
+            # LISTEN but owner unresolvable: cannot confirm strictdoc -> treat as race (safe).
+            return [pscustomobject]@{ Result = 'race'; OwnerPid = 0 }
+        }
+        # Not listening yet. Classify by whether our server process is alive.
+        if (Test-StrictDocServerAliveOnPort -Port $Port) {
+            $everSeenAlive = $true            # (d) alive but unbound -> keep waiting (big projects)
+        } else {
+            if ($everSeenAlive) {
+                # appeared then vanished without binding -> startup failure (e.g. parse error).
+                return [pscustomobject]@{ Result = 'failed'; OwnerPid = 0 }               # (c)
+            }
+            if ($elapsed -ge $SpawnGraceSec) {
+                # never appeared within the spawn grace -> launch failed.
+                return [pscustomobject]@{ Result = 'failed'; OwnerPid = 0 }               # (c)
+            }
+            # still within spawn grace and not seen yet -> wait
+        }
+        if ($elapsed -ge $MaxWaitSec) {
+            return [pscustomobject]@{ Result = 'timeout'; OwnerPid = 0 }
+        }
+        Start-Sleep -Seconds 1
     }
+}
 
-    if ($serverPid -le 0) {
-        # FR-411
-        Write-Host "[INFO]  Server is not running."
-        return $true
-    }
-
-    # FR-403 / FR-404: identity check.
-    if (-not (Test-ProcessIsStrictdoc -ProcessId $serverPid)) {
-        $cmdLine = Get-ProcessCommandLine -ProcessId $serverPid
-        Write-Host "[WARN]  PID $serverPid is not a strictdoc process (CommandLine: $cmdLine). Aborting stop." -ForegroundColor Yellow
-        Write-Host "        To recover, delete the stale PID file manually: $pidFile" -ForegroundColor DarkGray
-        return $false
-    }
-
-    # FR-405: try graceful Stop-Process (no -Force).
-    Write-Host "[INFO]  Stopping strictdoc (PID $serverPid)..."
+function Show-StartupErrorDiagnostic {
+    # FR-1157c: the CLI window may have closed on a parse error, so surface the cause
+    # HERE in the manage cmd window. Run a synchronous 'strictdoc export' (a .sdoc parse
+    # error fails fast at the parse stage) and echo its output. Temp dir is cleaned.
+    # strictdoc-not-found cannot reach here (FR-1105 aborts earlier). If export fails for a
+    # non-parse reason, its output is echoed verbatim without asserting the cause.
+    param(
+        [Parameter(Mandatory)] [string]$StrictDocExe,
+        [Parameter(Mandatory)] [string]$ProjectPath,
+        [Parameter(Mandatory)] [int]$Port
+    )
+    Write-Host ""
+    Write-Host "[ERROR] StrictDoc server failed to start on port $Port (it exited before binding)." -ForegroundColor Red
+    Write-Host "        Most likely a .sdoc parse error. Details from 'strictdoc export':" -ForegroundColor Red
+    $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("sds-diag-" + [Guid]::NewGuid().ToString('N'))
     $eap = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-    Stop-Process -Id $serverPid -ErrorAction SilentlyContinue
-    $ErrorActionPreference = $eap
-
-    # FR-406: wait up to 5s.
-    $stopped = $false
-    for ($i = 0; $i -lt 5; $i++) {
-        Start-Sleep -Seconds 1
-        if (-not (Get-Process -Id $serverPid -ErrorAction SilentlyContinue)) { $stopped = $true; break }
-    }
-
-    if (-not $stopped) {
-        # FR-407: -Force retry, up to 3s.
-        Write-Host "[INFO]  Not gone after 5s. Retrying with -Force..."
-        Stop-Process -Id $serverPid -Force -ErrorAction SilentlyContinue
-        for ($i = 0; $i -lt 3; $i++) {
-            Start-Sleep -Seconds 1
-            if (-not (Get-Process -Id $serverPid -ErrorAction SilentlyContinue)) { $stopped = $true; break }
-        }
-    }
-
-    if (-not $stopped) {
-        # FR-408: leave PID file in place.
-        Write-Host "[ERROR] Failed to stop PID $serverPid even with -Force. Investigate manually." -ForegroundColor Red
-        return $false
-    }
-
-    # FR-409: delete PID file.
-    if (Test-Path $pidFile) {
-        Remove-Item -Path $pidFile -Force -ErrorAction SilentlyContinue
-    }
-    Write-Host "[OK]    Server stopped (PID $serverPid)." -ForegroundColor Green
-    return $true
-}
-
-function Invoke-StartAction {
-    # Dispatches Start (menu 1) based on current state.
-    param($Config, $ServerState)
-
-    switch ($ServerState.Status) {
-        'RUNNING' {
-            # FR-305: 3-choice prompt.
-            Write-Host "[INFO]  Already running (PID $($ServerState.Pid) on port $($Config.port))."
-            $rawChoice = Read-Host "[R]estart / [O]pen browser / [C]ancel"
-            # M2: defend against $null.
-            $choice = "$rawChoice".Trim().ToUpperInvariant()
-            switch ($choice) {
-                'R' {
-                    if (Stop-StrictDocServerProcess -Config $Config -KnownPid $ServerState.Pid) {
-                        $null = Start-StrictDocServerProcess -Config $Config
-                    }
-                }
-                'O' {
-                    Open-BrowserForConfig -Config $Config
-                }
-                default {
-                    Write-Host "[INFO]  Cancelled."
-                }
+    try {
+        $out = & $StrictDocExe export $ProjectPath --output-dir $tmp 2>&1
+        $ErrorActionPreference = $eap
+        $text = ($out | Out-String)
+        $lines = $text -split "`r?`n" | Where-Object { $_ -match '(?i)(error|could not parse|TextXSyntaxError|traceback|exception|line\s+\d+)' }
+        if (($lines | Measure-Object).Count -gt 0) {
+            foreach ($ln in ($lines | Select-Object -First 15)) {
+                Write-Host ("        " + $ln.Trim()) -ForegroundColor Yellow
             }
+        } else {
+            # No recognizable error lines: echo the tail so the user sees something useful.
+            $tail = $text.Trim()
+            if ($tail.Length -gt 600) { $tail = $tail.Substring($tail.Length - 600) }
+            if ($tail.Length -gt 0) { Write-Host ("        " + $tail) -ForegroundColor Yellow }
+            else { Write-Host "        (no diagnostic output captured; run 'strictdoc server' manually to see the error)" -ForegroundColor Yellow }
         }
-        'STARTING' {
-            Write-Host "[INFO]  Server is still starting (PID $($ServerState.Pid), $($ServerState.ElapsedSecs)s elapsed). Use Status (menu 3) to refresh."
-        }
-        'STOPPED' {
-            $null = Start-StrictDocServerProcess -Config $Config
-        }
-        'STALE_PID_FILE' {
-            # FR-312: auto-cleanup.
-            Write-Host "[INFO]  Stale PID file detected. Cleaning up and starting fresh."
-            $pidFile = Get-PidFilePath -Port $Config.port
-            if (Test-Path $pidFile) {
-                Remove-Item -Path $pidFile -Force -ErrorAction SilentlyContinue
-            }
-            $null = Start-StrictDocServerProcess -Config $Config
-        }
-        'OTHER_OWNS_PORT' {
-            # FR-306
-            $owner = $ServerState.OwnerName
-            if ([string]::IsNullOrEmpty($owner)) { $owner = '<unknown owner>' }
-            $pidText = if ($ServerState.Pid -gt 0) { "PID $($ServerState.Pid)" } else { 'PID unknown' }
-            Write-Host "[WARN]  Port $($Config.port) is occupied by '$owner' ($pidText). Cannot start. Edit config (menu 5) to use a different port." -ForegroundColor Yellow
-        }
-        default {
-            Write-Host "[ERROR] Unknown server state: $($ServerState.Status)" -ForegroundColor Red
-        }
+    } catch {
+        $ErrorActionPreference = $eap
+        Write-Host "        (diagnostic export could not run: $($_.Exception.Message))" -ForegroundColor Yellow
+    } finally {
+        if (Test-Path $tmp) { Remove-Item -Path $tmp -Recurse -Force -ErrorAction SilentlyContinue }
     }
-}
-
-function Invoke-StopAction {
-    param($Config, $ServerState)
-
-    if ($ServerState.Status -eq 'STOPPED') {
-        Write-Host "[INFO]  Server is not running."
-        return
-    }
-    if ($ServerState.Status -eq 'OTHER_OWNS_PORT') {
-        Write-Host "[INFO]  Port is owned by another process (not strictdoc). Nothing to stop here."
-        return
-    }
-    $null = Stop-StrictDocServerProcess -Config $Config -KnownPid ([int]$ServerState.Pid)
-}
-
-function Show-ServerStatusDetail {
-    # FR-508.
-    param($Config, $ServerState)
-    Write-Host "Server state details:"
-    Write-Host "  Status: $($ServerState.Status)"
-    Write-Host "  Port:   $($ServerState.Port)"
-    if ($null -ne $ServerState.Pid -and $ServerState.Pid -gt 0) {
-        Write-Host "  PID:    $($ServerState.Pid)"
-    }
-    if ($ServerState.Status -eq 'RUNNING' -and $null -ne $ServerState.Uptime) {
-        Write-Host "  Uptime: $(Format-Uptime -Span $ServerState.Uptime)"
-    }
-    if ($ServerState.Status -eq 'STARTING') {
-        Write-Host "  Waiting LISTEN: $($ServerState.ElapsedSecs)s elapsed (30s timeout)"
-    }
-    if (-not [string]::IsNullOrEmpty($ServerState.OwnerName)) {
-        Write-Host "  Owner:  $($ServerState.OwnerName)"
-    }
-    Write-Host "  Log:    $($ServerState.LogPath)"
-    Write-Host "  Errlog: $($ServerState.ErrLogPath)"
-    if (-not [string]::IsNullOrEmpty($ServerState.Detail)) {
-        Write-Host "  Note:   $($ServerState.Detail)"
-    }
-}
-
-function Show-ServerLogs {
-    # FR-601..604.
-    param($Config)
-    $port      = [int]$Config.port
-    $stdoutLog = Get-StdoutLogPath -Port $port
-    $stderrLog = Get-StderrLogPath -Port $port
-
-    if (-not (Test-Path $stdoutLog)) {
-        Write-Host "[INFO]  No log file yet at $stdoutLog. Start the server first."
-        return
-    }
-
-    Write-Host "--- $stdoutLog (last 50 lines) ---"
-    try { Get-Content -Path $stdoutLog -Tail 50 -ErrorAction Stop } catch {
-        Write-Host "[WARN]  Failed to read stdout log: $($_.Exception.Message)" -ForegroundColor Yellow
-    }
-
-    if ((Test-Path $stderrLog) -and (Get-Item $stderrLog).Length -gt 0) {
-        Write-Host ""
-        Write-Host "--- $stderrLog (last 20 lines) ---"
-        try { Get-Content -Path $stderrLog -Tail 20 -ErrorAction Stop } catch {
-            Write-Host "[WARN]  Failed to read stderr log: $($_.Exception.Message)" -ForegroundColor Yellow
-        }
-    }
+    Write-Host "        Fix the .sdoc and re-drop the folder." -ForegroundColor Red
 }

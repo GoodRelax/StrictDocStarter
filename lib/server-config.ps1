@@ -159,21 +159,15 @@ function Get-ServerConfig {
     }
     $result.Config = $config
 
-    # FR-210: validation rules.
-    if ([string]::IsNullOrWhiteSpace($projectPath)) {
-        $result.Validation = New-ValidationResult -ErrorField 'project_path' -ErrorMessage "project_path is empty"
-        return $result
-    }
-    if (-not (Test-Path $projectPath -PathType Container)) {
-        $result.Validation = New-ValidationResult -ErrorField 'project_path' -ErrorMessage "project_path does not exist or is not a directory: $projectPath"
-        return $result
-    }
+    # FR-210 (v1.2 / ADR-114): validation checks host/port only. project_path is OPTIONAL --
+    # it is resolved at runtime from D&D / prompt (FR-1150 / FR-1153); the config value is only
+    # the default offered at the prompt, so an empty/stale project_path must NOT fail config load.
     if (-not (Test-HostIsValid -Value $config.host)) {
         $result.Validation = New-ValidationResult -ErrorField 'host' -ErrorMessage "host must be IPv4, localhost, or IPv6 literal (got: $($config.host))"
         return $result
     }
-    if ($config.port -lt 1024 -or $config.port -gt 65535) {
-        $result.Validation = New-ValidationResult -ErrorField 'port' -ErrorMessage "port must be an integer between 1024 and 65535 (got: $($config.port))"
+    if ($config.port -lt 1025 -or $config.port -gt 64999) {
+        $result.Validation = New-ValidationResult -ErrorField 'port' -ErrorMessage "port must be an integer in 1025..64999 (got: $($config.port))"
         return $result
     }
     # open_browser: any value coerces to bool; no further check.
@@ -209,5 +203,173 @@ function Open-EditorForConfig {
         Start-Process -FilePath notepad -ArgumentList $Path -ErrorAction Stop | Out-Null
     } catch {
         Write-Host "[ERROR] Failed to launch any editor: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+function Test-IsDriveOrShareRoot {
+    # FR-1151c: reject a drive root (C:\) or UNC share root (\\server\share) so we never
+    # scan a whole drive/share. A normal folder beneath them (\\server\share\proj) is fine.
+    param([string]$Path)
+    if ([string]::IsNullOrWhiteSpace($Path)) { return $false }
+    # Raw form first: bare 'C:' / 'C:\' must be caught BEFORE GetFullPath, which would turn
+    # bare 'C:' into the current dir on that drive (and silently serve it).
+    if ($Path.TrimEnd('\', '/') -match '^[A-Za-z]:$') { return $true }
+    $full = $null
+    try { $full = [System.IO.Path]::GetFullPath($Path) } catch { return $false }
+    $trimmed = $full.TrimEnd('\', '/')
+    if ($trimmed -match '^[A-Za-z]:$') { return $true }                 # C: (drive root)
+    if ($full -match '^\\\\[^\\]+\\[^\\]+\\?$') { return $true }        # \\server\share (share root)
+    return $false
+}
+
+function Resolve-ProjectPathFromInput {
+    # FR-1150b / FR-1151 / FR-1152 / FR-1153 / FR-1154: resolve project_path from dropped
+    # paths (D&D) or an interactive prompt. Returns an absolute folder path, or $null on cancel.
+    param(
+        [string[]]$DroppedPaths = @(),
+        [string]$DefaultPath = ''
+    )
+    # FR-1152: multiple items dropped -> use the first only.
+    $candidate = $null
+    $dropped = @($DroppedPaths | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($dropped.Count -gt 0) {
+        if ($dropped.Count -gt 1) {
+            Write-Host "[WARN]  Multiple items dropped; using the first: $($dropped[0])" -ForegroundColor Yellow
+        }
+        $candidate = $dropped[0]
+    }
+
+    while ($true) {
+        if ([string]::IsNullOrWhiteSpace($candidate)) {
+            # FR-1153: prompt (no drop, or previous candidate rejected).
+            $defaultShown = if ([string]::IsNullOrWhiteSpace($DefaultPath)) { '(none)' } else { $DefaultPath }
+            $answer = Read-Host "Enter folder path (or Q to quit) [default: $defaultShown]"
+            $answer = "$answer".Trim().Trim('"').Trim("'")
+            if ($answer -eq 'Q' -or $answer -eq 'q') {       # FR-1153c
+                Write-Host "[INFO]  Cancelled."
+                return $null
+            }
+            if ([string]::IsNullOrWhiteSpace($answer)) {     # FR-1153a: Enter = default
+                if ([string]::IsNullOrWhiteSpace($DefaultPath)) {
+                    Write-Host "[WARN]  No default available. Enter a folder path or Q to quit." -ForegroundColor Yellow
+                    continue
+                }
+                $candidate = $DefaultPath
+            } else {
+                $candidate = $answer
+            }
+        }
+
+        # FR-1151d: .lnk shortcuts are not supported.
+        if ($candidate -match '(?i)\.lnk$') {
+            Write-Host "[WARN]  Shortcuts (.lnk) are not supported; drop the actual folder/file." -ForegroundColor Yellow
+            $candidate = $null
+            continue
+        }
+
+        $resolved = $candidate
+        try { $resolved = [System.IO.Path]::GetFullPath($candidate) } catch {}
+
+        # FR-1151b: a file resolves to its parent folder.
+        if (Test-Path -LiteralPath $resolved -PathType Leaf) {
+            $resolved = Split-Path -Parent $resolved
+        }
+
+        # FR-1151c: reject drive / UNC share root. Check the RAW candidate too, so a bare
+        # 'C:' typed at the prompt is rejected (GetFullPath would otherwise resolve it to CWD).
+        if ((Test-IsDriveOrShareRoot -Path $candidate) -or (Test-IsDriveOrShareRoot -Path $resolved)) {
+            Write-Host "[ERROR] '$resolved' is a drive/share root. Drop a project folder, not a whole drive." -ForegroundColor Red
+            $candidate = $null
+            continue
+        }
+
+        # FR-1154a: must exist and be a directory.
+        if (-not (Test-Path -LiteralPath $resolved -PathType Container)) {
+            Write-Host "[ERROR] $resolved does not exist or is not a usable project folder." -ForegroundColor Red
+            $candidate = $null
+            continue
+        }
+
+        # FR-1154b: warn (non-fatal) if no .sdoc files.
+        $sdoc = @(Get-ChildItem -LiteralPath $resolved -Filter *.sdoc -File -ErrorAction SilentlyContinue)
+        if ($sdoc.Count -eq 0) {
+            Write-Host "[WARN]  No .sdoc files found under $resolved. Starting as an empty project." -ForegroundColor Yellow
+        }
+
+        return $resolved
+    }
+}
+
+function Save-LastUsedProjectPath {
+    # FR-1155: persist the resolved project_path into server.config.json (last-used = next
+    # default). host / port / open_browser / output_path are preserved. UTF-8 no BOM.
+    # Non-fatal on failure (FR-1155c).
+    param(
+        [Parameter(Mandatory)] [string]$ConfigPath,
+        [Parameter(Mandatory)] [string]$ProjectPath
+    )
+    try {
+        $raw = Read-FileNoBom -Path $ConfigPath
+        $obj = $raw | ConvertFrom-Json -ErrorAction Stop
+        if ($obj.PSObject.Properties['project_path']) {
+            $obj.project_path = $ProjectPath
+        } else {
+            $obj | Add-Member -NotePropertyName project_path -NotePropertyValue $ProjectPath -Force
+        }
+        $json = $obj | ConvertTo-Json -Depth 10
+        # PS 5.1 ConvertTo-Json HTML-escapes > < ' & inside string values; the only docs for
+        # this no-menu tool are the _comment_* fields, so restore readability. All four are
+        # safe to leave literal in a JSON string.
+        $json = $json -replace '\\u003e', '>' -replace '\\u003c', '<' -replace '\\u0027', "'" -replace '\\u0026', '&'
+        Write-FileUtf8NoBom -Path $ConfigPath -Content $json
+    } catch {
+        Write-Host "[WARN]  Could not save last-used path: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
+function Initialize-StrictDocProjectConfig {
+    # FR-1142..1145: ensure <ProjectPath>\strictdoc_config.py exists so MERMAID / MATHJAX
+    # render. An existing strictdoc_config.py is left untouched (FR-1142). If a legacy
+    # strictdoc.toml exists, skip with a WARN (FR-1145). Write failure is non-fatal (FR-1144).
+    # Shape follows official `strictdoc new` (create_config -> ProjectConfig) plus MERMAID/MATHJAX.
+    param([Parameter(Mandatory)] [string]$ProjectPath)
+    $cfgPy   = Join-Path $ProjectPath 'strictdoc_config.py'
+    $cfgToml = Join-Path $ProjectPath 'strictdoc.toml'
+    if (Test-Path -LiteralPath $cfgPy) { return }                                         # FR-1142
+    if (Test-Path -LiteralPath $cfgToml) {                                                # FR-1145
+        Write-Host "[WARN]  Found strictdoc.toml in the project; not scaffolding strictdoc_config.py. Enable MERMAID/MATHJAX there if you need diagrams/math." -ForegroundColor Yellow
+        return
+    }
+    $content = @'
+# StrictDoc project configuration scaffolded by StrictDocStarter (manage-strictdoc).
+#
+# Placed in this project folder so `strictdoc server <this folder>` enables the features
+# below. StrictDoc reads the config from the input folder itself, not parent folders
+# (verified on strictdoc 0.23.1). Shape follows the official `strictdoc new` output
+# (create_config() returning a ProjectConfig) plus MERMAID + MATHJAX, which `strictdoc new`
+# leaves off. Edit freely -- StrictDocStarter never overwrites an existing strictdoc_config.py.
+#
+# Docs: https://strictdoc.readthedocs.io/
+from strictdoc.core.project_config import ProjectConfig
+
+
+def create_config() -> ProjectConfig:
+    return ProjectConfig(
+        project_title="StrictDoc Project",
+        project_features=[
+            "TABLE_SCREEN",
+            "TRACEABILITY_SCREEN",
+            "DEEP_TRACEABILITY_SCREEN",
+            "SEARCH",
+            "MATHJAX",
+            "MERMAID",
+        ],
+    )
+'@
+    try {
+        Write-FileUtf8NoBom -Path $cfgPy -Content $content
+        Write-Host "[INFO]  Scaffolded strictdoc_config.py (MERMAID + MATHJAX) in the project folder."
+    } catch {
+        Write-Host "[WARN]  Could not scaffold strictdoc_config.py: $($_.Exception.Message)" -ForegroundColor Yellow
     }
 }

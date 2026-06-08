@@ -1,171 +1,180 @@
-# manage-strictdoc.ps1 - StrictDoc server lifecycle menu loop dispatcher.
-# Menu: 1 Start / 2 Stop / 3 Status / 4 Logs / 5 Edit config / Q Quit.
-# Spec: docs/serve-spec.md (FR-101..110, ADR-101..112).
-# Output language: English ASCII only (per NFR-005 / ADR-008).
-#
-# IMPORTANT (Glossary): $pid and $host are PowerShell reserved automatic
-#                       variables. Do NOT shadow them.
+# manage-strictdoc.ps1 - StrictDoc launcher (v1.2, ADR-115 option C: pure launcher, no menu).
+# Flow: resolve project_path (D&D / prompt) -> dedup -> free port -> visible
+#       "strictdoc server CLI window" -> browser -> save last-used -> exit.
+# Spec: docs/serve-spec.md FR-1101..1105, FR-1121, FR-1132..1134, FR-1150..1159, FR-1156b, FR-1157c.
+# Output language: English ASCII only (NFR-005 / ADR-008).
 
 [CmdletBinding()]
-param()
+param(
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$DroppedPaths = @()
+)
 
-$ErrorActionPreference = "Continue"
-try { [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false) } catch {}
+$ErrorActionPreference = 'Stop'
 
-$ScriptDir    = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ManageLog    = Join-Path $ScriptDir 'manage.log'
-$ConfigPath   = Join-Path $ScriptDir 'server.config.json'
-$TemplatePath = Join-Path $ScriptDir 'server.config.template.json'
-$LibDir       = Join-Path $ScriptDir 'lib'
+# ---- locate self + libraries ----
+$ScriptDir     = Split-Path -Parent $MyInvocation.MyCommand.Path
+$StarterRoot   = $ScriptDir
+$ConfigPath    = Join-Path $ScriptDir 'server.config.json'
+$TemplatePath  = Join-Path $ScriptDir 'server.config.template.json'
+$SampleDefault = Join-Path $ScriptDir 'samples\sovd-automotive-ja'
+$libConfig     = Join-Path $ScriptDir 'lib\server-config.ps1'
+$libProcess    = Join-Path $ScriptDir 'lib\server-process.ps1'
 
-# Import logger module (existing, shared with setup-strictdoc).
-Import-Module (Join-Path $LibDir 'logger.psm1') -Force -DisableNameChecking
-
-# Dot-source server-config + server-process libraries (FR-209 / FR-301 etc.).
-. (Join-Path $LibDir 'server-config.ps1')
-. (Join-Path $LibDir 'server-process.ps1')
-
-# ---- FR-110 / ADR-112: two-instance detection via Start-Transcript lock ----
-$script:TranscriptStarted = $false
-try {
-    Start-Transcript -Path $ManageLog -Append -ErrorAction Stop | Out-Null
-    $script:TranscriptStarted = $true
-} catch {
-    Write-Host "[ERROR] Another manage-strictdoc session appears to be running (cannot lock manage.log). Close it first, then retry." -ForegroundColor Red
-    Write-Host "        ($($_.Exception.Message))" -ForegroundColor DarkGray
-    exit 1
+function Complete-AndExit {
+    # On error we pause so the user can read the message; on success we just close
+    # (the persistent UI is the strictdoc server CLI window). Skip the pause when
+    # stdin is redirected (automated/piped runs) so they never hang.
+    param([int]$Code = 0, [bool]$Pause = $false)
+    if ($Pause -and -not [Console]::IsInputRedirected) {
+        Write-Host ""
+        $null = Read-Host "Press Enter to close"
+    }
+    exit $Code
 }
 
-function Stop-ManageTranscriptIfStarted {
-    if ($script:TranscriptStarted) {
-        try { Stop-Transcript -ErrorAction SilentlyContinue | Out-Null } catch {}
-        $script:TranscriptStarted = $false
+# FR-1134: verify libraries are present (OneDrive Files On-Demand placeholder guard).
+foreach ($lib in @($libConfig, $libProcess)) {
+    if (-not (Test-Path $lib)) {
+        Write-Host "[ERROR] Missing library: $lib" -ForegroundColor Red
+        Write-Host "        If on OneDrive, right-click the StrictDocStarter folder -> 'Always keep on this device'." -ForegroundColor Yellow
+        Complete-AndExit -Code 1 -Pause $true
     }
 }
+. $libConfig
+. $libProcess
 
-# ---- FR-201..203: initial config bootstrap ----
+# ---- FR-1132: warn on synced / space / non-ASCII install path ----
+$riskyPath = $false
+$od = "$env:OneDrive"
+if (-not [string]::IsNullOrEmpty($od)) {
+    $odPrefix = ($od.TrimEnd('\') + '\').ToLowerInvariant()
+    if ($ScriptDir.ToLowerInvariant().StartsWith($odPrefix)) { $riskyPath = $true }
+}
+if ($ScriptDir -match '\s') { $riskyPath = $true }
+foreach ($ch in $ScriptDir.ToCharArray()) { if ([int][char]$ch -gt 127) { $riskyPath = $true; break } }
+if ($riskyPath) {
+    Write-Host "[WARN]  Running from a synced/space/non-ASCII path. A local path like C:\StrictDocStarter is recommended." -ForegroundColor Yellow
+}
+
+# ---- FR-1105: strictdoc must be installed ----
+$strictdocExe = Resolve-StrictDocExecutable
+if ($null -eq $strictdocExe) {
+    Write-Host "[ERROR] strictdoc not found. Run setup-strictdoc.bat first." -ForegroundColor Red
+    Complete-AndExit -Code 1 -Pause $true
+}
+
+# ---- first-run config scaffold (FR-1142) ----
 if (-not (Test-Path $ConfigPath)) {
-    try {
-        Initialize-ServerConfig -TemplatePath $TemplatePath -ConfigPath $ConfigPath -StarterRoot $ScriptDir
-        Write-Host "[INFO]  Created $ConfigPath from template."
-        Write-Host ""
-        Write-Host "Opening editor for initial setup..."
-        Open-EditorForConfig -Path $ConfigPath
-        Write-Host ""
-        $null = Read-Host "Press Enter when you have saved the config"
-    } catch {
-        Write-Host "[ERROR] Failed to initialize config: $($_.Exception.Message)" -ForegroundColor Red
-        Stop-ManageTranscriptIfStarted
-        exit 1
+    if (Test-Path $TemplatePath) {
+        try {
+            Initialize-ServerConfig -TemplatePath $TemplatePath -ConfigPath $ConfigPath -StarterRoot $StarterRoot
+            Write-Host "[INFO]  Created server.config.json from template."
+        } catch {
+            Write-Host "[WARN]  Could not create server.config.json: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
     }
 }
 
-# Mi3: define helper once, outside the loop.
-function Invoke-WithReturnPrompt {
-    param([scriptblock]$Action)
-    & $Action
-    Write-Host ""
-    $null = Read-Host "Press Enter to return to menu"
+# ---- load config (project_path optional; host/port validated) ----
+$bindHost          = '127.0.0.1'
+$startPort         = 5111
+$openBrowser       = $true
+$outputPath        = ''
+$configProjectPath = ''
+if (Test-Path $ConfigPath) {
+    $cfgResult = Get-ServerConfig -Path $ConfigPath -StarterRoot $StarterRoot
+    if ($null -ne $cfgResult.Config) {
+        if (-not [string]::IsNullOrWhiteSpace($cfgResult.Config.host)) { $bindHost = $cfgResult.Config.host }
+        if ([int]$cfgResult.Config.port -ge 1025)                     { $startPort = [int]$cfgResult.Config.port }
+        $openBrowser       = [bool]$cfgResult.Config.open_browser
+        $outputPath        = "$($cfgResult.Config.output_path)"
+        $configProjectPath = "$($cfgResult.Config.project_path)"
+    }
+    if (-not $cfgResult.Validation.Ok) {
+        Write-Host "[WARN]  Config issue ($($cfgResult.Validation.ErrorField)): $($cfgResult.Validation.ErrorMessage). Using defaults where needed." -ForegroundColor Yellow
+    }
 }
 
-# ---- FR-104..105 / FR-806: menu loop ----
-$quit = $false
-$finalState = $null
-while (-not $quit) {
-    # FR-209: reload + validate every iteration.
-    $configResult = Get-ServerConfig -Path $ConfigPath -StarterRoot $ScriptDir
-    $config       = $configResult.Config
-    $validation   = $configResult.Validation
-    $serverState  = $null
-    if ($validation.Ok) {
-        $serverState = Get-ServerState -Config $config
+# ---- resolve project_path (FR-1150 / 1151 / 1152 / 1153 / 1154) ----
+# Prompt default (FR-1153b): config.project_path if it is a real folder, else the bundled sample.
+$defaultPath = $configProjectPath
+if ([string]::IsNullOrWhiteSpace($defaultPath) -or -not (Test-Path -LiteralPath $defaultPath -PathType Container)) {
+    if (Test-Path -LiteralPath $SampleDefault -PathType Container) { $defaultPath = $SampleDefault } else { $defaultPath = '' }
+}
+$projectPath = Resolve-ProjectPathFromInput -DroppedPaths $DroppedPaths -DefaultPath $defaultPath
+if ($null -eq $projectPath) {
+    Complete-AndExit -Code 0 -Pause $false   # cancelled (FR-1153c)
+}
+Write-Host "[INFO]  Project: $projectPath"
+
+# ---- FR-1158: dedup -- is this folder already being served? ----
+$existingPort = Find-ServerPortForPath -ProjectPath $projectPath
+if ($existingPort -gt 0) {
+    Write-Host "[INFO]  Already serving this folder on port $existingPort. Opening browser..."
+    if ($openBrowser) { Open-BrowserAt -BindHost $bindHost -Port $existingPort }
+    Complete-AndExit -Code 0 -Pause $false
+}
+
+# ---- FR-1142..1145: ensure the project has a strictdoc_config.py (MERMAID / MATHJAX) ----
+Initialize-StrictDocProjectConfig -ProjectPath $projectPath
+
+# ---- FR-1156 / FR-1156b: pick a free port from the start port ----
+$ceiling   = Get-PortCeiling -Start $startPort
+$candidate = Get-FreePort   -Start $startPort
+if ($candidate -le 0) {
+    Write-Host "[ERROR] No free port in range $startPort..$ceiling." -ForegroundColor Red   # FR-1156b
+    Complete-AndExit -Code 1 -Pause $true
+}
+
+# ---- launch + adoption re-probe (FR-1101 / FR-1157), retry on TOCTOU race ----
+$maxRetries    = 5
+$attempt       = 0
+$adoptedPort   = 0
+$startupFailed = $false
+while ($attempt -lt $maxRetries) {
+    $attempt++
+    Write-Host "[INFO]  Starting strictdoc server on port $candidate (attempt $attempt)..."
+    if (-not (Start-StrictDocCliWindow -StrictDocExe $strictdocExe -ProjectPath $projectPath -BindHost $bindHost -Port $candidate -OutputPath $outputPath)) {
+        Complete-AndExit -Code 1 -Pause $true
     }
 
-    # FR-806: Clear-Host before redraw.
-    Clear-Host
-
-    Show-MenuHeader -ConfigPath $ConfigPath -Config $config -Validation $validation -ServerState $serverState
-
-    Write-Host ""
-    if (-not $validation.Ok) {
-        # FR-803: degraded menu (5 + Q only).
-        Write-Host "  5. Edit config   - open server.config.json in default editor"
-        Write-Host "  Q. Quit"
-        Write-Host ""
-        $sel = Read-Host "Select [5/Q]"
+    $adopt = Confirm-PortAdoption -Port $candidate
+    $r = $adopt.Result
+    if ($r -eq 'adopted' -or $r -eq 'timeout') {
+        if ($r -eq 'timeout') {
+            Write-Host "[WARN]  Server still starting on port $candidate; opening the browser anyway (it will load when ready)." -ForegroundColor Yellow
+        }
+        $adoptedPort = $candidate
+        break
+    } elseif ($r -eq 'failed') {
+        $startupFailed = $true
+        break
     } else {
-        Write-Host "  1. Start         - launch server in background + open browser"
-        Write-Host "  2. Stop          - terminate the running server"
-        Write-Host "  3. Status        - re-check status (refresh)"
-        Write-Host "  4. Logs          - show last 50 lines of server log"
-        Write-Host "  5. Edit config   - open server.config.json in default editor"
-        Write-Host "  Q. Quit"
-        Write-Host ""
-        $sel = Read-Host "Select [1/2/3/4/5/Q]"
-    }
-
-    # M2: defend against $null (Read-Host on closed stdin / pipe input).
-    $sel = "$sel".Trim().ToUpperInvariant()
-
-    switch ($sel) {
-        '1' {
-            if (-not $validation.Ok) {
-                Write-Host "[WARN]  Fix config first (menu 5)." -ForegroundColor Yellow
-                Start-Sleep -Milliseconds 800
-            } else {
-                Invoke-WithReturnPrompt { Invoke-StartAction -Config $config -ServerState $serverState }
-            }
+        # 'race' (FR-1157b): another process grabbed the port between scan and bind.
+        Write-Host "[WARN]  Port $candidate was taken by another process; trying the next free port." -ForegroundColor Yellow
+        $next = Get-FreePort -Start ($candidate + 1)
+        if ($next -le 0 -or $next -gt $ceiling) {
+            Write-Host "[ERROR] Could not bind a free port near $startPort (tried $attempt)." -ForegroundColor Red
+            Complete-AndExit -Code 1 -Pause $true
         }
-        '2' {
-            if (-not $validation.Ok) {
-                Write-Host "[WARN]  Fix config first (menu 5)." -ForegroundColor Yellow
-                Start-Sleep -Milliseconds 800
-            } else {
-                Invoke-WithReturnPrompt { Invoke-StopAction -Config $config -ServerState $serverState }
-            }
-        }
-        '3' {
-            if (-not $validation.Ok) {
-                Write-Host "[WARN]  Fix config first (menu 5)." -ForegroundColor Yellow
-                Start-Sleep -Milliseconds 800
-            } else {
-                Invoke-WithReturnPrompt { Show-ServerStatusDetail -Config $config -ServerState $serverState }
-            }
-        }
-        '4' {
-            if (-not $validation.Ok) {
-                Write-Host "[WARN]  Fix config first (menu 5)." -ForegroundColor Yellow
-                Start-Sleep -Milliseconds 800
-            } else {
-                Invoke-WithReturnPrompt { Show-ServerLogs -Config $config }
-            }
-        }
-        '5' {
-            Open-EditorForConfig -Path $ConfigPath
-            Write-Host "[INFO]  Editor launched. Save in editor, then continue."
-            Write-Host ""
-            $null = Read-Host "Press Enter to return to menu (config will be reloaded)"
-        }
-        'Q' {
-            $quit = $true
-            $finalState = $serverState
-        }
-        default {
-            if ($validation.Ok) {
-                Write-Host "[WARN]  Invalid selection. Choose [1/2/3/4/5/Q]." -ForegroundColor Yellow
-            } else {
-                Write-Host "[WARN]  Invalid selection. Choose [5/Q]." -ForegroundColor Yellow
-            }
-            Start-Sleep -Milliseconds 800
-        }
+        $candidate = $next
     }
 }
 
-# ---- FR-107: warn if server still running on quit ----
-if ($null -ne $finalState -and ($finalState.Status -eq 'RUNNING' -or $finalState.Status -eq 'STARTING')) {
-    Write-Host ""
-    Write-Host "[INFO]  Server is still running (PID $($finalState.Pid) on port $($finalState.Port)). Use 'Stop' next time to terminate it."
+# ---- FR-1157c: startup failure (e.g. .sdoc parse error) -- surface the cause, no browser ----
+if ($startupFailed) {
+    Show-StartupErrorDiagnostic -StrictDocExe $strictdocExe -ProjectPath $projectPath -Port $candidate
+    Complete-AndExit -Code 1 -Pause $true
+}
+if ($adoptedPort -le 0) {
+    Write-Host "[ERROR] Could not bind a free port near $startPort after $attempt attempts." -ForegroundColor Red
+    Complete-AndExit -Code 1 -Pause $true
 }
 
-Stop-ManageTranscriptIfStarted
-exit 0
+# ---- success: open browser (FR-1159) + save last-used (FR-1155) ----
+Write-Host "[OK]    StrictDoc server running on port $adoptedPort." -ForegroundColor Green
+if ($openBrowser) { Open-BrowserAt -BindHost $bindHost -Port $adoptedPort }
+Save-LastUsedProjectPath -ConfigPath $ConfigPath -ProjectPath $projectPath
+Write-Host "[INFO]  The server runs in its own window titled 'StrictDoc Web Server (...)'. Close that window (or Ctrl+C) to stop it."
+Complete-AndExit -Code 0 -Pause $false
