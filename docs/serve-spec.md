@@ -291,7 +291,7 @@ host テストとして以下を最低限カバーする (詳細手順は §5 Te
 | ID | カテゴリ | 要求 |
 |---|---|---|
 | NFR-001 | 応答性 | メニュー表示 → 入力 prompt までの遅延は **初回 5 秒以内、 2 回目以降 1 秒以内** (毎回 config 再ロード + validate + status probe 込み)。 初回が緩いのは Windows の `Get-CimInstance` cold call が 1〜3 秒かかるため (Limitations) |
-| NFR-002 | 起動時間 | Start ボタン → ブラウザ open までは **strictdoc 起動時間 + 数秒**、 LISTEN 確認 30 秒 + HTTP 応答確認 5 秒の合計 **最大 35 秒** (FR-303) |
+| NFR-002 | 起動時間 | ⚠️ **v1.1 で撤廃 (§6.7 / ADR-113・FR-1102: 固定タイムアウト無し)。 以下は v1.0 歴史的記録。** Start ボタン → ブラウザ open までは strictdoc 起動時間 + 数秒、 LISTEN 確認 30 秒 + HTTP 応答確認 5 秒の合計 最大 35 秒 (FR-303) |
 | NFR-003 | 停止時間 | Stop ボタン → プロセス消滅までは **正常時 5 秒以内**、 -Force fallback 含めて最大 8 秒 (FR-406 + FR-407) |
 | NFR-004 | 文字 | 全ログは **UTF-8 / 文字化けなし** |
 | NFR-005 | 文字コード | スクリプト本体 **および console 出力メッセージ** は **ASCII only** (setup-spec.md NFR-006 / ADR-008 継承)。 仕様書 (本書) と config の `_comment_*` 値は ASCII の範囲で英語表記 |
@@ -1230,9 +1230,15 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
       When ユーザが .sdoc を含まないフォルダをドロップする
       Then [WARN] No .sdoc files found が表示される
       But サーバは空プロジェクトとして起動する
+
+    Scenario: SC-V18 .lnk ショートカットは非対応 (traces: FR-1151d)
+      When ユーザが .lnk ショートカットをドロップする
+      Then [WARN] Shortcuts (.lnk) are not supported が表示される
+      And フォルダ入力プロンプト (FR-1153) へ進む
+      But ショートカット先では起動しない
 ```
 
-### 6.10.7 Host テスト (TV10-TV20)
+### 6.10.7 Host テスト (TV10-TV21)
 
 | # | シナリオ | 期待 | traces |
 |---|---|---|---|
@@ -1247,6 +1253,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | TV18 | config 読取専用で保存失敗 | [WARN] + 起動継続 | FR-1155c, SC-V15 |
 | TV19 | ポート競合再試行 | 候補が奪われたら次ポートで起動 (全滅で [ERROR]) | FR-1157, SC-V16 |
 | TV20 | .sdoc 無し / ドライブ直下 | 無し= [WARN] + 空起動、 ドライブ直下= [ERROR] 拒否 | FR-1154b / 1151c, SC-V17 |
+| TV21 | .lnk ショートカット D&D | [WARN] skipped → プロンプトへ・ショートカット先で起動しない | FR-1151d, SC-V18 |
 
 **Pass Criteria**: TV10-TV18 / TV20 全 PASS。 特に **TV13 (ポート衝突なし)**・**TV14 (重複起動なし)**・**TV17 (他フィールド不変)** を必須とする。 TV19 (競合再試行) は再現困難のため best-effort で確認。
 
