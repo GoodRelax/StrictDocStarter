@@ -234,8 +234,8 @@
 | FR-803 | If | もし引数なしで起動されたら、StrictDocStarter は **`auto` モードを起動** すること (旧仕様: `help` を表示) |
 | FR-804 | When | `setup-strictdoc.bat auto` が呼ばれたら、StrictDocStarter は (a) 環境 check (b) 必要なツールのプラン提示 (c) **1 回の `yes` 入力** で全 Phase を一気通貫実行すること |
 | FR-805 | If | もし `auto` 実行中に Claude Code (VS Code 拡張: `anthropic.claude-code`) が未導入と判定されたら、yes プロンプトに「VS Code + Claude Code 拡張」の install を含めること |
-| FR-806 | Ubiquitous | UAC 自己昇格 / MOTW strip / CWD 正規化 (`cd /d %~dp0`) の 3 パターンは **`StrictDocStarter/_lib/elevate.bat` に共通化** すること。 引数規約は `call <相対パス>\_lib\elevate.bat <ADMIN_MODE>` で、 `ADMIN_MODE` は `need_admin` (auto/install/clone/all) または `no_admin` (check/config/dryrun/help/gather-logs/manage) の 2 値 (`uninstall-strictdoc.bat` は need_admin)。 6 .bat の呼出パスは下表の通り (ロジックを各 .bat に重複コピペしてはならない): |
-| | | <table><tr><th>.bat</th><th>呼出</th></tr><tr><td>`StrictDocStarter/setup-strictdoc.bat`</td><td>`call _lib\elevate.bat need_admin`</td></tr><tr><td>`StrictDocStarter/gather-logs.bat`</td><td>`call _lib\elevate.bat no_admin`</td></tr><tr><td>`StrictDocStarter/manage-strictdoc.bat`</td><td>`call _lib\elevate.bat no_admin` (詳細は docs/serve-spec.md FR-102)</td></tr><tr><td>`StrictDocStarter/uninstall-strictdoc.bat`</td><td>`call _lib\elevate.bat need_admin` (pip/winget uninstall は admin 要、 詳細は §7.2 FR-340)</td></tr><tr><td>`StrictDocStarter/vm-tests/run-tests.bat`</td><td>`call ..\_lib\elevate.bat need_admin`</td></tr><tr><td>`StrictDocStarter/vm-tests/gather-test-logs.bat`</td><td>`call ..\_lib\elevate.bat no_admin`</td></tr></table> |
+| FR-806 | Ubiquitous | UAC 自己昇格 / MOTW strip / CWD 正規化 (`cd /d %~dp0`) の 3 パターンは **`StrictDocStarter/_lib/elevate.bat` に共通化** すること。 引数規約は `call <相対パス>\_lib\elevate.bat <ADMIN_MODE>` で、 `ADMIN_MODE` は `need_admin` (auto/install/clone/all) または `no_admin` (check/config/dryrun/help/gather-logs/launch-strictdoc) の 2 値 (`uninstall-strictdoc.bat` は need_admin)。 6 .bat の呼出パスは下表の通り (ロジックを各 .bat に重複コピペしてはならない): |
+| | | <table><tr><th>.bat</th><th>呼出</th></tr><tr><td>`StrictDocStarter/setup-strictdoc.bat`</td><td>`call _lib\elevate.bat need_admin`</td></tr><tr><td>`StrictDocStarter/gather-logs.bat`</td><td>`call _lib\elevate.bat no_admin`</td></tr><tr><td>`StrictDocStarter/launch-strictdoc.bat`</td><td>`call _lib\elevate.bat no_admin` (詳細は docs/serve-spec.md FR-102)</td></tr><tr><td>`StrictDocStarter/uninstall-strictdoc.bat`</td><td>`call _lib\elevate.bat need_admin` (pip/winget uninstall は admin 要、 詳細は §7.2 FR-340)</td></tr><tr><td>`StrictDocStarter/vm-tests/run-tests.bat`</td><td>`call ..\_lib\elevate.bat need_admin`</td></tr><tr><td>`StrictDocStarter/vm-tests/gather-test-logs.bat`</td><td>`call ..\_lib\elevate.bat no_admin`</td></tr></table> |
 | FR-807 | If | もしバッチファイル内で `if (...)` / `for /f (...) do (...)` ブロック中、 または `&&` / `\|\|` 連結で **`set "VAR=..."` してその直後に `%VAR%` を参照** する場合、 **必ず `setlocal EnableDelayedExpansion` を有効化し `!VAR!` を使う** こと。 cmd の parse-time 展開で未設定値 (空または前の値) を見る誤動作を防ぐ |
 
 #### 2.1.9 プラン表示 UX (FR-900 系)
@@ -1009,8 +1009,8 @@ Choose (1-3) [default: 1]:
 
 ### 7.5 serve-spec.md からの依存 (cross-ref)
 
-- serve-spec.md v1.1 Appendix A.2 (`_lib/elevate.bat` 表に `manage-strictdoc.bat` / `uninstall-strictdoc.bat` 行追加) / A.3 (gather-logs は v1.1 で `*.pid`/`server-*.log` が生成されないため回収対象を見直し) を本 setup-spec 側でも反映すること。
-- serve-spec.md FR-1141..1145 (strictdoc_config.py scaffold) は manage 側の責務だが、 公式 `strictdoc new` 準拠 (D-3) の方針は本 setup-spec の install 完成 (FR-360) と整合させること。
+- serve-spec.md v1.1 Appendix A.2 (`_lib/elevate.bat` 表に `launch-strictdoc.bat` / `uninstall-strictdoc.bat` 行追加) / A.3 (gather-logs は v1.1 で `*.pid`/`server-*.log` が生成されないため回収対象を見直し) を本 setup-spec 側でも反映すること。
+- serve-spec.md FR-1141..1145 (strictdoc_config.py scaffold) は launch-strictdoc 側の責務だが、 公式 `strictdoc new` 準拠 (D-3) の方針は本 setup-spec の install 完成 (FR-360) と整合させること。
 
 ---
 

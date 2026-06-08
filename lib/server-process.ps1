@@ -9,7 +9,7 @@
 #         Use $serverPid / $ownerPid / $targetPid for other processes.
 #   $host is also reserved; use $bindHost / $urlHost for server host strings.
 #
-# NOTE: dot-sourced from manage-strictdoc.ps1 (not a module).
+# NOTE: dot-sourced from launch-strictdoc.ps1 (not a module).
 
 # M3: resolve strictdoc to an absolute path (FR-1105). Returns $null if not found.
 function Resolve-StrictDocExecutable {

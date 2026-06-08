@@ -41,7 +41,7 @@ server.config.json
 uninstall.config.json
 env-report.json
 
-# --- Runtime logs (setup.log, manage.log, and any transient *.log) ---
+# --- Runtime logs (setup.log, launch.log, and any transient *.log) ---
 *.log
 
 # --- Px local proxy config ---

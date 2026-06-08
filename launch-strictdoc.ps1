@@ -1,4 +1,4 @@
-# manage-strictdoc.ps1 - StrictDoc launcher (v1.2, ADR-115 option C: pure launcher, no menu).
+# launch-strictdoc.ps1 - StrictDoc launcher (v1.2, ADR-115 option C: pure launcher, no menu).
 # Flow: resolve project_path (D&D / prompt) -> dedup -> free port -> visible
 #       "strictdoc server CLI window" -> browser -> save last-used -> exit.
 # Spec: docs/serve-spec.md FR-1101..1105, FR-1121, FR-1132..1134, FR-1150..1159, FR-1156b, FR-1157c.

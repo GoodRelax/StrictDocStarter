@@ -4,7 +4,7 @@
 # Spec: FR-201..213 (config management), FR-208 (Expand-UserPlaceholders).
 # Output language: English ASCII only (per NFR-005 / ADR-008).
 #
-# NOTE: dot-sourced from manage-strictdoc.ps1 (not a module). Functions are
+# NOTE: dot-sourced from launch-strictdoc.ps1 (not a module). Functions are
 #       visible at the caller scope.
 
 function Expand-UserPlaceholdersInString {
@@ -17,7 +17,7 @@ function Expand-UserPlaceholdersInString {
 function Expand-PathPlaceholders {
     # Extended placeholder expansion. Supports:
     #   <user>          -> $env:USERNAME (FR-208)
-    #   <starter_root>  -> absolute path of manage-strictdoc.bat's folder
+    #   <starter_root>  -> absolute path of launch-strictdoc.bat's folder
     # The second placeholder lets server.config.template.json point at the
     # bundled samples (samples/hello-strictdoc) regardless of where the
     # user extracted the ZIP -- unzip and "press 1 to Start" just works.
@@ -341,7 +341,7 @@ function Initialize-StrictDocProjectConfig {
         return
     }
     $content = @'
-# StrictDoc project configuration scaffolded by StrictDocStarter (manage-strictdoc).
+# StrictDoc project configuration scaffolded by StrictDocStarter (launch-strictdoc).
 #
 # Placed in this project folder so `strictdoc server <this folder>` enables the features
 # below. StrictDoc reads the config from the input folder itself, not parent folders

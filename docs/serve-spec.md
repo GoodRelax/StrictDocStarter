@@ -1,12 +1,12 @@
-# manage-strictdoc — StrictDoc Server Lifecycle Management 仕様書
+# launch-strictdoc — StrictDoc Server Lifecycle Management 仕様書
 
 | 項目 | 値 |
 |---|---|
-| 文書名 | manage-strictdoc — StrictDoc Server Lifecycle Management 仕様書 |
+| 文書名 | launch-strictdoc — StrictDoc Server Lifecycle Management 仕様書 |
 | バージョン | v1.2 (D&D/プロンプト入力 + ポート自動割当。 v1.1: 公式委譲 & 可視ウィンドウ方式) |
 | テンプレート | ANMS v0.33 |
-| ツール名 | **manage-strictdoc** (StrictDocStarter 同梱) |
-| エントリ | `manage-strictdoc.bat` (フォルダ/ファイルを D&D または単体起動。 v1.2: 純ランチャ → strictdoc server CLI window + ブラウザ → 終了。 メニュー無し — FR-1121 / ADR-115) |
+| ツール名 | **launch-strictdoc** (StrictDocStarter 同梱) |
+| エントリ | `launch-strictdoc.bat` (フォルダ/ファイルを D&D または単体起動。 v1.2: 純ランチャ → strictdoc server CLI window + ブラウザ → 終了。 メニュー無し — FR-1121 / ADR-115) |
 | 対象 | strictdoc がインストール済み Windows 11 PC |
 | 親仕様 | [`docs/setup-spec.md`](setup-spec.md) (StrictDocStarter v1.0) |
 | リポジトリ | `https://github.com/GoodRelax/gr-tools/tree/main/StrictDocStarter` |
@@ -29,7 +29,7 @@
 - StrictDoc は `strictdoc server <project-path>` で Web UI を提供 (デフォルト http://127.0.0.1:5111)
 - PoC 段階で手動起動/停止を繰り返している → 1-click 化したい
 - setup-strictdoc.bat で環境構築済の Windows 11 上で、 「server 起動 → ブラウザで編集 → 停止」 を最短手数で行えるようにする
-- 仕様の親は [`docs/setup-spec.md`](setup-spec.md)。 本書は setup の延長サブツール (= manage-strictdoc) の仕様
+- 仕様の親は [`docs/setup-spec.md`](setup-spec.md)。 本書は setup の延長サブツール (= launch-strictdoc) の仕様
 
 ### 1.2 Issues
 
@@ -51,7 +51,7 @@
 - **`Start-Process -WindowStyle Hidden` + stdout/stderr redirect** でバックグラウンド起動
 - **PID file (主) + port-based (fallback) + 本人確認 (CommandLine に "strictdoc")** の 3 段防御で server 特定
 - 設定変更は `Edit config` メニュー → 既定エディタ起動 → メニュー戻り時に毎回再ロード + validate
-- ログは **manage 操作 (manage.log) と server stdout (server-\<port\>.log) を分離** (SRP)
+- ログは **launch-strictdoc 操作 (launch.log) と server stdout (server-\<port\>.log) を分離** (SRP)
 
 ### 1.5 Tool Inventory (依存)
 
@@ -74,7 +74,7 @@
 - `server.config.json` による設定宣言
 - PID file + port LISTEN による状態管理 (4 状態: RUNNING / STOPPED / STALE_PID_FILE / OTHER_OWNS_PORT)
 - 既定ブラウザ自動 open (`config.open_browser`)
-- `gather-logs.bat` への log 統合 (server-*.log / manage.log)
+- `gather-logs.bat` への log 統合 (server-*.log / launch.log)
 
 **Out-of-scope (v1.0):**
 
@@ -98,7 +98,7 @@
 
 ### 1.8 Limitations
 
-- 同じ port で別アプリが LISTEN している場合、 manage は start を拒否 → ユーザに config 編集を促す (別 port を提案しない)
+- 同じ port で別アプリが LISTEN している場合、 launch-strictdoc は start を拒否 → ユーザに config 編集を促す (別 port を提案しない)
 - メニュー .bat を Ctrl+C で終了しても server プロセスは生存継続 (= feature、 ただし多重起動の責任はユーザ)
 - `%LOCALAPPDATA%\StrictDocStarter\` 配下の PID file が手動削除されると port-based fallback に依存 (動作は OK だが log で警告)
 - Python CLI app の特性上、 graceful shutdown 不可 (Stop-Process 即時終了、 -Force fallback)
@@ -110,8 +110,8 @@
 
 | 用語 | 説明 |
 |---|---|
-| manage-strictdoc | 本仕様の対象ツール |
-| StrictDocStarter | 親ツール (setup-strictdoc + manage-strictdoc + gather-logs) |
+| launch-strictdoc | 本仕様の対象ツール |
+| StrictDocStarter | 親ツール (setup-strictdoc + launch-strictdoc + gather-logs) |
 | メニュー方式 | `.bat` 起動 → 番号選択 → アクション → メニュー戻り、 のループ UI |
 | PID file | プロセス ID を 1 行で保存するファイル (一般的 daemon パターン) |
 | port-based fallback | PID file 不在時に LISTEN 中の port から OwningProcess を取得して特定する方式 |
@@ -119,8 +119,8 @@
 | 5 状態 | (v1.0) RUNNING / STARTING / STOPPED / STALE_PID_FILE / OTHER_OWNS_PORT。 **v1.1 (FR-1113) で 3 状態 RUNNING / OTHER_OWNS_PORT / STOPPED へ簡素化** (PID file 廃止に伴い STARTING / STALE_PID_FILE を削除) |
 | `%LOCALAPPDATA%` | `C:\Users\<user>\AppData\Local` (Windows のユーザローカルキャッシュ領域、 NTFS ACL でユーザ単位アクセス制御) |
 | Expand-UserPlaceholders | setup-spec.md FR-208 由来、 `<user>` を `$env:USERNAME` に展開する関数 |
-| Expand-PathPlaceholders | 拡張版。 `<user>` (FR-208) + `<starter_root>` (manage-strictdoc.bat のフォルダ絶対パス) の両方を展開。 unzip-and-go で同梱 `samples/` を default project_path に指せるようにする |
-| `<starter_root>` | path placeholder。 `manage-strictdoc.bat` のフォルダの絶対パスに展開される。 template の default `project_path` で `<starter_root>\samples\sovd-automotive-ja` を使用 |
+| Expand-PathPlaceholders | 拡張版。 `<user>` (FR-208) + `<starter_root>` (launch-strictdoc.bat のフォルダ絶対パス) の両方を展開。 unzip-and-go で同梱 `samples/` を default project_path に指せるようにする |
+| `<starter_root>` | path placeholder。 `launch-strictdoc.bat` のフォルダの絶対パスに展開される。 template の default `project_path` で `<starter_root>\samples\sovd-automotive-ja` を使用 |
 | samples/ | StrictDocStarter 同梱の StrictDoc サンプルプロジェクト 3 個。 `samples/hello-strictdoc/` (5 reqs、 編集用テンプレ)、 `samples/sovd-automotive-ja/` (~105 reqs、 中規模、 **初期 default**) と同構成の英語版 `samples/sovd-automotive-en/`。 sovd 系は 00 概要 + 01-05 要求/基盤 + 06 設計 + 07 API + 08 テスト仕様 + 09 テスト結果 + 90 付録、 要求→設計→API→テスト仕様→結果の V 字を EARS/L0-L3 + Implements/Satisfies/Verifies/ResultOf でトレース、 ASIL/CAL/Layer/Type custom fields、 共有文法 `sovd-grammar.sgra` (REQUIREMENT/COMPONENT/API/TEST/TEST_RESULT)) |
 | `$pid` | **PowerShell の予約自動変数** で現プロセス自身の PID を保持。 server プロセスの PID 変数として **使用禁止** (= 自プロセスを stop 対象にしてしまう事故防止)。 `$serverPid` / `$targetPid` 等を使用 |
 | MOTW | Mark-of-the-Web。 Web/Zip 経由で取得したファイルに付くゾーン情報、 PowerShell が実行を阻害することがある |
@@ -134,7 +134,7 @@
 | BOM | Byte Order Mark。 UTF-8 ファイル先頭の `﻿`、 PowerShell 5.1 の `ConvertFrom-Json` が誤動作する原因 |
 | HasExited | PowerShell `Start-Process -PassThru` が返す Process object のプロパティ、 子プロセス終了済かを判定 |
 | `strictdoc server CLI window` | 公式 `strictdoc server` を**前景実行する Windows コンソール窓** (旧称「server 窓 / 可視窓」)。 StrictDoc 公式のサーバ起動バナー (`StrictDoc Web Server vX` / Server URL / Documentation / mailing list) と Uvicorn の `Uvicorn running on …` ログを表示する。 文書ごとに 1 窓。 **窓を閉じる / Ctrl+C でサーバ停止** (FR-1111)。 利用者が操作する UI は別途ブラウザの StrictDoc Web UI。 図中の短縮表記は `CLI window` |
-| manage cmd 窓 | `manage-strictdoc.bat`→`.ps1` が動く**ランチャ側**のコンソール窓。 入力解決・ポート割当・起動・起動失敗の原因表示 (FR-1157c) を担う。 上記 `strictdoc server CLI window` とは**別物** |
+| launch-strictdoc cmd 窓 | `launch-strictdoc.bat`→`.ps1` が動く**ランチャ側**のコンソール窓。 入力解決・ポート割当・起動・起動失敗の原因表示 (FR-1157c) を担う。 上記 `strictdoc server CLI window` とは**別物** |
 
 ### 1.10 Notation
 
@@ -154,29 +154,29 @@
 
 | ID | パターン | 要求 |
 |---|---|---|
-| FR-101 | Ubiquitous | `manage-strictdoc.bat` はダブルクリックで起動可能であること |
-| FR-102 | Ubiquitous | `manage-strictdoc.bat` は冒頭で `call _lib\elevate.bat no_admin "%~f0" "%*"` を call して MOTW strip + CWD 正規化を行うこと (UAC 昇格は不要、 setup-spec.md FR-806 表に行追加) |
-| FR-103 | Ubiquitous | `manage-strictdoc.bat` は `manage-strictdoc.ps1` を `powershell -ExecutionPolicy Bypass -File` で呼び出すこと |
-| FR-104 | Ubiquitous | `manage-strictdoc.ps1` は無限ループでメニューを表示し、 ユーザが `Q` を入力するまで継続すること |
+| FR-101 | Ubiquitous | `launch-strictdoc.bat` はダブルクリックで起動可能であること |
+| FR-102 | Ubiquitous | `launch-strictdoc.bat` は冒頭で `call _lib\elevate.bat no_admin "%~f0" "%*"` を call して MOTW strip + CWD 正規化を行うこと (UAC 昇格は不要、 setup-spec.md FR-806 表に行追加) |
+| FR-103 | Ubiquitous | `launch-strictdoc.bat` は `launch-strictdoc.ps1` を `powershell -ExecutionPolicy Bypass -File` で呼び出すこと |
+| FR-104 | Ubiquitous | `launch-strictdoc.ps1` は無限ループでメニューを表示し、 ユーザが `Q` を入力するまで継続すること |
 | FR-105 | Ubiquitous | 各メニュー操作 (1〜5) 完了後、 メニュー再表示に戻ること (1 回の操作で終了しない) |
-| FR-106 | When | `manage-strictdoc.bat` 起動時、 `Start-Transcript` (既存 `lib/logger.psm1` の `Start-OnboardLog -LogPath <manage.log>` を流用) で `manage.log` (bat と同フォルダ) に全実行ログを **append** モードで記録すること |
+| FR-106 | When | `launch-strictdoc.bat` 起動時、 `Start-Transcript` (既存 `lib/logger.psm1` の `Start-OnboardLog -LogPath <launch.log>` を流用) で `launch.log` (bat と同フォルダ) に全実行ログを **append** モードで記録すること |
 | FR-107 | If | もし `Q` または Ctrl+C で終了した時、 server が稼働中ならば `[INFO] Server is still running (PID X on port Y). Use 'Stop' next time to terminate it.` を 1 行表示すること |
 | FR-108 | Ubiquitous | メニュー入力は **case-insensitive** で判定すること (`q`/`Q`/`r`/`R` 等両方 OK) |
 | FR-109 | If | もし不正な選択肢が入力されたら、 `Invalid selection. Choose [1/2/3/4/5/Q].` warn を表示してメニュー再表示すること |
-| FR-110 | If | もし `Start-Transcript` (FR-106) が失敗 (= 同一 `manage.log` を別 PowerShell session が既にロック中、 二重起動の兆候) ならば、 `manage-strictdoc.ps1` は `[ERROR] Another manage-strictdoc session appears to be running (cannot lock manage.log). Close it first, then retry.` を表示して即時 abort (exit code 1) すること。 ロック検出は Start-Transcript の `-ErrorAction Stop` + `try/catch` で実装可能 |
+| FR-110 | If | もし `Start-Transcript` (FR-106) が失敗 (= 同一 `launch.log` を別 PowerShell session が既にロック中、 二重起動の兆候) ならば、 `launch-strictdoc.ps1` は `[ERROR] Another launch-strictdoc session appears to be running (cannot lock launch.log). Close it first, then retry.` を表示して即時 abort (exit code 1) すること。 ロック検出は Start-Transcript の `-ErrorAction Stop` + `try/catch` で実装可能 |
 
 #### 2.1.2 設定ファイル管理 (FR-200 系)
 
 | ID | パターン | 要求 |
 |---|---|---|
-| FR-201 | If | もし `server.config.json` が存在しなければ、 `manage-strictdoc.ps1` は `server.config.template.json` から copy + `<user>` 即時展開で生成すること。 生成時のエンコーディングは **UTF-8 BOM なし** とすること (PowerShell 5.1 の `ConvertFrom-Json` が BOM 付き UTF-8 を `Unexpected character encountered` で reject するため) |
-| FR-202 | When | 初回生成直後、 `manage-strictdoc.ps1` は既定エディタを以下の順で fallback して起動すること: (a) `Get-Command code -ErrorAction SilentlyContinue` で `code` 存在確認 → `Start-Process code -ArgumentList '--reuse-window', '<path>' -PassThru` で起動、 (b) 1 秒後に `Process.HasExited == true` かつ exit code != 0 ならば失敗とみなし notepad fallback、 (c) `code` 不在ならば `Start-Process notepad -ArgumentList '<path>'` で起動 |
-| FR-203 | When | 初回 config 編集後、 `manage-strictdoc.ps1` は `Press Enter when you have saved the config...` で待機すること (`yes` 入力は不要、 Enter のみ) |
+| FR-201 | If | もし `server.config.json` が存在しなければ、 `launch-strictdoc.ps1` は `server.config.template.json` から copy + `<user>` 即時展開で生成すること。 生成時のエンコーディングは **UTF-8 BOM なし** とすること (PowerShell 5.1 の `ConvertFrom-Json` が BOM 付き UTF-8 を `Unexpected character encountered` で reject するため) |
+| FR-202 | When | 初回生成直後、 `launch-strictdoc.ps1` は既定エディタを以下の順で fallback して起動すること: (a) `Get-Command code -ErrorAction SilentlyContinue` で `code` 存在確認 → `Start-Process code -ArgumentList '--reuse-window', '<path>' -PassThru` で起動、 (b) 1 秒後に `Process.HasExited == true` かつ exit code != 0 ならば失敗とみなし notepad fallback、 (c) `code` 不在ならば `Start-Process notepad -ArgumentList '<path>'` で起動 |
+| FR-203 | When | 初回 config 編集後、 `launch-strictdoc.ps1` は `Press Enter when you have saved the config...` で待機すること (`yes` 入力は不要、 Enter のみ) |
 | FR-204 | Ubiquitous | `server.config.json` は JSON 形式 (**UTF-8 BOM なし推奨**、 `_comment_*` プロパティでコメント表現) であること。 読込時は `Get-Content -Raw -Encoding UTF8` 取得後、 先頭 BOM (`﻿`) を strip してから `ConvertFrom-Json` に渡すこと (notepad で保存すると BOM が付くケースに対応) |
 | FR-205 | Ubiquitous | `server.config.json` は以下のフィールドを含むこと: `project_path` (必須) / `host` / `port` / `open_browser` / `output_path` (任意、 default あり) |
 | FR-206 | Ubiquitous | `server.config.json` は `.gitignore` 対象、 **`server.config.template.json` のみ commit** すること |
 | FR-207 | Ubiquitous | `server.config.template.json` および `server.config.json` の top-level に `_comment_overview` キーを含めること。 **値は 1 行 ASCII 文字列** で `Required: <fields>. Optional with defaults: <field (default); ...>.` の形式に従うこと (setup-spec.md FR-210 流儀、 機械検証可能) |
-| FR-208 | Ubiquitous | `project_path` および `output_path` 内の path placeholder は path 操作 (`Test-Path` / `Join-Path` / `Start-Process` 等) より **先に** `Expand-PathPlaceholders` で展開すること。 サポートする placeholder: (a) `<user>` → `$env:USERNAME` (setup-spec.md FR-208 継承)、 (b) `<starter_root>` → `manage-strictdoc.bat` の置かれているフォルダの絶対パス (unzip-and-go で同梱 samples/ が見つかるようにする)。 **重要**: Initialize-ServerConfig が template を raw text 置換する際、 `_comment_*` フィールド内に置換対象リテラル (`<user>` / `<starter_root>`) を含めてはならない (説明テキストまで誤置換される。 documentation は別の語 (USERNAME / STARTER_ROOT) を使用するか README に書く) |
+| FR-208 | Ubiquitous | `project_path` および `output_path` 内の path placeholder は path 操作 (`Test-Path` / `Join-Path` / `Start-Process` 等) より **先に** `Expand-PathPlaceholders` で展開すること。 サポートする placeholder: (a) `<user>` → `$env:USERNAME` (setup-spec.md FR-208 継承)、 (b) `<starter_root>` → `launch-strictdoc.bat` の置かれているフォルダの絶対パス (unzip-and-go で同梱 samples/ が見つかるようにする)。 **重要**: Initialize-ServerConfig が template を raw text 置換する際、 `_comment_*` フィールド内に置換対象リテラル (`<user>` / `<starter_root>`) を含めてはならない (説明テキストまで誤置換される。 documentation は別の語 (USERNAME / STARTER_ROOT) を使用するか README に書く) |
 | FR-209 | Ubiquitous | メニュー loop の **毎回先頭** で `server.config.json` を再ロード + validate すること (in-memory cache 禁止)。 これにより Edit config 後の変更が即反映される |
 | FR-210 | Ubiquitous | validation rules: (a) `project_path` 展開後の絶対パスが存在 + ディレクトリ、 (b) `host` は **IPv4 dotted-decimal** (`^\d{1,3}(\.\d{1,3}){3}$`) **または** `localhost` **または** IPv6 literal (`^[0-9a-fA-F:]+$`) のいずれか (※ StrictDoc 本体の `is_valid_host` は任意のホスト名も許容するが、 本ツールは PoC 安全側として IP/localhost に限定)、 (c) `port` は **1025..64999** の整数 (strictdoc は CLI `--port` が `[1024,65000]` inclusive・config 形式が `(1024,65000)` exclusive と経路で差があるため、 両経路で確実に有効な範囲に安全側で限定)、 (d) `open_browser` bool、 (e) `output_path` 任意 (空文字 or 任意文字列、 存在チェックなし) |
 | FR-211 | If | もし validation に失敗したら、 メニューヘッダ直下に `[CONFIG ERROR] <field>: <message>` を表示し、 menu `5` (Edit config) と `Q` のみ enabled、 `1`〜`4` は disabled とすること (選択しても `Fix config first (menu 5).` 警告でメニュー戻り) |
@@ -188,12 +188,12 @@
 | ID | パターン | 要求 |
 |---|---|---|
 | FR-301 | When | menu `1` (Start) は `Start-Process strictdoc -ArgumentList 'server', $project_path, '--host', $host, '--port', $port [, '--output-path', $output_path] -WindowStyle Hidden -RedirectStandardOutput <stdout_log> -RedirectStandardError <stderr_log>` で server をバックグラウンド起動すること (output_path が空文字なら引数省略)。 **stdout と stderr は別ファイル** に redirect すること (PowerShell 5.1 が同一ファイル指定を reject するため、 FR-702 参照) |
-| FR-302 | When | start 直後、 `manage-strictdoc.ps1` は `%LOCALAPPDATA%\StrictDocStarter\server-<port>.pid` にプロセス PID を **改行 1 文字付きで** 書き出すこと (**生成側は trailing newline 必須**、 読み側は FR-704 で trailing newline を許容)。 **pip launcher 対応**: `strictdoc.exe` (pip-generated wrapper) は内部で `python.exe` を child として spawn し、 child が LISTEN socket を所有する Windows 固有の挙動を持つ。 そこで Wait-ForPortListen (FR-303 a) の成功後、 `Get-NetTCPConnection` の OwningProcess が launcher PID と異なり、 かつその PID の CommandLine に "strictdoc" を含むならば、 **PID file を listener PID で上書き更新** すること。 これにより Status (FR-502) の「PID == OwningProcess」 判定が成立する。 launcher の親プロセスは listener 終了とともに自動 exit する想定 |
-| FR-303 | When | start 後、 `manage-strictdoc.ps1` は以下の 2 段確認を行うこと: (a) 最大 30 秒 (1 秒間隔) で `Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue` の LISTEN 確認、 (b) LISTEN 確認後、 さらに最大 **5 秒** (1 秒間隔) で `Invoke-WebRequest -Uri "http://<host>:<port>/" -UseBasicParsing -TimeoutSec 1 -ErrorAction SilentlyContinue` を発行し、 HTTP 応答 (どの status code でも可、 TCP reset でなければ OK) を受信するまで待機すること。 これにより uvicorn 起動準備中の TCP open / HTTP not-ready 窓を回避 |
+| FR-302 | When | start 直後、 `launch-strictdoc.ps1` は `%LOCALAPPDATA%\StrictDocStarter\server-<port>.pid` にプロセス PID を **改行 1 文字付きで** 書き出すこと (**生成側は trailing newline 必須**、 読み側は FR-704 で trailing newline を許容)。 **pip launcher 対応**: `strictdoc.exe` (pip-generated wrapper) は内部で `python.exe` を child として spawn し、 child が LISTEN socket を所有する Windows 固有の挙動を持つ。 そこで Wait-ForPortListen (FR-303 a) の成功後、 `Get-NetTCPConnection` の OwningProcess が launcher PID と異なり、 かつその PID の CommandLine に "strictdoc" を含むならば、 **PID file を listener PID で上書き更新** すること。 これにより Status (FR-502) の「PID == OwningProcess」 判定が成立する。 launcher の親プロセスは listener 終了とともに自動 exit する想定 |
+| FR-303 | When | start 後、 `launch-strictdoc.ps1` は以下の 2 段確認を行うこと: (a) 最大 30 秒 (1 秒間隔) で `Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue` の LISTEN 確認、 (b) LISTEN 確認後、 さらに最大 **5 秒** (1 秒間隔) で `Invoke-WebRequest -Uri "http://<host>:<port>/" -UseBasicParsing -TimeoutSec 1 -ErrorAction SilentlyContinue` を発行し、 HTTP 応答 (どの status code でも可、 TCP reset でなければ OK) を受信するまで待機すること。 これにより uvicorn 起動準備中の TCP open / HTTP not-ready 窓を回避 |
 | FR-304 | If | もし FR-303 (a) が 30 秒 timeout または (b) が 5 秒 timeout になったら、 `[WARN] Timeout waiting for server to be ready. Check Logs (menu 4) for details.` を表示し PID file は **残置** すること (process は生きてる可能性、 status で再確認可能) |
 | FR-305 | If | もし start 時に既起動の server が検出されたら (status RUNNING)、 `Already running (PID X on port Y). [R]estart / [O]pen browser / [C]ancel?` の 3 択 prompt を表示し、 `R`/`O`/`C` (case-insensitive) で分岐すること。 `R` = stop → start 連続実行、 `O` = ブラウザ open のみ、 `C` = メニュー戻り |
 | FR-306 | If | もし port が strictdoc 以外のプロセスに占有されていたら (status OTHER_OWNS_PORT)、 `Port <port> is occupied by '<process-name>' (PID <pid>). Cannot start. Edit config (menu 5) to use a different port.` を表示して abort すること (別 port を自動提案しない)。 `<process-name>` が取得不可 (= UNKNOWN_OCCUPANT、 FR-505) ならば `<process-name>` 部分を `<unknown owner>` と表示 |
-| FR-307 | If | もし `config.open_browser=true` かつ start が成功 (FR-303 (a) + (b) 共に確認済) ならば、 `manage-strictdoc.ps1` は `Start-Process http://<host>:<port>/` で既定ブラウザを起動すること |
+| FR-307 | If | もし `config.open_browser=true` かつ start が成功 (FR-303 (a) + (b) 共に確認済) ならば、 `launch-strictdoc.ps1` は `Start-Process http://<host>:<port>/` で既定ブラウザを起動すること |
 | FR-308 | Ubiquitous | ブラウザ open URL の host が `0.0.0.0` **または IPv6 wildcard `::`** の場合は `127.0.0.1` に置換すること (どちらもブラウザで直接 open 不可) |
 | FR-309 | Ubiquitous | server stdout の redirect 先は `%LOCALAPPDATA%\StrictDocStarter\server-<port>.log`、 stderr の redirect 先は `%LOCALAPPDATA%\StrictDocStarter\server-<port>.err.log` (start 毎に追記)。 区切り行 `=== Server started <YYYY-MM-DD HH:MM:SS> ===` は **`Start-Process` 呼出の直前** に `Add-Content -Path <stdout_log>` で stdout log のみに 1 行 append すること (race を防ぐため事後ではなく事前) |
 | FR-310 | When | `%LOCALAPPDATA%\StrictDocStarter\` ディレクトリは初回 start 時に `New-Item -ItemType Directory -Force` で自動作成すること |
@@ -245,10 +245,10 @@
 |---|---|---|
 | FR-701 | Ubiquitous | PID file パス: `%LOCALAPPDATA%\StrictDocStarter\server-<port>.pid` |
 | FR-702 | Ubiquitous | server stdout log パス: `%LOCALAPPDATA%\StrictDocStarter\server-<port>.log`、 server stderr log パス: `%LOCALAPPDATA%\StrictDocStarter\server-<port>.err.log` (FR-301 で別ファイル必須) |
-| FR-703 | Ubiquitous | manage 操作ログパス: `<manage-strictdoc.bat と同フォルダ>\manage.log` (Start-Transcript で append、 FR-106) |
+| FR-703 | Ubiquitous | launch-strictdoc 操作ログパス: `<launch-strictdoc.bat と同フォルダ>\launch.log` (Start-Transcript で append、 FR-106) |
 | FR-704 | Ubiquitous | PID file の中身は 1 行の整数 (PID)、 trailing newline は **読み側で許容** (生成側は FR-302 で必須)。 PID parse は `[int]::TryParse((Get-Content -Raw -TotalCount 1 $pidFile).Trim(), [ref]$serverPid)` を使用 |
 | FR-705 | Ubiquitous | server log の rotation は行わず、 start 毎に区切り行 `=== Server started <YYYY-MM-DD HH:MM:SS> ===` を追記 (FR-309)。 .err.log には区切り行を付けない (stderr は OS / strictdoc 由来でフォーマット制御が難しい、 タイムスタンプは stdout 側のみで十分) |
-| FR-706 | Ubiquitous | manage log の rotation は行わず、 起動毎に Start-Transcript の append モードで継続。 起動毎の区切りは Start-Transcript 既定の `**********************` separator を許容 |
+| FR-706 | Ubiquitous | launch-strictdoc log の rotation は行わず、 起動毎に Start-Transcript の append モードで継続。 起動毎の区切りは Start-Transcript 既定の `**********************` separator を許容 |
 
 #### 2.1.8 メニュー UX (FR-800 系)
 
@@ -265,8 +265,8 @@
 
 | ID | パターン | 要求 |
 |---|---|---|
-| FR-901 | Ubiquitous | manage-strictdoc は `setup.log` を読み書きしないこと (setup-strictdoc.bat との独立性確保、 NFR-008) |
-| FR-902 | Ubiquitous | (**v1.1 改訂**) 既存 `gather-logs.ps1` は **`<bat フォルダ>\manage.log` (存在時のみ)** を回収対象に追加すること。 ~~`server-*.log` / `*.pid`~~ は **ADR-113 (可視ウィンドウ方式) で生成されなくなったため回収対象外** (窓がログそのもの。 `%LOCALAPPDATA%\StrictDocStarter\` 自体を作らない) |
+| FR-901 | Ubiquitous | launch-strictdoc は `setup.log` を読み書きしないこと (setup-strictdoc.bat との独立性確保、 NFR-008) |
+| FR-902 | Ubiquitous | (**v1.1 改訂**) 既存 `gather-logs.ps1` は **`<bat フォルダ>\launch.log` (存在時のみ)** を回収対象に追加すること。 ~~`server-*.log` / `*.pid`~~ は **ADR-113 (可視ウィンドウ方式) で生成されなくなったため回収対象外** (窓がログそのもの。 `%LOCALAPPDATA%\StrictDocStarter\` 自体を作らない) |
 | FR-903 | Ubiquitous | 外部コマンド (`strictdoc` / `code` / `notepad`) を呼び出す関数は `$ErrorActionPreference = "Continue"` ローカル退避 + `$LASTEXITCODE` 信頼パターン (setup-spec.md FR-311 / ADR-011 流儀) を踏襲すること |
 | FR-904 | Ubiquitous | エラー出力タグは `[INFO]` / `[WARN]` / `[ERROR]` / `[OK]` の 4 種に統一すること (setup の流儀踏襲) |
 | FR-905 | Ubiquitous | `Get-CimInstance Win32_Process` 呼び出し失敗時 (WMI 無効化、 権限不足、 CommandLine が `$null` 等) は本人確認を「失敗 (= strictdoc でない)」 と判定して安全側に倒すこと (誤殺防止)。 ユーザが詰んだ場合の復旧手段 (PID file 手動削除) は 1.8 Limitations に明記 |
@@ -299,7 +299,7 @@ host テストとして以下を最低限カバーする (詳細手順は §5 Te
 | NFR-005 | 文字コード | スクリプト本体 **および console 出力メッセージ** は **ASCII only** (setup-spec.md NFR-006 / ADR-008 継承)。 仕様書 (本書) と config の `_comment_*` 値は ASCII の範囲で英語表記 |
 | NFR-006 | 配置 | 任意フォルダから実行可能 (CWD 非依存、 setup-spec.md NFR-005 継承) |
 | NFR-007 | 互換 | `server.config.json` は標準 JSON パーサで読めること (拡張記法なし、 `_comment_*` のみ慣習)。 PowerShell 5.1 の `ConvertFrom-Json` を前提に BOM strip を FR-204 で要求 |
-| NFR-008 | 独立性 | manage-strictdoc は setup-strictdoc が生成する `setup.log` / `setup.config.json` / `env-report.json` を読まない / 書かないこと (= 独立稼働) |
+| NFR-008 | 独立性 | launch-strictdoc は setup-strictdoc が生成する `setup.log` / `setup.config.json` / `env-report.json` を読まない / 書かないこと (= 独立稼働) |
 | NFR-009 | 機密 | パスワード / PAT / トークンを `server.config.json` および log file に保存しないこと (strictdoc 自体が認証機能なし、 そもそも該当情報なし) |
 
 ---
@@ -318,8 +318,8 @@ host テストとして以下を最低限カバーする (詳細手順は §5 Te
 
 ```mermaid
 flowchart TB
-    Bat["manage-strictdoc.bat<br/>エントリ + elevate(no_admin)"]:::framework
-    Main["manage-strictdoc.ps1<br/>メニュー loop + dispatch"]:::usecase
+    Bat["launch-strictdoc.bat<br/>エントリ + elevate(no_admin)"]:::framework
+    Main["launch-strictdoc.ps1<br/>メニュー loop + dispatch"]:::usecase
     Cfg["lib/server-config.ps1<br/>config gen/load/edit/validate"]:::adapter
     Proc["lib/server-process.ps1<br/>start/stop/status/logs"]:::adapter
     Log["lib/logger.psm1<br/>Start-Transcript ラップ (既存流用)"]:::entity
@@ -328,7 +328,7 @@ flowchart TB
     Pid["server-port.pid<br/>(%LOCALAPPDATA%)"]:::entity
     SLog["server-port.log<br/>(stdout, %LOCALAPPDATA%)"]:::entity
     ELog["server-port.err.log<br/>(stderr, %LOCALAPPDATA%)"]:::entity
-    MLog["manage.log<br/>(bat と同フォルダ)"]:::entity
+    MLog["launch.log<br/>(bat と同フォルダ)"]:::entity
 
     Bat --> Main
     Main --> Cfg
@@ -353,12 +353,12 @@ flowchart TB
 StrictDocStarter/
 ├── setup-strictdoc.bat                  # (既存) 環境構築 launcher
 ├── setup-strictdoc.ps1                  # (既存)
-├── manage-strictdoc.bat                 # (新規) サーバ管理 launcher
-├── manage-strictdoc.ps1                 # (新規) メニュー loop + dispatch
+├── launch-strictdoc.bat                 # (新規) サーバ管理 launcher
+├── launch-strictdoc.ps1                 # (新規) メニュー loop + dispatch
 ├── gather-logs.bat                      # (既存)
-├── gather-logs.ps1                      # (既存、 改修: server-*.log / *.pid / manage.log 回収)
+├── gather-logs.ps1                      # (既存、 改修: server-*.log / *.pid / launch.log 回収)
 ├── _lib/
-│   └── elevate.bat                      # (既存) no_admin で manage が call
+│   └── elevate.bat                      # (既存) no_admin で launch-strictdoc が call
 ├── lib/
 │   ├── check.ps1                        # (既存、 影響なし)
 │   ├── config.ps1                       # (既存、 影響なし)
@@ -366,7 +366,7 @@ StrictDocStarter/
 │   ├── clone.ps1                        # (既存、 影響なし)
 │   ├── auto.ps1                         # (既存、 影響なし)
 │   ├── proxy.ps1                        # (既存、 影響なし)
-│   ├── logger.psm1                      # (既存、 manage も流用)
+│   ├── logger.psm1                      # (既存、 launch-strictdoc も流用)
 │   ├── server-config.ps1                # (新規) config gen/load/edit/validate
 │   └── server-process.ps1               # (新規) start/stop/status/logs
 ├── setup.config.template.json           # (既存)
@@ -397,14 +397,14 @@ StrictDocStarter/
 │       ├── _assets/                     # 図素材: sovd-architecture.drawio (編集ソース) + .svg + .png
 │       └── strictdoc_config.py          # (D-8) MERMAID/MATHJAX 有効、 project_path 直下 (D-1/FR-1141)
 ├── setup.log                            # (既存、 gitignore)
-├── manage.log                           # (新規、 gitignore)
+├── launch.log                           # (新規、 gitignore)
 ├── env-report.json                      # (既存、 gitignore)
 └── docs/
     ├── setup-spec.md                    # (既存)
     └── serve-spec.md                    # (新規、 本書)
 
-%LOCALAPPDATA%\StrictDocStarter\         # (新規 dir、 manage 初回 start 時に作成)
-├── server-<port>.pid                    # (新規、 manage が生成)
+%LOCALAPPDATA%\StrictDocStarter\         # (新規 dir、 launch-strictdoc 初回 start 時に作成)
+├── server-<port>.pid                    # (新規、 launch-strictdoc が生成)
 ├── server-<port>.log                    # (新規、 stdout)
 └── server-<port>.err.log                # (新規、 stderr)
 ```
@@ -469,17 +469,17 @@ classDiagram
 
 ### 3.6 Decisions
 
-#### ADR-101: バッチファイル名 = manage-strictdoc.bat
+#### ADR-101: バッチファイル名 = launch-strictdoc.bat
 
-- **Status**: Accepted
-- **Context**: 候補比較 (serve-strictdoc / strictdoc-server / start-strictdoc / manage-strictdoc / control-strictdoc / strictdoc-ctl 等)。 評価軸: (a) setup-strictdoc.bat との命名対称性、 (b) lifecycle 含意、 (c) 短さ、 (d) 既存 `strictdoc server` CLI との衝突有無、 (e) 英語自然さ、 (f) **日本人 (非 native) にとっての馴染み度**
-- **Decision**: `manage-strictdoc.bat`。 manage = 「マネジメント」 でカタカナ完全定着、 中学〜高校英語頻出、 lifecycle 全体管理を最適に表現、 setup と動詞 prefix で対称
-- **Consequences**: ファイル一覧で setup-strictdoc.bat と並んだ時、 動詞対比 (setup = 導入 vs manage = 運用管理) が自然に伝わる
+- **Status**: v1.0 は `manage-strictdoc.bat` を採用。 **v1.2 で `launch-strictdoc.bat` へ改名** (ADR-115 / option C で純ランチャ化し Stop/Status/Logs/メニューを廃止 → もはや「管理 (manage)」しないため)。
+- **Context**: 候補比較 (serve-strictdoc / strictdoc-server / start-strictdoc / launch-strictdoc / control-strictdoc / strictdoc-ctl 等)。 評価軸: (a) setup-strictdoc.bat との命名対称性、 (b) 実態の含意、 (c) 短さ、 (d) 既存 `strictdoc server` CLI との衝突有無、 (e) 英語自然さ。 v1.0 は 5 メニューで lifecycle を「管理」する想定だったため `manage`。 v1.2 で D&D → 起動 → ブラウザ → 終了の一時ランチャに変わった。
+- **Decision**: `launch-strictdoc.bat` / `.ps1`。 動詞 `launch` が「strictdoc server CLI window + ブラウザを起動する」実態を表す。 `setup-strictdoc` と動詞 prefix で対称。 `start-` は `strictdoc server` 内部の start と語が被るため不採用。
+- **Consequences**: ファイル一覧で `setup-strictdoc.bat` と並んだ時、 動詞対比 (setup = 導入 vs launch = 起動) が自然に伝わる。 旧名 `manage-strictdoc` は全廃 (本仕様内の参照も改名済)。
 
 #### ADR-102: メニュー対話方式 (vs サブコマンド引数方式)
 
 - **Status**: Accepted (v1.0)。 **v1.1 で一部 superseded by FR-1121 (D-7)**: 可視ウィンドウ方式採用後は最小メニューに、 **さらに v1.2 (ADR-115 option C) でメニュー廃止・純ランチャに決定**。 旧「5 メニュー対話 (start/stop/status/logs/edit)」前提は撤回
-- **Context**: `manage-strictdoc.bat start <path>` 等のサブコマンド引数式と、 `manage-strictdoc.bat` ダブルクリック → メニュー番号選択式の 2 案を比較
+- **Context**: `launch-strictdoc.bat start <path>` 等のサブコマンド引数式と、 `launch-strictdoc.bat` ダブルクリック → メニュー番号選択式の 2 案を比較
 - **Decision**: メニュー対話方式。 1〜5 番号 + Q で全操作
 - **Consequences**: ダブルクリック完結。 CI/automation には不向きだが v1.0 スコープ外。 将来サブコマンド引数式を追加するなら互換性ありで拡張可
 
@@ -497,7 +497,7 @@ classDiagram
 - **Status**: Accepted
 - **Context**: 停止対象 server プロセスの特定方式 3 案 (PID file / port-based / プロセス名検索)
 - **Decision**: PID file を主、 PID file 不在時のみ port-based fallback、 さらに殺す前に本人確認 (CommandLine に "strictdoc" 含む) を必須化
-- **Consequences**: 3 段防御 (PID file → port → 本人確認)。 PID file 削除/破損や別アプリ port 占有でも誤殺を防ぐ。 `Get-Process strictdoc` 全停止案は不採用 (他フォルダの manage が動かす strictdoc を巻き込むため)
+- **Consequences**: 3 段防御 (PID file → port → 本人確認)。 PID file 削除/破損や別アプリ port 占有でも誤殺を防ぐ。 `Get-Process strictdoc` 全停止案は不採用 (他フォルダの launch-strictdoc が動かす strictdoc を巻き込むため)
 
 #### ADR-105: Start-Process Hidden + log redirect (vs Start-Job / 別ターミナル)
 
@@ -513,19 +513,19 @@ classDiagram
 - **Decision**: `%LOCALAPPDATA%\StrictDocStarter\` 配下に統一
 - **Consequences**: OneDrive 同期から除外 (本来 OneDrive にあるべき情報ではない、 sync 負荷も減る)。 ユーザローカル state として自然。 `%TEMP%` は OS 自動削除リスク、 カレントは OneDrive 配下になる可能性ありで両方不適
 
-#### ADR-107: manage 操作ログと server stdout を分離 (SRP) + manage.log は bat 同フォルダ配置
+#### ADR-107: launch-strictdoc 操作ログと server stdout を分離 (SRP) + launch.log は bat 同フォルダ配置
 
 - **Status**: Accepted
-- **Context**: 1 つの log にまとめる vs 分離する。 manage.log の配置先を `%LOCALAPPDATA%` (server log と統一) vs bat 同フォルダ (= リポジトリ root、 OneDrive 配下になる可能性あり) で検討
-- **Decision**: `manage.log` (メニュー操作 / 判断トレース) と `server-<port>.log` (strictdoc 出力) を分離。 `manage.log` は **bat と同フォルダ** に配置 (理由: ユーザが障害時にすぐ見つけられる、 `setup.log` と並んで「StrictDocStarter family の log」 という家族感を出す)。 `.gitignore` で commit を防ぐ
-- **Consequences**: SRP 遵守 (変更理由が異なる: manage 操作 UX 変更 vs strictdoc アプリ出力)、 trouble shooting で「どっち見るべきか」 が明確 (manage 起動失敗なら manage.log、 server アプリ失敗なら server-<port>.log)。 manage.log は OneDrive 同期下に置かれる可能性あり (デスクトップ展開時) だが、 size は数 KB〜数十 KB なので sync 負荷は無視可能
+- **Context**: 1 つの log にまとめる vs 分離する。 launch.log の配置先を `%LOCALAPPDATA%` (server log と統一) vs bat 同フォルダ (= リポジトリ root、 OneDrive 配下になる可能性あり) で検討
+- **Decision**: `launch.log` (メニュー操作 / 判断トレース) と `server-<port>.log` (strictdoc 出力) を分離。 `launch.log` は **bat と同フォルダ** に配置 (理由: ユーザが障害時にすぐ見つけられる、 `setup.log` と並んで「StrictDocStarter family の log」 という家族感を出す)。 `.gitignore` で commit を防ぐ
+- **Consequences**: SRP 遵守 (変更理由が異なる: launch-strictdoc 操作 UX 変更 vs strictdoc アプリ出力)、 trouble shooting で「どっち見るべきか」 が明確 (launch-strictdoc 起動失敗なら launch.log、 server アプリ失敗なら server-<port>.log)。 launch.log は OneDrive 同期下に置かれる可能性あり (デスクトップ展開時) だが、 size は数 KB〜数十 KB なので sync 負荷は無視可能
 
 #### ADR-108: 初回 config 編集後の確認は Enter のみ (vs yes 入力)
 
 - **Status**: Accepted
-- **Context**: setup-strictdoc.bat の config フローは「edit → `yes` 入力で確定」 だが、 manage の config は daily-use で頻繁に編集する可能性あり、 yes は煩雑
+- **Context**: setup-strictdoc.bat の config フローは「edit → `yes` 入力で確定」 だが、 launch-strictdoc の config は daily-use で頻繁に編集する可能性あり、 yes は煩雑
 - **Decision**: 初回 config 編集後は `Press Enter when you have saved the config...` で Enter のみで先進む
-- **Consequences**: setup と異なる UX。 setup は重大な install 操作の前の最終確認 (yes 必須が妥当)、 manage の config 確定はミスっても server 起動失敗で巻き戻し容易 → リスク低くて Enter のみで妥当
+- **Consequences**: setup と異なる UX。 setup は重大な install 操作の前の最終確認 (yes 必須が妥当)、 launch-strictdoc の config 確定はミスっても server 起動失敗で巻き戻し容易 → リスク低くて Enter のみで妥当
 
 #### ADR-109: stop 時の本人確認 = CommandLine に "strictdoc" 含むか
 
@@ -545,20 +545,20 @@ classDiagram
 
 - **Status**: Accepted
 - **Context**: メニュー再描画前に screen clear するかどうか。 (a) Clear-Host で常にクリーンな画面 / (b) アクション出力を上に残し、 メニューを下に再描画 (scroll back)
-- **Decision**: (a) `Clear-Host`。 ヘッダの Status 行を最新で見せるのが第一目的。 過去のアクション出力は `manage.log` で永続化されているため、 ターミナル上でのスクロールバック必要性は低い
+- **Decision**: (a) `Clear-Host`。 ヘッダの Status 行を最新で見せるのが第一目的。 過去のアクション出力は `launch.log` で永続化されているため、 ターミナル上でのスクロールバック必要性は低い
 - **Consequences**: 画面が毎回リセットされる。 アクション直後の出力 (e.g. `[OK] Server started.`) はメニュー再描画前に user が読むタイミングを取らせる必要あり (FR-805 で「アクション完了後 1 行空ける」 + 必要なら `Press Enter to return...` で待機)
 
 #### ADR-112: 二重起動検出は Start-Transcript ロック失敗検出で行う
 
 - **Status**: Accepted
-- **Context**: メニュー .bat の二重起動を許すと、 同じ PID file を巡って Start / Stop が競合する。 検出方式は (a) lock file (`manage.lock`) 専用、 (b) `Start-Transcript` のファイルロック失敗を流用、 (c) 検出しない (undefined behavior)
-- **Decision**: (b) `Start-Transcript` のファイルロック失敗を流用 (FR-110)。 既に `manage.log` を append オープンしている session があれば 2 つ目の Start-Transcript は失敗 (Windows のファイル共有モードによる)、 これを catch して abort
+- **Context**: メニュー .bat の二重起動を許すと、 同じ PID file を巡って Start / Stop が競合する。 検出方式は (a) lock file (`launch.lock`) 専用、 (b) `Start-Transcript` のファイルロック失敗を流用、 (c) 検出しない (undefined behavior)
+- **Decision**: (b) `Start-Transcript` のファイルロック失敗を流用 (FR-110)。 既に `launch.log` を append オープンしている session があれば 2 つ目の Start-Transcript は失敗 (Windows のファイル共有モードによる)、 これを catch して abort
 - **Consequences**: 専用 lock file を作らないので追加 file が増えない。 lock の解放は session 終了時の Stop-Transcript で自動。 制約: Start-Transcript の Windows 上の共有モード挙動に依存 (`-Force` を付けると共有許可される可能性があるため、 FR-110 では `-Force` を使わない方針)
 
 #### ADR-113: 隠れデーモン → 可視ウィンドウ方式へ転換 (v1.1)
 
 - **Status**: Accepted (v1.1)。 **supersedes ADR-104 / ADR-105 / ADR-107 / ADR-110 / ADR-112**、 および FR-107 / FR-110 / FR-301..312 / FR-401..411 / FR-501..509 / FR-601..604 / FR-701..706 / NFR-002 / NFR-003
-- **Context**: v1.0 は server を `-WindowStyle Hidden` でバックグラウンド起動し、 PID file + port poll + 本人確認 + Start-Transcript ロックで lifecycle を自作していた。 これにより (a) 文法エラー時にポート poll が最大 30 秒待ち切ってから失敗、 (b) 大規模文書で固定 30 秒タイムアウトの誤判定、 (c) 実 listener が `python.exe` で「strictdoc」プロセス名検索に出ない、 (d) `manage.log` を Start-Transcript で排他ロックするため OneDrive/SharePoint 同期と競合し誤「別セッション動作中」で起動不能、 という 4 問題が発生 (improvement-items #1-#3, S-2)。 一方、 公式 `strictdoc server` は **foreground のコンソール**に readiness (`Uvicorn running on http://<host>:<port>` / `Application startup complete.`) と error (`error: Could not parse … TextXSyntaxError`、 出力後 **即終了**) を出している (実機確認済)
+- **Context**: v1.0 は server を `-WindowStyle Hidden` でバックグラウンド起動し、 PID file + port poll + 本人確認 + Start-Transcript ロックで lifecycle を自作していた。 これにより (a) 文法エラー時にポート poll が最大 30 秒待ち切ってから失敗、 (b) 大規模文書で固定 30 秒タイムアウトの誤判定、 (c) 実 listener が `python.exe` で「strictdoc」プロセス名検索に出ない、 (d) `launch.log` を Start-Transcript で排他ロックするため OneDrive/SharePoint 同期と競合し誤「別セッション動作中」で起動不能、 という 4 問題が発生 (improvement-items #1-#3, S-2)。 一方、 公式 `strictdoc server` は **foreground のコンソール**に readiness (`Uvicorn running on http://<host>:<port>` / `Application startup complete.`) と error (`error: Could not parse … TextXSyntaxError`、 出力後 **即終了**) を出している (実機確認済)
 - **Decision**: server を **可視コンソール窓**で起動し、 公式コンソールの readiness/error 表示をそのまま使う。 ポート poll / 固定タイムアウト / PID file / 子 PID 追跡 / Start-Transcript 二重起動ロック / stdout-stderr redirect を **すべて廃止**。 Stop = 窓を閉じる or Ctrl+C (or ポート所有プロセス kill)。 二重起動検出 = **ポート使用中チェック** (port LISTEN していれば既起動)。 詳細要求は Chapter 6 (FR-1100 系)
 - **Consequences**: (a)-(d) がすべて解消。 自作 lifecycle コードが大幅減。 失うのは「隠れバックグラウンド + 統合メニューで Stop/Status/Logs」 だが、 可視窓では Status=窓の有無 / Logs=窓そのもの / Stop=窓を閉じる で代替できる。 制約: server を止めるには窓を閉じる操作が要る (メニューからの遠隔 Stop は任意機能 FR-1112 へ降格)
 
@@ -571,7 +571,7 @@ classDiagram
 ### 4.1 Scenarios (Gherkin)
 
 ```gherkin
-Feature: manage-strictdoc - StrictDoc Server Lifecycle Management
+Feature: launch-strictdoc - StrictDoc Server Lifecycle Management
 
   Background:
     Given strictdoc がインストール済 (setup-strictdoc.bat 完了)
@@ -581,10 +581,10 @@ Feature: manage-strictdoc - StrictDoc Server Lifecycle Management
 
     Scenario: SC-001 初回起動 = config 自動生成 + Edit + メニュー表示 (traces: FR-101, FR-201, FR-202, FR-203)
       Given server.config.json が存在しない
-      When ユーザが manage-strictdoc.bat をダブルクリックする
+      When ユーザが launch-strictdoc.bat をダブルクリックする
       Then server.config.json が template から生成される
       And 既定エディタが起動して server.config.json を開く
-      And manage は "Press Enter when you have saved the config..." で待機する
+      And launch-strictdoc は "Press Enter when you have saved the config..." で待機する
       And ユーザが Enter を押すと config が再ロード + validate される
       And validation OK ならメニューが表示される
 
@@ -632,10 +632,10 @@ Feature: manage-strictdoc - StrictDoc Server Lifecycle Management
       And STOPPED 扱いで通常 Start パスに進む
 
     Scenario: SC-109 メニュー二重起動の検出と abort (traces: FR-110, ADR-112)
-      Given manage-strictdoc.bat が既に 1 session 動作中 (manage.log を Start-Transcript でロック中)
-      When ユーザが もう 1 つの manage-strictdoc.bat を起動する
+      Given launch-strictdoc.bat が既に 1 session 動作中 (launch.log を Start-Transcript でロック中)
+      When ユーザが もう 1 つの launch-strictdoc.bat を起動する
       Then 2 つ目の session で Start-Transcript が失敗する
-      And "[ERROR] Another manage-strictdoc session appears to be running (cannot lock manage.log). Close it first, then retry." が表示される
+      And "[ERROR] Another launch-strictdoc session appears to be running (cannot lock launch.log). Close it first, then retry." が表示される
       And 2 つ目の session は exit code 1 で終了する
 
     Scenario: SC-102 既起動状態で start (traces: FR-305)
@@ -786,10 +786,10 @@ Feature: manage-strictdoc - StrictDoc Server Lifecycle Management
 
 ```jsonc
 {
-  "_comment_root": "manage-strictdoc server configuration. Edit this file via menu 5 (Edit config).",
-  "_comment_overview": "project_path is OPTIONAL (last-used default; primary input = drag a folder/file onto manage-strictdoc.bat, or the startup prompt -- serve-spec 6.10). Optional with defaults: host (127.0.0.1); port (5111 = START port, actual = first free >= it); open_browser (true); output_path (empty=strictdoc default).",
+  "_comment_root": "launch-strictdoc server configuration. Edit this file via menu 5 (Edit config).",
+  "_comment_overview": "project_path is OPTIONAL (last-used default; primary input = drag a folder/file onto launch-strictdoc.bat, or the startup prompt -- serve-spec 6.10). Optional with defaults: host (127.0.0.1); port (5111 = START port, actual = first free >= it); open_browser (true); output_path (empty=strictdoc default).",
 
-  "_comment_project_path": "Default/last-used StrictDoc project root. Overridden by a folder/file dropped on manage-strictdoc.bat (file -> its parent) or the startup prompt; the chosen folder is saved back here (FR-1150..1155). <starter_root> -> the .bat's folder; <user> -> $env:USERNAME (FR-208).",
+  "_comment_project_path": "Default/last-used StrictDoc project root. Overridden by a folder/file dropped on launch-strictdoc.bat (file -> its parent) or the startup prompt; the chosen folder is saved back here (FR-1150..1155). <starter_root> -> the .bat's folder; <user> -> $env:USERNAME (FR-208).",
   "project_path": "<starter_root>\\samples\\sovd-automotive-ja",
 
   "_comment_host": "Server bind host. Allowed: IPv4 dotted-decimal (e.g. 127.0.0.1, 0.0.0.0), 'localhost', or IPv6 literal (e.g. ::, ::1). 127.0.0.1 = local only (recommended). 0.0.0.0 and :: = LAN exposed (browser open auto-translates to 127.0.0.1).",
@@ -833,13 +833,13 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | # | シナリオ | 手順概要 | 期待 | traces |
 |---|---|---|---|---|
 | T1 | 正常系 5 段階 | (1) start → (2) status → (3) logs → (4) stop → (5) status | RUNNING → STOPPED まで完走、 各 log 出力 | FR-1001, SC-101, SC-201, SC-205, SC-301, SC-302, SC-401 |
-| T2 | port 競合 | 別アプリ (e.g. `python -m http.server 5111`) で 5111 占有 → manage で 1 (Start) | FR-306 warn + abort | FR-1002, SC-103 |
+| T2 | port 競合 | 別アプリ (e.g. `python -m http.server 5111`) で 5111 占有 → launch-strictdoc で 1 (Start) | FR-306 warn + abort | FR-1002, SC-103 |
 | T3 | PID file 手動削除 + stop | start → server-<port>.pid を手で del → 2 (Stop) | port-based fallback で stop 成功 | FR-1003, SC-202 |
 | T4 | CONFIG ERROR | project_path を存在しないパスに編集 → メニュー再表示 | [CONFIG ERROR] + 1〜4 disabled、 5/Q のみ | FR-1004, SC-502 |
 | T5 | 本人確認失敗 (誤殺防止) | server-<port>.pid に notepad の PID を手書き → 2 (Stop) | FR-404 warn、 notepad は生存 | FR-1005, SC-203 |
 | T6 | Edit config UX | 5 (Edit config) → エディタ起動 → 保存 → メニュー戻り → 変更反映確認 | エディタ open、 メニュー non-blocking | FR-1006, SC-501 |
 | T7 | Quit 警告 | start → Q | [INFO] Server is still running... 表示 + メニュー終了、 server 継続 | FR-1007, SC-601 |
-| T8 | 二重起動検出 | 1 つ目の manage を起動したまま、 2 つ目を起動 | 2 つ目で [ERROR] Another manage-strictdoc session... 表示 + exit 1 | FR-110, SC-109 |
+| T8 | 二重起動検出 | 1 つ目の launch-strictdoc を起動したまま、 2 つ目を起動 | 2 つ目で [ERROR] Another launch-strictdoc session... 表示 + exit 1 | FR-110, SC-109 |
 | T9 | STARTING 状態確認 | start 直後、 LISTEN 確認前に 3 (Status) 即押し | [STARTING] PID X (waiting for LISTEN, Ns/30s) 表示 | FR-503, SC-106 |
 | T10 | HTTP 応答確認 | start → ブラウザ open される瞬間に curl で同 URL を叩く | LISTEN 後にも HTTP 200 系応答が返る (ERR_EMPTY_RESPONSE が出ない) | FR-303 (b) |
 
@@ -847,8 +847,8 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 
 - T1〜T7 全 PASS (FAIL は v1.0 リリースブロッカー)
 - 各シナリオの所要時間が NFR-001 / NFR-002 / NFR-003 範囲内
-- manage.log と server-<port>.log の両方に期待される行が記録される
-- gather-logs.bat 拡張で manage.log + server-*.log + *.pid が ZIP に含まれる
+- launch.log と server-<port>.log の両方に期待される行が記録される
+- gather-logs.bat 拡張で launch.log + server-*.log + *.pid が ZIP に含まれる
 
 ### 5.4 Out-of-Scope (本仕様の test)
 
@@ -891,15 +891,15 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 
 | ID | パターン | 要求 |
 |---|---|---|
-| FR-1121 | Ubiquitous | (**v1.2 決定 D-7 / ADR-115 option C**) UI は **メニューを持たない一時ランチャ**とすること: `manage-strictdoc.bat` 起動 → project_path を **D&D (FR-1150 系)** または **単体起動時プロンプト (FR-1153)** で解決 → 重複確認 (FR-1158) → 空きポート (FR-1156) → **strictdoc server CLI window** 起動 (FR-1101) → ブラウザ (FR-1159) → 最終使用保存 (FR-1155) を行い、 **成功時はそのまま終了**する。 永続 UI は strictdoc server CLI window が担う (状態=窓の有無 / ログ=窓 / 停止=窓を閉じる FR-1111)。 **Start/Stop/Status/Logs/常駐メニューは持たない**。 **再オープン=同一文書を再ドロップ** (FR-1158 がブラウザのみ再オープン)、 **設定変更=`server.config.json` を直接編集**。 起動失敗時のみ原因を表示 (FR-1157c) して pause→終了。 初回は config scaffold (FR-1142) |
-| FR-1122 | Ubiquitous | `manage.log` の **Start-Transcript 排他ロックによる二重起動検出 (旧 FR-110/ADR-112) は廃止**すること。 manage 操作ログが必要なら追記専用で残してよいが、 **ロック目的では使わない**。 → これにより OneDrive/SharePoint 同期との競合 (S-2 根本原因) が解消する |
+| FR-1121 | Ubiquitous | (**v1.2 決定 D-7 / ADR-115 option C**) UI は **メニューを持たない一時ランチャ**とすること: `launch-strictdoc.bat` 起動 → project_path を **D&D (FR-1150 系)** または **単体起動時プロンプト (FR-1153)** で解決 → 重複確認 (FR-1158) → 空きポート (FR-1156) → **strictdoc server CLI window** 起動 (FR-1101) → ブラウザ (FR-1159) → 最終使用保存 (FR-1155) を行い、 **成功時はそのまま終了**する。 永続 UI は strictdoc server CLI window が担う (状態=窓の有無 / ログ=窓 / 停止=窓を閉じる FR-1111)。 **Start/Stop/Status/Logs/常駐メニューは持たない**。 **再オープン=同一文書を再ドロップ** (FR-1158 がブラウザのみ再オープン)、 **設定変更=`server.config.json` を直接編集**。 起動失敗時のみ原因を表示 (FR-1157c) して pause→終了。 初回は config scaffold (FR-1142) |
+| FR-1122 | Ubiquitous | `launch.log` の **Start-Transcript 排他ロックによる二重起動検出 (旧 FR-110/ADR-112) は廃止**すること。 launch-strictdoc 操作ログが必要なら追記専用で残してよいが、 **ロック目的では使わない**。 → これにより OneDrive/SharePoint 同期との競合 (S-2 根本原因) が解消する |
 
 ### 6.5 OneDrive / 空白 / 日本語パス対応 (FR-1130 系) — S-2
 
 | ID | パターン | 要求 |
 |---|---|---|
-| FR-1131 | Ubiquitous | S-2 の根本原因 (`manage.log` の Start-Transcript ロック × 同期) は FR-1122 (ロック廃止) で解消済とすること |
-| FR-1132 | If | もし `manage-strictdoc.bat` の配置パスが OneDrive/SharePoint 同期配下、 または空白・非ASCII (日本語等) を含むならば、 起動時に `[WARN] Running from a synced/space/non-ASCII path. A local path like C:\StrictDocStarter is recommended.` を表示すること (起動は継続)。 検出は `$env:OneDrive` 配下判定 + パス文字種判定 |
+| FR-1131 | Ubiquitous | S-2 の根本原因 (`launch.log` の Start-Transcript ロック × 同期) は FR-1122 (ロック廃止) で解消済とすること |
+| FR-1132 | If | もし `launch-strictdoc.bat` の配置パスが OneDrive/SharePoint 同期配下、 または空白・非ASCII (日本語等) を含むならば、 起動時に `[WARN] Running from a synced/space/non-ASCII path. A local path like C:\StrictDocStarter is recommended.` を表示すること (起動は継続)。 検出は `$env:OneDrive` 配下判定 + パス文字種判定 |
 | FR-1133 | Ubiquitous | `.bat`/`.ps1` 内のパス引数は空白・日本語を含んでも壊れないよう、 `%*` 等の引用と `Start-Process`/`cmd /c start` 引数の事前引用 (setup-spec FR-807 の delayed expansion を含む) を総点検すること |
 | FR-1134 | Optional | OneDrive Files On-Demand で `lib\*.ps1` がプレースホルダ化し dot-source が失敗する場合に備え、 起動時に `lib\` 配下の存在チェックを行い、 欠落時は `[WARN]` で「OneDrive のファイルをダウンロード (常にこのデバイスに保持) してください」 を案内すること |
 
@@ -921,7 +921,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | FR-401..411 (PID file 基準 Stop) | FR-1111..1112 | 窓閉じ / ポート基準 |
 | FR-501..509 (5 状態 / PID 基準) + Glossary「5 状態」+ Domain Model「4 状態」(3.4) | FR-1113..1114 の **3 状態** (RUNNING / OTHER_OWNS_PORT / STOPPED) | ポート基準。 v1.0 内の 4/5 表記不整合も解消 |
 | FR-601..604 (Logs メニュー) | (窓がログ) | Logs メニュー不要化 |
-| FR-701..706 (PID/log file 管理) | (大半廃止) | redirect/PID 廃止、 manage.log は任意 |
+| FR-701..706 (PID/log file 管理) | (大半廃止) | redirect/PID 廃止、 launch.log は任意 |
 | FR-110 (二重起動 = transcript ロック) | FR-1104 / FR-1122 | ポートチェック |
 | FR-107 (Quit 時 daemon 継続警告) | (不要) | 窓を閉じれば停止 |
 | ADR-104/105/107/110/112 | ADR-113 | |
@@ -936,7 +936,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 
 > **未 supersede で有効に残るもの**: FR-101..106 / FR-108..109 (起動/dispatch, elevate, メニューloop。 ただし **FR-107 と FR-110 は除く**)、 FR-200 系 (config gen/load/validate, placeholders)、 FR-901 (setup.log 不読) / FR-903 (外部コマンド EAP=Continue + LASTEXITCODE) / FR-904 (エラータグ) / FR-905 安全側判定 (FR-1112 に継承)、 NFR-001/004/005/006/007/008/009。 §4.2 Configuration (config schema) も有効。 (FR-902 は前述のとおり更新済。)
 >
-> **本改訂で更新済 (下流へ伝播)**: **FR-902 本文 / Appendix A.3 (gather-logs)** は v1.1 では `*.pid` / `server-*.log` が生成されないため、 回収対象を「`manage.log` (存在時のみ)」へ更新済 (本改訂で両方修正)。
+> **本改訂で更新済 (下流へ伝播)**: **FR-902 本文 / Appendix A.3 (gather-logs)** は v1.1 では `*.pid` / `server-*.log` が生成されないため、 回収対象を「`launch.log` (存在時のみ)」へ更新済 (本改訂で両方修正)。
 
 ### 6.8 サンプル / バージョン / その他 (S-1, S-3, S-4, O-* への参照)
 
@@ -975,7 +975,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
       Then server が停止し port が解放される
 
     Scenario: SC-V05 同期/空白/日本語パス警告 (traces: FR-1132)
-      Given manage-strictdoc.bat が OneDrive 配下 or 空白/日本語パスにある
+      Given launch-strictdoc.bat が OneDrive 配下 or 空白/日本語パスにある
       When 起動する
       Then "[WARN] Running from a synced/space/non-ASCII path ..." 表示 (起動は継続)
 
@@ -1020,8 +1020,8 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 
 | ID | パターン | 要求 |
 |---|---|---|
-| FR-1150 | When | `manage-strictdoc.bat` にフォルダまたはファイルがドロップされたとき、 そのパス群を `manage-strictdoc.ps1` へ引数転送すること (既存の `%*` 転送・ no_admin で UAC 再起動なし)。 引用は FR-1133 を適用し、 空白 / 非 ASCII / `&` 等を含むパスでも壊れないこと。 |
-| FR-1150b | If | もし引数 0 個 (ドロップ無し) で起動されたら、 `manage-strictdoc.ps1` はこれを受理し FR-1153 のプロンプトへ進むこと。 |
+| FR-1150 | When | `launch-strictdoc.bat` にフォルダまたはファイルがドロップされたとき、 そのパス群を `launch-strictdoc.ps1` へ引数転送すること (既存の `%*` 転送・ no_admin で UAC 再起動なし)。 引用は FR-1133 を適用し、 空白 / 非 ASCII / `&` 等を含むパスでも壊れないこと。 |
+| FR-1150b | If | もし引数 0 個 (ドロップ無し) で起動されたら、 `launch-strictdoc.ps1` はこれを受理し FR-1153 のプロンプトへ進むこと。 |
 | FR-1151 | When | ドロップ項目が **(a) ディレクトリ** (`Test-Path -PathType Container` が真) のとき project_path = そのディレクトリ。 **(b) ファイル**のとき project_path = その親ディレクトリ (`Split-Path -Parent`)。 **(c)** 解決結果がドライブ直下 (例 `C:\`) または UNC 共有ルート (`\\server\share`) になる場合は FR-1154a のエラー扱いとし、 ドライブ / 共有全体の走査を防ぐこと (UNC 下の通常フォルダ `\\server\share\proj` は可)。 **(d)** `.lnk` ショートカットは解決対象外とし `[WARN] Shortcuts (.lnk) are not supported; drop the actual folder/file` を表示してスキップ (FR-1153 のプロンプトへ)。 |
 | FR-1152 | If | もし複数項目がドロップされたら、 **先頭 1 項目**のみを採用し、 `[WARN] Multiple items dropped; using the first: <path>` を表示すること。 |
 | FR-1153 | If | もし引数 0 個 (ドロップ無し) ならば、 `Enter folder path (or Q to quit) [default: <default>]: ` のプロンプトでフォルダ入力を求めること。 (a) **空入力 (Enter のみ) → `<default>` を採用**。 (b) `<default>` は config.project_path が有効ならそれ、 無効 / 空なら同梱サンプル `<starter_root>\samples\sovd-automotive-ja` (同梱されており常に存在 = Enter は安全な脱出口)。 (c) **`Q` / `q` 入力 → 中断**し `[INFO] Cancelled.` を表示して exit すること (無効パス再プロンプトの無限ループ脱出口)。 |
@@ -1035,11 +1035,11 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | FR-1156 | When | server 起動時、 `server.config.json` の `port` を**開始ポート** `start` とし、 `start` から **`ceiling = min(start + 20, 64999)`** まで +1 ずつ `Get-NetTCPConnection -LocalPort <p> -State Listen` が**存在しない**最初のポートを**候補ポート**として選定すること。 host は変更しないこと (IP は config の host のまま)。 |
 | FR-1156b | If | もし `start..ceiling` に空きポートが 1 つも無ければ、 `[ERROR] No free port in range <start>..<ceiling>` を表示し abort すること。 |
 | FR-1157 | When | 候補ポートで起動後、 **採用確認**を 1 秒間隔でポーリングすること (FR-1102 を §6.10.2/§6.10.5 で narrow した採用確認専用 probe。 **固定 8 秒タイムアウトは設けず**、 下記の確定シグナルで分岐する。 安全弁の上限のみ 60 秒)。 各反復で: **(a)** 候補ポートが LISTEN かつ owner の CommandLine に `strictdoc` を含む → **採用** (FR-1159)。 **(b)** 候補ポートが LISTEN だが strictdoc 以外が所有 (= 選定と bind の間に他プロセスが取得した TOCTOU 競合) → `候補+1` から FR-1156 を継続し次の空きで**再試行** (最大 5 回 または `ceiling` のいずれか早い方。 全滅時 `[ERROR] Could not bind a free port near <start> (tried N ports)`)。 **(c)** 起動した server プロセス (この project_path / `--port p` を提供する strictdoc。 `Get-CimInstance` の CommandLine 解析で判定。 **一度生存を確認後に消滅すれば即失敗**、 まだ未出現なら spawn 猶予 ~12 秒 (strictdoc.exe→python のコールド起動を考慮) 経過で失敗扱い) が **bind せず消滅** (= 大半は .sdoc 文法エラー。 strictdoc 未導入は FR-1105 が起動前に abort 済のため該当しない) → **再試行せず FR-1157c** へ。 **(d)** server プロセスは**生存中だが未 bind** (= 起動中。 大規模初回は数秒〜十数秒かかる) → 次反復へ待機継続 (**これにより valid な大規模プロジェクトを false 失敗にしない**)。 60 秒上限到達時は `[WARN] Server still starting on port <p>; check the server window.` とし **hard fail しない**。 (b) はツール同士 (同時 2 ドロップ) の競合にも適用される。 |
-| FR-1157c | When | FR-1157(c) の起動失敗時: server 窓は parse error で即閉じることがあるため、 **manage の cmd 窓 (バッチ画面) を確実な表示先**とすること: (i) `[ERROR] StrictDoc server failed to start on port <p> (it exited before binding).` を表示、 (ii) 原因可視化のため `strictdoc export <project_path> --output-dir <一時 dir>` を**同期実行** (.sdoc 文法エラーは export の parse 段階で**即失敗**するため遅くない) し、 出力の `error: Could not parse ... TextXSyntaxError` 行を cmd 窓へエコー、 (iii) 一時 dir を削除し `Fix the .sdoc and re-drop the folder.` を表示すること。 export が parse 以外の理由で失敗した場合はその出力をそのままエコーし **原因を断定しない**。 ブラウザは開かない。 |
+| FR-1157c | When | FR-1157(c) の起動失敗時: server 窓は parse error で即閉じることがあるため、 **launch-strictdoc の cmd 窓 (バッチ画面) を確実な表示先**とすること: (i) `[ERROR] StrictDoc server failed to start on port <p> (it exited before binding).` を表示、 (ii) 原因可視化のため `strictdoc export <project_path> --output-dir <一時 dir>` を**同期実行** (.sdoc 文法エラーは export の parse 段階で**即失敗**するため遅くない) し、 出力の `error: Could not parse ... TextXSyntaxError` 行を cmd 窓へエコー、 (iii) 一時 dir を削除し `Fix the .sdoc and re-drop the folder.` を表示すること。 export が parse 以外の理由で失敗した場合はその出力をそのままエコーし **原因を断定しない**。 ブラウザは開かない。 |
 | FR-1158 | If | もし起動前の時点で、 解決 project_path と**同一ディレクトリ**を既に提供中の strictdoc サーバが在れば、 **新規起動せず**そのサーバの URL (`http://<host>:<its-port>/`) をブラウザで開くに留め `[INFO] Already serving <path> on port <p>. Opening browser...` を表示すること。 稼働サーバ列挙は `Get-CimInstance Win32_Process` で CommandLine に `strictdoc` と `server` を含むプロセスを抽出し、 served path と `--port` を解析。 パス比較は両辺を `[System.IO.Path]::GetFullPath` 正規化・末尾区切り除去・大小無視で行う。 (a) **served path 引数が相対 / 解析不能**で正規化できないときは「一致なし」とみなし新規起動に進む (誤再利用を回避)。 (b) **複数一致**時は最小ポートの URL を開く。 (c) WMI 利用不可等で列挙失敗時は安全側として新規起動に進む (FR-1112 の安全側判定に準拠。 = 同一文書の二重 tab が出るが機能上の害はない)。 |
 | FR-1159 | Where | open_browser=true のとき、 ブラウザ open は **FR-1103 の手順**に従い、 **実際に採用したポート** (FR-1156 / 1157) を対象に行うこと (host=`0.0.0.0`/`::` の `127.0.0.1` 置換も FR-1103 に従う)。 |
 
-> **Limitations (設計上の限界)**: (1) FR-1158 の重複検出は CommandLine 解析依存 (FR-1112 と同じく WMI 無効環境で失敗しうる) → 失敗時は新規起動 (二重 tab は許容)。 (2) `.lnk` ショートカットのドロップは非対応 (FR-1151d で警告スキップ)。 (3) ドライブ直下 / UNC 共有ルートのドロップは拒否 (FR-1151c)。 UNC 下の通常フォルダ (`\\server\share\proj`) は対応。 (4) **同時 2 ドロップの競合**: 2 つの manage インスタンスが同時に同じ候補ポートを掴む競合は FR-1157 の re-probe + 再試行で吸収する。 FR-1158 の重複抑止は同時実行下では best-effort (両者が相手を検出できず同一文書を二重に開く可能性) とする。 (5) `ceiling` を超える同時起動は想定しない (PoC スコープ)。 (6) **OTHER_OWNS_PORT** (開始ポートを strictdoc 以外が占有): FR-1156 が次の空きポートへ自動退避するため、 旧 FR-306/FR-1104 のような占有エラー通知は出さない (意図的)。
+> **Limitations (設計上の限界)**: (1) FR-1158 の重複検出は CommandLine 解析依存 (FR-1112 と同じく WMI 無効環境で失敗しうる) → 失敗時は新規起動 (二重 tab は許容)。 (2) `.lnk` ショートカットのドロップは非対応 (FR-1151d で警告スキップ)。 (3) ドライブ直下 / UNC 共有ルートのドロップは拒否 (FR-1151c)。 UNC 下の通常フォルダ (`\\server\share\proj`) は対応。 (4) **同時 2 ドロップの競合**: 2 つの launch-strictdoc インスタンスが同時に同じ候補ポートを掴む競合は FR-1157 の re-probe + 再試行で吸収する。 FR-1158 の重複抑止は同時実行下では best-effort (両者が相手を検出できず同一文書を二重に開く可能性) とする。 (5) `ceiling` を超える同時起動は想定しない (PoC スコープ)。 (6) **OTHER_OWNS_PORT** (開始ポートを strictdoc 以外が占有): FR-1156 が次の空きポートへ自動退避するため、 旧 FR-306/FR-1104 のような占有エラー通知は出さない (意図的)。
 
 ### 6.10.4 config スキーマ差分 (§4.2 を改訂)
 
@@ -1052,7 +1052,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 #### ADR-114: D&D / プロンプト入力 + ポート自動割当 (ADR-103 を緩和)
 
 - **Status**: Accepted (v1.2)。 **supersedes** ADR-103 (1 ポート専用) の一部 および FR-1104 (二重起動 = ポート使用中チェック → ブラウザのみ)。
-- **Context**: v1.1 までは 1 manage = 1 固定ポート (5111) = 1 文書で、 別文書を開くにはフォルダコピー or config 編集が必要だった (ADR-103)。 ユーザ要望は「`.bat` にフォルダ / ファイルを D&D で開く」「複数文書を同時に開く」。
+- **Context**: v1.1 までは 1 launch-strictdoc = 1 固定ポート (5111) = 1 文書で、 別文書を開くにはフォルダコピー or config 編集が必要だった (ADR-103)。 ユーザ要望は「`.bat` にフォルダ / ファイルを D&D で開く」「複数文書を同時に開く」。
 - **Decision**: project_path は D&D / プロンプトで与え (FR-1150..1155)、 ポートは `config.port` を起点に**自動割当** (FR-1156 / 1157)。 二重起動は「同一 project_path のサーバが稼働中か」で判定し、 同一なら再オープンのみ (FR-1158)。 IP は固定 (config の host)、 区別はポートで行う。
 - **Consequences**: 複数文書の同時提供が可能。 「ポート使用中 = 既起動」 という旧 FR-1104 の前提は成立しなくなる (別文書なら別ポートで起動するため) → FR-1156 / 1158 が置換。 CommandLine 解析依存の限界あり (上記 Limitations)。
 
@@ -1078,11 +1078,11 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | FR-1102 (port poll / 固定タイムアウトを設けない) | FR-1157 が「ポート採用確認 probe」に限り narrow | 採用確認は 1s 間隔・成功/失敗とも即判定・60s 非致命上限の限定 probe。 公式 readiness/error の固定ポーリング廃止は維持 |
 | §3.4 Domain Model (single server / PidFile entity) | v1.2: N-servers-by-port、 PID file entity 廃止 | §6.7 で §3.x は既に historical |
 
-#### ADR-115: manage は純ランチャ (メニュー廃止) — option C
+#### ADR-115: launch-strictdoc は純ランチャ (メニュー廃止) — option C
 
 - **Status**: Accepted (v1.2)。 **supersedes** FR-1121 の「最小メニュー」(v1.1 D-7)。
-- **Context**: D&D + 可視ウィンドウ方式では永続 UI (状態 / ログ / 停止) を **strictdoc server CLI window** が担う。 manage に常駐メニューを置くと責務が重複し、 文書ごとに窓が 2 枚になる。
-- **Decision**: manage を **メニュー無しの一時ランチャ**とする (FR-1121)。 フロー: 入力解決 (FR-1150/1153) → 重複確認 (FR-1158) → 空きポート (FR-1156) → CLI window 起動 (FR-1101) → ブラウザ (FR-1159) → 最終使用保存 (FR-1155) → 成功で終了。 「1 窓 = 1 文書 / 閉じる = 停止」。 再オープン = 再ドロップ (FR-1158)、 設定 = config 直接編集。
+- **Context**: D&D + 可視ウィンドウ方式では永続 UI (状態 / ログ / 停止) を **strictdoc server CLI window** が担う。 launch-strictdoc に常駐メニューを置くと責務が重複し、 文書ごとに窓が 2 枚になる。
+- **Decision**: launch-strictdoc を **メニュー無しの一時ランチャ**とする (FR-1121)。 フロー: 入力解決 (FR-1150/1153) → 重複確認 (FR-1158) → 空きポート (FR-1156) → CLI window 起動 (FR-1101) → ブラウザ (FR-1159) → 最終使用保存 (FR-1155) → 成功で終了。 「1 窓 = 1 文書 / 閉じる = 停止」。 再オープン = 再ドロップ (FR-1158)、 設定 = config 直接編集。
 - **採否根拠 (DA)**: A (自動起動+最小メニュー) / B (メニュー先) / C (純ランチャ) を **ユーザー視点 (U1 drop-and-go, U2 複数文書, U3 停止明快, U4 発見性, U5 窓の散らからなさ, U6 エラー視認, U7 アプリらしさ) と実装視点 (I1 複雑度, I2 spec 整合, I3 状態管理, I4 テスト容易性)** で比較。 C が U1/U2/U3/U5/U7/I1/I3/I4 で優位、 弱点の U4 は FR-1158 (再ドロップ=再オープン) が吸収。 実機で「窓を閉じる=停止」も確認のうえ **C を採用**。
 - **Consequences**: 最小・最単純。 遠隔 Stop は FR-1112 の任意 CLI へ降格。
 
@@ -1092,30 +1092,30 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
   Rule: D&D / プロンプト入力 + ポート自動割当 (FR-1150..1159)
     Scenario: SC-V07 フォルダ D&D (traces: FR-1150, FR-1151a, FR-1156, FR-1159)
       Given port 5111 が未使用
-      When ユーザが manage-strictdoc.bat にフォルダ C:\docs\projA をドロップする
+      When ユーザが launch-strictdoc.bat にフォルダ C:\docs\projA をドロップする
       Then project_path = C:\docs\projA で strictdoc server が起動する
       And 採用ポート 5111 でブラウザが開く
       But 他のポートでは起動しない
 
     Scenario: SC-V08 ファイル D&D は親フォルダ (traces: FR-1151b)
-      When ユーザが manage-strictdoc.bat にファイル C:\docs\projA\01.sdoc をドロップする
+      When ユーザが launch-strictdoc.bat にファイル C:\docs\projA\01.sdoc をドロップする
       Then project_path = C:\docs\projA (親フォルダ) で起動する
 
     Scenario: SC-V09 単体起動はプロンプト + 既定 Enter (traces: FR-1150b, FR-1153)
       Given server.config.json の project_path が有効
-      When ユーザが manage-strictdoc.bat をドロップ無しで起動し Enter のみ押す
+      When ユーザが launch-strictdoc.bat をドロップ無しで起動し Enter のみ押す
       Then 既定 (config の project_path) で起動する
 
     Scenario: SC-V10 複数文書 = 別ポート自動割当 (traces: FR-1156)
       Given projA が port 5111 で稼働中
-      When ユーザが manage-strictdoc.bat にフォルダ projB をドロップする
+      When ユーザが launch-strictdoc.bat にフォルダ projB をドロップする
       Then projB は port 5112 (次の空き) で起動する
       And IP は両方 127.0.0.1
       But port 5111 は再利用されない (projA を奪わない)
 
     Scenario: SC-V11 同一文書の重複起動抑止 (traces: FR-1158)
       Given projA が port 5111 で稼働中
-      When ユーザが manage-strictdoc.bat にフォルダ projA を再度ドロップする
+      When ユーザが launch-strictdoc.bat にフォルダ projA を再度ドロップする
       Then port 5111 のブラウザが再オープンされる
       But 新規サーバプロセスは起動されない
 
@@ -1162,7 +1162,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
       Given project_path に文法エラーの .sdoc がある
       When フォルダを D&D して起動する
       Then strictdoc server CLI window に error: Could not parse ... TextXSyntaxError が出てプロセスが即終了する
-      And manage は server プロセスが bind せず消滅したことを検出する (FR-1157c)
+      And launch-strictdoc は server プロセスが bind せず消滅したことを検出する (FR-1157c)
       And cmd 窓に [ERROR] failed to start と Could not parse ... TextXSyntaxError がエコーされる
       But 別ポートでの再試行は行われない (ポート競合ではないため)
       But ブラウザは開かない
@@ -1189,20 +1189,20 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | TV19 | ポート競合再試行 | 候補が奪われたら次ポートで起動 (全滅で [ERROR]) | FR-1157, SC-V16 |
 | TV20 | .sdoc 無し / ドライブ直下 | 無し= [WARN] + 空起動、 ドライブ直下= [ERROR] 拒否 | FR-1154b / 1151c, SC-V17 / SC-V20 |
 | TV21 | .lnk ショートカット D&D | [WARN] skipped → プロンプトへ・ショートカット先で起動しない | FR-1151d, SC-V18 |
-| TV22 | 文書エラーで起動不可 | manage cmd 窓に [ERROR] + Could not parse エコー・ブラウザ無し・別ポート再試行なし | FR-1157c / FR-1102, SC-V19 |
+| TV22 | 文書エラーで起動不可 | launch-strictdoc cmd 窓に [ERROR] + Could not parse エコー・ブラウザ無し・別ポート再試行なし | FR-1157c / FR-1102, SC-V19 |
 
 **Pass Criteria**: TV10-TV18 / TV20-TV22 全 PASS。 特に **TV13 (ポート衝突なし)**・**TV14 (重複起動なし)**・**TV17 (他フィールド不変)**・**TV22 (文書エラーで誤再試行しない)** を必須とする。 TV19 (競合再試行) と FR-1156b (ポート枯渇)・FR-1157 の 60s 安全弁は再現困難のため best-effort で確認 (専用シナリオ / host テストなし)。
 
 ### 6.10.8 Behavior — 可視ウィンドウ + ポート管理 (v1.2。 §3.5 の v1.0 図を置換)
 
-> **登場アクターを統一**: `User` / `manage-strictdoc.ps1` (= メニュー + `lib/server-process.ps1`) / `Windows` (port/process 表: `Get-NetTCPConnection` / `Get-CimInstance` / `taskkill`) / `strictdoc server CLI window` (図中 `strictdoc server CLI window` / `CLI window`。 §1.9 Glossary 参照。 公式 `strictdoc server` を前景実行する可視コンソール窓。 文書ごとに 1 窓) / `Browser`。 `Start-Process` / `cmd /c start` 等のコマンドレットはアクターではなく**メッセージ (操作)** として描く (§3.5 の旧 `Start-Process` ライフラインは廃止)。
+> **登場アクターを統一**: `User` / `launch-strictdoc.ps1` (= ランチャ + `lib/server-process.ps1`) / `Windows` (port/process 表: `Get-NetTCPConnection` / `Get-CimInstance` / `taskkill`) / `strictdoc server CLI window` (図中 `strictdoc server CLI window` / `CLI window`。 §1.9 Glossary 参照。 公式 `strictdoc server` を前景実行する可視コンソール窓。 文書ごとに 1 窓) / `Browser`。 `Start-Process` / `cmd /c start` 等のコマンドレットはアクターではなく**メッセージ (操作)** として描く (§3.5 の旧 `Start-Process` ライフラインは廃止)。
 
 #### (1) 起動 — 単一文書・ポート自動割当 (FR-1150..1159)
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant M as manage-strictdoc.ps1
+    participant M as launch-strictdoc.ps1
     participant OS as Windows
     participant SV as strictdoc server CLI window
     participant BR as Browser
@@ -1213,7 +1213,7 @@ sequenceDiagram
     M->>OS: 開始ポートから空き探索 (FR-1156)
     OS-->>M: 5111 が空き
     M->>SV: strictdoc server projA --port 5111 を起動 (FR-1101)
-    Note over SV: 窓に Uvicorn running ... 5111 (readiness)。 manage は窓 stdout を読まない
+    Note over SV: 窓に Uvicorn running ... 5111 (readiness)。 launch-strictdoc は窓 stdout を読まない
     M->>OS: 採用確認: 5111 LISTEN かつ owner=strictdoc か (FR-1157a)
     OS-->>M: 採用OK
     M->>BR: http://127.0.0.1:5111/ を開く (FR-1159)
@@ -1225,7 +1225,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor User
-    participant M as manage-strictdoc.ps1
+    participant M as launch-strictdoc.ps1
     participant OS as Windows
     participant A as CLI window A (projA)
     participant B as CLI window B (projB)
@@ -1234,7 +1234,7 @@ sequenceDiagram
     M->>OS: 空き探索 (結果 5111)
     M->>A: strictdoc server projA --port 5111
     M->>BR: 5111 を開く
-    User->>M: projB を D&D (別 manage インスタンス)
+    User->>M: projB を D&D (別 launch-strictdoc インスタンス)
     M->>OS: 空き探索, 5111 使用中ゆえ 5112 (FR-1156)
     M->>B: strictdoc server projB --port 5112
     M->>BR: 5112 を開く
@@ -1273,7 +1273,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     actor User
-    participant M as manage-strictdoc.ps1
+    participant M as launch-strictdoc.ps1
     participant OS as Windows
     participant SV as strictdoc server CLI window
     User->>M: 文法エラーを含む projX を D&D
@@ -1300,11 +1300,11 @@ sequenceDiagram
 | FR-210 | `_comment_inventory` 1 行形式 | 本仕様 FR-207 で `_comment_overview` として類似形式採用 |
 | FR-213 | `_comment_*` は評価対象としない | 本仕様 FR-213 で継承 |
 | FR-311 | EAP=Continue + LASTEXITCODE パターン | 本仕様 FR-903 で継承 |
-| FR-806 | `_lib/elevate.bat` 共通化 | 本仕様 FR-102 で manage-strictdoc.bat の `no_admin` call を表に追加 |
+| FR-806 | `_lib/elevate.bat` 共通化 | 本仕様 FR-102 で launch-strictdoc.bat の `no_admin` call を表に追加 |
 | ADR-008 | スクリプト本体は ASCII only | 本仕様 NFR-005 で継承 |
 | ADR-011 | EAP=Continue + LASTEXITCODE | 本仕様 FR-903 / ADR で言及済 |
 | ADR-013 | install 関数の二段防御 | 本仕様 FR-311 で start 成功判定の二段 (exit code 不使用 + LISTEN 確認 + プロセス生存) に流儀踏襲 |
-| logger.psm1 | Start-Transcript ラップ | 本仕様 FR-106 で manage.log への Start-Transcript に流用。 **既に `Start-OnboardLog -LogPath <path>` 形式で引数化済** (logger.psm1 v1.0 確認済) のため manage 側からそのまま `Start-OnboardLog -LogPath "<manage.log path>"` で呼べる。 **logger.psm1 の改修は不要** |
+| logger.psm1 | Start-Transcript ラップ | 本仕様 FR-106 で launch.log への Start-Transcript に流用。 **既に `Start-OnboardLog -LogPath <path>` 形式で引数化済** (logger.psm1 v1.0 確認済) のため launch-strictdoc 側からそのまま `Start-OnboardLog -LogPath "<launch.log path>"` で呼べる。 **logger.psm1 の改修は不要** |
 
 ### A.2 setup-spec.md 既存 FR-806 の表に追加すべき行
 
@@ -1312,13 +1312,13 @@ setup-spec.md FR-806 の `_lib/elevate.bat` 呼出規約表へ以下を追加す
 
 | .bat | 呼出 |
 |---|---|
-| `StrictDocStarter/manage-strictdoc.bat` | `call _lib\elevate.bat no_admin` |
+| `StrictDocStarter/launch-strictdoc.bat` | `call _lib\elevate.bat no_admin` |
 | `StrictDocStarter/uninstall-strictdoc.bat` | `call _lib\elevate.bat need_admin` (setup-spec §7.2 FR-340) |
 
 ### A.3 setup-spec.md 既存 FR-501 / gather-logs への影響
 
 setup-spec.md `gather-logs.ps1` (`docs/setup-spec.md` には明示的 FR なし、 README.md に記述あり) を改修して以下を収集対象に追加 (本仕様 FR-902):
 
-- `<bat フォルダ>\manage.log` (存在時のみ)
+- `<bat フォルダ>\launch.log` (存在時のみ)
 
 > **v1.1 (ADR-113)**: `%LOCALAPPDATA%\StrictDocStarter\*.log` / `*.pid` は可視ウィンドウ方式で生成されなくなったため **回収対象から除外**。 `%LOCALAPPDATA%\StrictDocStarter\` ディレクトリ自体も作らない。

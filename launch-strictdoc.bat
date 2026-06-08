@@ -1,5 +1,5 @@
 @echo off
-rem manage-strictdoc - StrictDoc launcher (v1.2, option C: pure launcher, no menu).
+rem launch-strictdoc - StrictDoc launcher (v1.2, option C: pure launcher, no menu).
 rem Drag a folder or file onto this .bat to serve it (a file uses its parent folder),
 rem or double-click to be prompted. Opens the StrictDoc server in its own window + browser.
 rem Admin not required. Common MOTW / CWD handled by _lib\elevate.bat (FR-806).
@@ -11,7 +11,7 @@ call "%~dp0_lib\elevate.bat" no_admin "%~f0" "%*"
 if "%ERRORLEVEL%"=="99" exit /b 0
 if errorlevel 1 exit /b %ERRORLEVEL%
 
-powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0manage-strictdoc.ps1" %*
+powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0launch-strictdoc.ps1" %*
 set "PS_EXIT=%ERRORLEVEL%"
 
 rem No trailing pause: on success this launcher window closes (the StrictDoc server runs

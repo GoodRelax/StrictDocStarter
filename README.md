@@ -23,7 +23,7 @@ tree in your browser — no manual Python or command-line setup.
 | Tool | Role | How to run |
 |---|---|---|
 | `setup-strictdoc.bat` | One-time setup: installs Git, Python, StrictDoc (pip), GitHub CLI, and VS Code + the Claude Code extension | Double-click → UAC → type `yes` |
-| `manage-strictdoc.bat` | Daily use: starts the StrictDoc server and opens your browser at the requirements tree | Double-click |
+| `launch-strictdoc.bat` | Daily use: starts the StrictDoc server and opens your browser at the requirements tree | Double-click |
 | `gather-logs.bat` | Collects logs + a diagnostics report into a ZIP for troubleshooting | Double-click |
 
 ## Quick start
@@ -31,7 +31,7 @@ tree in your browser — no manual Python or command-line setup.
 1. Copy the `StrictDocStarter` folder to your PC (e.g. the Desktop).
 2. Double-click **`setup-strictdoc.bat`** → approve the UAC prompt → type `yes`.
    It installs everything (~15–30 min, mostly download time).
-3. Double-click **`manage-strictdoc.bat`**. It starts the StrictDoc server and opens
+3. Double-click **`launch-strictdoc.bat`**. It starts the StrictDoc server and opens
    `http://127.0.0.1:5111/` in your browser, showing the bundled SOVD sample.
 
 That's it — from ZIP to browsing requirements.
@@ -58,7 +58,7 @@ need reproducibility, pin a version, e.g. `pip install "strictdoc==0.23.1"`.
 ## Requirements
 
 - Windows 11 (with `winget`)
-- Administrator rights for `setup-strictdoc.bat` (acquired via UAC); `manage-strictdoc.bat`
+- Administrator rights for `setup-strictdoc.bat` (acquired via UAC); `launch-strictdoc.bat`
   runs as a normal user
 - Internet access (winget / pip / git)
 
@@ -66,7 +66,7 @@ need reproducibility, pin a version, e.g. `pip install "strictdoc==0.23.1"`.
 
 - [`docs/01-environment.md`](docs/01-environment.md) — environment setup walkthrough (Phase 0 / Phase 1)
 - [`docs/setup-spec.md`](docs/setup-spec.md) — `setup-strictdoc` specification (requirements, ADRs)
-- [`docs/serve-spec.md`](docs/serve-spec.md) — `manage-strictdoc` specification (visible-window server model)
+- [`docs/serve-spec.md`](docs/serve-spec.md) — `launch-strictdoc` specification (visible-window server model)
 
 ## License
 
@@ -103,7 +103,7 @@ ZIP を展開してダブルクリックするだけで、クリーンな Window
 | ツール | 役割 | 起動 |
 |---|---|---|
 | `setup-strictdoc.bat` | 初回セットアップ: Git / Python / StrictDoc (pip) / GitHub CLI / VS Code + Claude Code 拡張 を導入 | ダブルクリック → UAC → `yes` |
-| `manage-strictdoc.bat` | 日常利用: StrictDoc サーバを起動し、ブラウザで要求ツリーを開く | ダブルクリック |
+| `launch-strictdoc.bat` | 日常利用: StrictDoc サーバを起動し、ブラウザで要求ツリーを開く | ダブルクリック |
 | `gather-logs.bat` | 障害時のログ + 診断レポートを ZIP に回収 | ダブルクリック |
 
 ## クイックスタート
@@ -111,7 +111,7 @@ ZIP を展開してダブルクリックするだけで、クリーンな Window
 1. `StrictDocStarter` フォルダを PC (例: デスクトップ) にコピー。
 2. **`setup-strictdoc.bat`** をダブルクリック → UAC で許可 → `yes` と入力。
    一式が導入されます (約 15〜30 分、大半はダウンロード時間)。
-3. **`manage-strictdoc.bat`** をダブルクリック。StrictDoc サーバが起動し、
+3. **`launch-strictdoc.bat`** をダブルクリック。StrictDoc サーバが起動し、
    ブラウザで `http://127.0.0.1:5111/` が開き、同梱の SOVD サンプルが表示されます。
 
 これで「ZIP 展開 → 要求閲覧」まで完結します。
@@ -138,14 +138,14 @@ ZIP を展開してダブルクリックするだけで、クリーンな Window
 ## 動作要件
 
 - Windows 11 (`winget` 同梱)
-- `setup-strictdoc.bat` は管理者権限が必要 (UAC で取得)。`manage-strictdoc.bat` は一般ユーザ権限で動作
+- `setup-strictdoc.bat` は管理者権限が必要 (UAC で取得)。`launch-strictdoc.bat` は一般ユーザ権限で動作
 - インターネット接続 (winget / pip / git)
 
 ## ドキュメント
 
 - [`docs/01-environment.md`](docs/01-environment.md) — 環境構築の手順 (Phase 0 / Phase 1)
 - [`docs/setup-spec.md`](docs/setup-spec.md) — `setup-strictdoc` 仕様書 (要求・ADR)
-- [`docs/serve-spec.md`](docs/serve-spec.md) — `manage-strictdoc` 仕様書 (可視ウィンドウ方式)
+- [`docs/serve-spec.md`](docs/serve-spec.md) — `launch-strictdoc` 仕様書 (可視ウィンドウ方式)
 
 ## ライセンス
 

@@ -21,7 +21,7 @@ function Find-LogDir {
     )
     foreach ($d in $candidates) {
         $hasAny = $false
-        foreach ($f in @("setup.log", "env-report.json", "setup.config.json", "manage.log", "server.config.json")) {
+        foreach ($f in @("setup.log", "env-report.json", "setup.config.json", "launch.log", "server.config.json")) {
             if (Test-Path (Join-Path $d $f)) { $hasAny = $true; break }
         }
         if ($hasAny) { return $d }
@@ -29,7 +29,7 @@ function Find-LogDir {
     return $ScriptDir
 }
 
-# manage-strictdoc server logs (PID file + stdout/stderr) live under
+# launch-strictdoc server logs (PID file + stdout/stderr) live under
 # %LOCALAPPDATA%\StrictDocStarter\ regardless of LogDir (serve-spec FR-902).
 $ServerStateDir = Join-Path $env:LOCALAPPDATA 'StrictDocStarter'
 
@@ -147,14 +147,14 @@ Try-Capture "Get-ChildItem $ScriptDir -Recurse" { Get-ChildItem $ScriptDir -Recu
 Add-Section "Log directory contents"
 Try-Capture "Get-ChildItem $LogDir" { Get-ChildItem $LogDir | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize }
 
-Add-Section "manage-strictdoc state (%LOCALAPPDATA%\StrictDocStarter)"
+Add-Section "launch-strictdoc state (%LOCALAPPDATA%\StrictDocStarter)"
 if (Test-Path $ServerStateDir) {
     Try-Capture "Get-ChildItem $ServerStateDir" { Get-ChildItem $ServerStateDir | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize }
     foreach ($pidFile in (Get-ChildItem -Path $ServerStateDir -Filter "server-*.pid" -File -ErrorAction SilentlyContinue)) {
         Try-Capture "Get-Content $($pidFile.Name)" { Get-Content -Path $pidFile.FullName -ErrorAction SilentlyContinue }
     }
 } else {
-    Add-Line "(no manage-strictdoc state directory yet)"
+    Add-Line "(no launch-strictdoc state directory yet)"
 }
 
 Add-Section "Recent Windows event log: PowerShell"
@@ -182,7 +182,7 @@ $zipName   = "StrictDocStarter-result-$timestamp.zip"
 $zipPath   = Join-Path $env:TEMP $zipName
 
 $collect = @()
-foreach ($name in @("setup.log", "env-report.json", "setup.config.json", "diagnostics.txt", "manage.log", "server.config.json")) {
+foreach ($name in @("setup.log", "env-report.json", "setup.config.json", "diagnostics.txt", "launch.log", "server.config.json")) {
     $p = Join-Path $LogDir $name
     if (Test-Path $p) { $collect += $p }
 }
