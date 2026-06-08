@@ -292,7 +292,7 @@ host テストとして以下を最低限カバーする (詳細手順は §5 Te
 |---|---|---|
 | NFR-001 | 応答性 | メニュー表示 → 入力 prompt までの遅延は **初回 5 秒以内、 2 回目以降 1 秒以内** (毎回 config 再ロード + validate + status probe 込み)。 初回が緩いのは Windows の `Get-CimInstance` cold call が 1〜3 秒かかるため (Limitations) |
 | NFR-002 | 起動時間 | ⚠️ **v1.1 で撤廃 (§6.7 / ADR-113・FR-1102: 固定タイムアウト無し)。 以下は v1.0 歴史的記録。** Start ボタン → ブラウザ open までは strictdoc 起動時間 + 数秒、 LISTEN 確認 30 秒 + HTTP 応答確認 5 秒の合計 最大 35 秒 (FR-303) |
-| NFR-003 | 停止時間 | Stop ボタン → プロセス消滅までは **正常時 5 秒以内**、 -Force fallback 含めて最大 8 秒 (FR-406 + FR-407) |
+| NFR-003 | 停止時間 | ⚠️ **v1.1 で撤廃 (§6.7 / FR-1112: 窓閉じは即時)。 以下は v1.0 歴史的記録。** Stop ボタン → プロセス消滅までは 正常時 5 秒以内、 -Force fallback 含めて最大 8 秒 (FR-406 + FR-407) |
 | NFR-004 | 文字 | 全ログは **UTF-8 / 文字化けなし** |
 | NFR-005 | 文字コード | スクリプト本体 **および console 出力メッセージ** は **ASCII only** (setup-spec.md NFR-006 / ADR-008 継承)。 仕様書 (本書) と config の `_comment_*` 値は ASCII の範囲で英語表記 |
 | NFR-006 | 配置 | 任意フォルダから実行可能 (CWD 非依存、 setup-spec.md NFR-005 継承) |
@@ -463,112 +463,7 @@ classDiagram
 
 ### 3.5 Behavior
 
-#### Start シーケンス
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant Menu as manage-strictdoc.ps1
-    participant Proc as server-process.ps1
-    participant SP as Start-Process
-    participant Server as strictdoc server
-    participant FS as %LOCALAPPDATA%\StrictDocStarter
-    participant Browser
-
-    User->>Menu: 1 (Start)
-    Menu->>Proc: Get-ServerState($config)
-    Proc-->>Menu: STOPPED
-    Menu->>Proc: Start-StrictDocServer($config)
-    Proc->>FS: Ensure dir exists
-    Proc->>SP: Start-Process strictdoc server ... -WindowStyle Hidden -Redirect...
-    SP->>Server: spawn (background)
-    SP-->>Proc: Process object (PID)
-    Proc->>FS: Write server-<port>.pid
-    loop max 30s, 1s interval
-        Proc->>Proc: Get-NetTCPConnection -LocalPort
-    end
-    Server-->>Proc: port <port> LISTEN
-    Proc-->>Menu: Started (PID, port)
-    Menu->>Browser: Start-Process http://127.0.0.1:<port>/  (if open_browser=true)
-    Menu-->>User: [OK] Server started.
-    Menu-->>User: (back to menu)
-```
-
-#### Stop シーケンス
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant Menu as manage-strictdoc.ps1
-    participant Proc as server-process.ps1
-    participant FS as %LOCALAPPDATA%\StrictDocStarter
-    participant OS as Windows
-
-    User->>Menu: 2 (Stop)
-    Menu->>Proc: Stop-StrictDocServer($config)
-    alt PID file exists
-        Proc->>FS: Read server-<port>.pid
-        FS-->>Proc: PID = 12345
-    else PID file missing
-        Proc->>OS: Get-NetTCPConnection -LocalPort
-        OS-->>Proc: OwningProcess = 12345
-    end
-    Proc->>OS: Get-CimInstance Win32_Process -Filter "ProcessId=12345"
-    alt CommandLine contains "strictdoc"
-        Proc->>OS: Stop-Process -Id 12345
-        loop max 5s, 1s interval
-            Proc->>Proc: Get-Process -Id 12345
-        end
-        alt still alive
-            Proc->>OS: Stop-Process -Id 12345 -Force
-            loop max 3s, 1s interval
-                Proc->>Proc: Get-Process -Id 12345
-            end
-        end
-        OS-->>Proc: process gone
-        Proc->>FS: Delete server-<port>.pid
-        Proc-->>Menu: Stopped
-        Menu-->>User: [OK] Server stopped (PID 12345).
-    else 本人確認失敗
-        Note over Proc,FS: PID file is left in place (FR-404)
-        Proc-->>Menu: Aborted (not strictdoc)
-        Menu-->>User: [WARN] PID 12345 is not a strictdoc process. Aborting.
-    end
-    Menu-->>User: (back to menu)
-```
-
-#### メニュー loop
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant Bat as manage-strictdoc.bat
-    participant Main as manage-strictdoc.ps1
-    participant Cfg as server-config.ps1
-    participant Proc as server-process.ps1
-
-    User->>Bat: double-click
-    Bat->>Main: powershell -File manage-strictdoc.ps1
-    Main->>Main: Start-Transcript -Append manage.log
-    alt config 不在
-        Main->>Cfg: Initialize-ServerConfig (from template)
-        Cfg-->>Main: created
-        Main->>Cfg: Open editor (code / notepad)
-        Main-->>User: "Press Enter when saved..."
-        User-->>Main: Enter
-    end
-    loop until Q
-        Main->>Cfg: Load + Validate
-        Cfg-->>Main: config or [CONFIG ERROR]
-        Main->>Proc: Get-ServerState($config)
-        Proc-->>Main: status + PID + uptime
-        Main-->>User: Show menu (with state)
-        User-->>Main: 1 / 2 / 3 / 4 / 5 / Q
-        Main->>Proc: Dispatch
-    end
-    Main-->>User: [INFO] (server still running 警告 if applicable)
-    Main->>Main: Stop-Transcript
-```
+> 現行の挙動図 (可視ウィンドウ + ポート管理) は **§6.10.8** を参照。 v1.0 の隠れデーモン方式 Start / Stop / メニュー シーケンス図は削除した (`Start-Process` をアクター化していた・ Start 図と Stop 図で登場要素が不揃いだった旧図)。
 
 ### 3.6 Decisions
 
@@ -1119,7 +1014,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 
 ### 6.10.2 入力解決 (FR-1150 系)
 
-> 本節の起動経路は v1.1 の **FR-1101 (可視窓起動・ FR-1133 のパス引用) / FR-1105 (strictdoc 実行ファイル解決・未導入なら abort)** を継承する。 v1.2 の差分は project_path の入力源 (D&D / プロンプト) と採用ポートの決定 (§6.10.3) のみ。 **なお FR-1102 の「ポート poll / 固定タイムアウトを設けない」原則は、 FR-1157 の *ポート採用確認 probe* (最大 8s の限定 probe) に限り narrow される** — 公式 readiness / error の固定ポーリング (旧 30s) を復活させるものではない (§6.10.5 supersession 参照)。
+> 本節の起動経路は v1.1 の **FR-1101 (可視窓起動・ FR-1133 のパス引用) / FR-1105 (strictdoc 実行ファイル解決・未導入なら abort)** を継承する。 v1.2 の差分は project_path の入力源 (D&D / プロンプト) と採用ポートの決定 (§6.10.3) のみ。 **なお FR-1102 の「ポート poll / 固定タイムアウトを設けない」原則は、 FR-1157 の *ポート採用確認 probe* (1s 間隔・成功/失敗は即判定・最悪 60s 非致命上限の限定 probe) に限り narrow される** — 公式 readiness / error の固定ポーリング (旧 30s) を復活させるものではない (§6.10.5 supersession 参照)。
 
 | ID | パターン | 要求 |
 |---|---|---|
@@ -1135,8 +1030,10 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 
 | ID | パターン | 要求 |
 |---|---|---|
-| FR-1156 | When | server 起動時、 `server.config.json` の `port` を**開始ポート** `start` とし、 `start` から **`ceiling = min(start + 20, 64999)`** まで +1 ずつ、 `Get-NetTCPConnection -LocalPort <p> -State Listen` が**存在しない**最初のポートを**候補ポート**とすること。 host は変更しないこと (IP は config の host のまま)。 もし `start..ceiling` に空きが無ければ `[ERROR] No free port in range <start>..<ceiling>` を表示し abort すること。 |
-| FR-1157 | If | 候補ポートで起動後、 **採用確認 (post-launch re-probe)** を行うこと: 起動直後から**最大 8 秒** (1 秒間隔。 FR-1102 が撤廃した 30 秒固定ポーリングとは別の、 ポート採用確認専用の短時間 probe) で、 (i) `Get-NetTCPConnection -LocalPort <候補> -State Listen` が立ち、 (ii) その OwningProcess の CommandLine に `strictdoc` を含む (= 自分が起動したサーバ) ことを確認すること。 もし 8 秒以内に確認できない / 起動プロセスが即終了 (`HasExited`) / リスナーが strictdoc でない (TOCTOU で他に取られた) ならば、 **`候補+1` から FR-1156 の探索を継続して次の空きで再試行**すること (**再試行は最大 5 回、 または `ceiling` 到達のいずれか早い方**)。 全試行が失敗 (採用確認できず) した場合は `[ERROR] Could not bind a free port near <start> (tried N ports)` を表示すること。 ※ これは「採用後の bind 競合」による失敗であり、 FR-1156 の `No free port in range` (初回走査で空きが 1 つも無い) とは**別条件**。 本 re-probe はツール同士 (同時 2 ドロップ) の競合にも適用される。 |
+| FR-1156 | When | server 起動時、 `server.config.json` の `port` を**開始ポート** `start` とし、 `start` から **`ceiling = min(start + 20, 64999)`** まで +1 ずつ `Get-NetTCPConnection -LocalPort <p> -State Listen` が**存在しない**最初のポートを**候補ポート**として選定すること。 host は変更しないこと (IP は config の host のまま)。 |
+| FR-1156b | If | もし `start..ceiling` に空きポートが 1 つも無ければ、 `[ERROR] No free port in range <start>..<ceiling>` を表示し abort すること。 |
+| FR-1157 | When | 候補ポートで起動後、 **採用確認**を 1 秒間隔でポーリングすること (FR-1102 を §6.10.2/§6.10.5 で narrow した採用確認専用 probe。 **固定 8 秒タイムアウトは設けず**、 下記の確定シグナルで分岐する。 安全弁の上限のみ 60 秒)。 各反復で: **(a)** 候補ポートが LISTEN かつ owner の CommandLine に `strictdoc` を含む → **採用** (FR-1159)。 **(b)** 候補ポートが LISTEN だが strictdoc 以外が所有 (= 選定と bind の間に他プロセスが取得した TOCTOU 競合) → `候補+1` から FR-1156 を継続し次の空きで**再試行** (最大 5 回 または `ceiling` のいずれか早い方。 全滅時 `[ERROR] Could not bind a free port near <start> (tried N ports)`)。 **(c)** 起動した server プロセス (この project_path / `--port p` を提供する strictdoc。 `Get-CimInstance` の CommandLine 解析で判定。 起動直後の spawn 猶予 ~3 秒を置く) が **bind せず消滅** (= 大半は .sdoc 文法エラー。 strictdoc 未導入は FR-1105 が起動前に abort 済のため該当しない) → **再試行せず FR-1157c** へ。 **(d)** server プロセスは**生存中だが未 bind** (= 起動中。 大規模初回は数秒〜十数秒かかる) → 次反復へ待機継続 (**これにより valid な大規模プロジェクトを false 失敗にしない**)。 60 秒上限到達時は `[WARN] Server still starting on port <p>; check the server window.` とし **hard fail しない**。 (b) はツール同士 (同時 2 ドロップ) の競合にも適用される。 |
+| FR-1157c | When | FR-1157(c) の起動失敗時: server 窓は parse error で即閉じることがあるため、 **manage の cmd 窓 (バッチ画面) を確実な表示先**とすること: (i) `[ERROR] StrictDoc server failed to start on port <p> (it exited before binding).` を表示、 (ii) 原因可視化のため `strictdoc export <project_path> --output-dir <一時 dir>` を**同期実行** (.sdoc 文法エラーは export の parse 段階で**即失敗**するため遅くない) し、 出力の `error: Could not parse ... TextXSyntaxError` 行を cmd 窓へエコー、 (iii) 一時 dir を削除し `Fix the .sdoc and re-drop the folder.` を表示すること。 export が parse 以外の理由で失敗した場合はその出力をそのままエコーし **原因を断定しない**。 ブラウザは開かない。 |
 | FR-1158 | If | もし起動前の時点で、 解決 project_path と**同一ディレクトリ**を既に提供中の strictdoc サーバが在れば、 **新規起動せず**そのサーバの URL (`http://<host>:<its-port>/`) をブラウザで開くに留め `[INFO] Already serving <path> on port <p>. Opening browser...` を表示すること。 稼働サーバ列挙は `Get-CimInstance Win32_Process` で CommandLine に `strictdoc` と `server` を含むプロセスを抽出し、 served path と `--port` を解析。 パス比較は両辺を `[System.IO.Path]::GetFullPath` 正規化・末尾区切り除去・大小無視で行う。 (a) **served path 引数が相対 / 解析不能**で正規化できないときは「一致なし」とみなし新規起動に進む (誤再利用を回避)。 (b) **複数一致**時は最小ポートの URL を開く。 (c) WMI 利用不可等で列挙失敗時は安全側として新規起動に進む (FR-1112 の安全側判定に準拠。 = 同一文書の二重 tab が出るが機能上の害はない)。 |
 | FR-1159 | Where | open_browser=true のとき、 ブラウザ open は **FR-1103 の手順**に従い、 **実際に採用したポート** (FR-1156 / 1157) を対象に行うこと (host=`0.0.0.0`/`::` の `127.0.0.1` 置換も FR-1103 に従う)。 |
 
@@ -1157,12 +1054,26 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 - **Decision**: project_path は D&D / プロンプトで与え (FR-1150..1155)、 ポートは `config.port` を起点に**自動割当** (FR-1156 / 1157)。 二重起動は「同一 project_path のサーバが稼働中か」で判定し、 同一なら再オープンのみ (FR-1158)。 IP は固定 (config の host)、 区別はポートで行う。
 - **Consequences**: 複数文書の同時提供が可能。 「ポート使用中 = 既起動」 という旧 FR-1104 の前提は成立しなくなる (別文書なら別ポートで起動するため) → FR-1156 / 1158 が置換。 CommandLine 解析依存の限界あり (上記 Limitations)。
 
+**Trade study — 採用確認 re-probe (FR-1157) の要否 (DA表)**
+
+| 評価基準 (重み) | A: re-probe あり【採用】 | B: re-probe なし (純 v1.1) |
+|---|---|---|
+| ポート衝突回避・同時複数 (高, **G-V2-3 必須**) | ◎ 競合検出 → 次ポート再試行 | ✗ 同時 2 ドロップの同一 port 衝突を検出不能 |
+| 重複起動回避 (高, **G-V2-3 必須**) | ◎ | △ |
+| 文書エラー時 UX (中) | ◎ cmd にエラー表示・壊れ tab 無し | ✗ 接続拒否 tab・原因不明 |
+| 採用ポートで開く正しさ (中) | ◎ 確認後に開く | △ 決め打ち (競合時ズレ) |
+| 実装の単純さ (中) | △ probe + 3 分岐 | ◎ 最小 |
+| FR-1102 no-poll 純度 (低) | △ 限定 poll を narrow 復活 | ◎ 完全準拠 |
+| 起動レイテンシ (低) | ○ 成功/失敗(消滅)とも即判定・大規模 valid は十数秒待機 / 最悪 60s 安全弁 | ◎ 即時 |
+
+→ **A (re-probe あり) を採用**。 根拠: ユーザ必須要件 **G-V2-3 (ポート衝突なし・重複起動なし)** は、 同時 2 ドロップ競合を検出する手段を持たない **B では満たせない**ため決定的。 A の代償 (複雑さ・ FR-1102 純度低下) は、 (i) probe は LISTEN / プロセス消滅で**即判定** (最悪 60s 安全弁で bounded)、 (ii) FR-1102 は §6.10.5 で narrow 済、 (iii) 文書エラー時 UX も A が明確に優位、 により許容範囲。 単一文書・競合無し時は probe が即 (LISTEN 検知) 完了するため通常の体感差は小さい。
+
 | v1.1 (supersede) | v1.2 置換 | 備考 |
 |---|---|---|
 | FR-1104 (二重起動 = ポート使用中 → ブラウザのみ) | FR-1156 (別文書は別ポートで起動) + FR-1158 (同一文書のみ再オープン) | "ポート使用中 = 既起動" の前提を廃止 |
 | ADR-103 (1 ポート専用) | ADR-114 (ポート自動割当で複数同時) | |
 | §4.2 `project_path` 必須 / `port` 固定 | §6.10.4 (`project_path` 任意・最終使用 / `port` 開始ポート) | |
-| FR-1102 (port poll / 固定タイムアウトを設けない) | FR-1157 が「ポート採用確認 probe」に限り narrow | 採用確認は最大 8s の限定 probe。 公式 readiness/error の固定ポーリング廃止は維持 |
+| FR-1102 (port poll / 固定タイムアウトを設けない) | FR-1157 が「ポート採用確認 probe」に限り narrow | 採用確認は 1s 間隔・成功/失敗とも即判定・60s 非致命上限の限定 probe。 公式 readiness/error の固定ポーリング廃止は維持 |
 | §3.4 Domain Model (single server / PidFile entity) | v1.2: N-servers-by-port、 PID file entity 廃止 | §6.7 で §3.x は既に historical |
 
 ### 6.10.6 シナリオ (Gherkin)
@@ -1236,9 +1147,23 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
       Then [WARN] Shortcuts (.lnk) are not supported が表示される
       And フォルダ入力プロンプト (FR-1153) へ進む
       But ショートカット先では起動しない
+
+    Scenario: SC-V19 文書エラーでサーバ起動不可 (traces: FR-1157c, FR-1102)
+      Given project_path に文法エラーの .sdoc がある
+      When フォルダを D&D して起動する
+      Then 可視窓に error: Could not parse ... TextXSyntaxError が出てプロセスが即終了する
+      And manage は server プロセスが bind せず消滅したことを検出する (FR-1157c)
+      And cmd 窓に [ERROR] failed to start と Could not parse ... TextXSyntaxError がエコーされる
+      But 別ポートでの再試行は行われない (ポート競合ではないため)
+      But ブラウザは開かない
+
+    Scenario: SC-V20 ドライブ直下/共有ルートは拒否 (traces: FR-1151c)
+      When ユーザが C:\ (ドライブ直下) または \\server\share (共有ルート) をドロップする
+      Then [ERROR] が表示され FR-1153 のプロンプトへ戻る
+      But ドライブ/共有全体は走査されない
 ```
 
-### 6.10.7 Host テスト (TV10-TV21)
+### 6.10.7 Host テスト (TV10-TV22)
 
 | # | シナリオ | 期待 | traces |
 |---|---|---|---|
@@ -1252,10 +1177,106 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | TV17 | 最終使用保存 | config.project_path 更新・他フィールド不変・次回既定化 | FR-1155, SC-V14 |
 | TV18 | config 読取専用で保存失敗 | [WARN] + 起動継続 | FR-1155c, SC-V15 |
 | TV19 | ポート競合再試行 | 候補が奪われたら次ポートで起動 (全滅で [ERROR]) | FR-1157, SC-V16 |
-| TV20 | .sdoc 無し / ドライブ直下 | 無し= [WARN] + 空起動、 ドライブ直下= [ERROR] 拒否 | FR-1154b / 1151c, SC-V17 |
+| TV20 | .sdoc 無し / ドライブ直下 | 無し= [WARN] + 空起動、 ドライブ直下= [ERROR] 拒否 | FR-1154b / 1151c, SC-V17 / SC-V20 |
 | TV21 | .lnk ショートカット D&D | [WARN] skipped → プロンプトへ・ショートカット先で起動しない | FR-1151d, SC-V18 |
+| TV22 | 文書エラーで起動不可 | manage cmd 窓に [ERROR] + Could not parse エコー・ブラウザ無し・別ポート再試行なし | FR-1157c / FR-1102, SC-V19 |
 
-**Pass Criteria**: TV10-TV18 / TV20 全 PASS。 特に **TV13 (ポート衝突なし)**・**TV14 (重複起動なし)**・**TV17 (他フィールド不変)** を必須とする。 TV19 (競合再試行) は再現困難のため best-effort で確認。
+**Pass Criteria**: TV10-TV18 / TV20-TV22 全 PASS。 特に **TV13 (ポート衝突なし)**・**TV14 (重複起動なし)**・**TV17 (他フィールド不変)**・**TV22 (文書エラーで誤再試行しない)** を必須とする。 TV19 (競合再試行) と FR-1156b (ポート枯渇)・FR-1157 の 60s 安全弁は再現困難のため best-effort で確認 (専用シナリオ / host テストなし)。
+
+### 6.10.8 Behavior — 可視ウィンドウ + ポート管理 (v1.2。 §3.5 の v1.0 図を置換)
+
+> **登場アクターを統一**: `User` / `manage-strictdoc.ps1` (= メニュー + `lib/server-process.ps1`) / `Windows` (port/process 表: `Get-NetTCPConnection` / `Get-CimInstance` / `taskkill`) / `Server窓` (可視コンソールで動く `strictdoc server`。 文書ごとに 1 窓) / `Browser`。 `Start-Process` / `cmd /c start` 等のコマンドレットはアクターではなく**メッセージ (操作)** として描く (§3.5 の旧 `Start-Process` ライフラインは廃止)。
+
+#### (1) 起動 — 単一文書・ポート自動割当 (FR-1150..1159)
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant M as manage-strictdoc.ps1
+    participant OS as Windows
+    participant SV as Server窓
+    participant BR as Browser
+    User->>M: フォルダ/ファイルを D&D (無ければプロンプト)
+    M->>M: project_path 解決 (FR-1151 / 1153)
+    M->>OS: 同一 project を提供中か (FR-1158)
+    OS-->>M: なし
+    M->>OS: 開始ポートから空き探索 (FR-1156)
+    OS-->>M: 5111 が空き
+    M->>SV: strictdoc server projA --port 5111 を可視窓で起動 (FR-1101)
+    Note over SV: 窓に Uvicorn running ... 5111 (readiness)。 manage は窓 stdout を読まない
+    M->>OS: 採用確認: 5111 LISTEN かつ owner=strictdoc か (FR-1157a)
+    OS-->>M: 採用OK
+    M->>BR: http://127.0.0.1:5111/ を開く (FR-1159)
+    M->>M: project_path を config に保存 (FR-1155)
+```
+
+#### (2) 複数文書を別ポートで閲覧し、 一部を停止 (FR-1156 / 1111 / 1112)
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant M as manage-strictdoc.ps1
+    participant OS as Windows
+    participant A as Server窓A
+    participant B as Server窓B
+    participant BR as Browser
+    User->>M: projA を D&D
+    M->>OS: 空き探索 (結果 5111)
+    M->>A: strictdoc server projA --port 5111
+    M->>BR: 5111 を開く
+    User->>M: projB を D&D (別 manage インスタンス)
+    M->>OS: 空き探索, 5111 使用中ゆえ 5112 (FR-1156)
+    M->>B: strictdoc server projB --port 5112
+    M->>BR: 5112 を開く
+    Note over A,B: IP は両方 127.0.0.1、 区別はポート
+    User->>B: projB の窓を閉じる / Ctrl+C (FR-1111)
+    B->>OS: port 5112 を解放
+    Note over A: projA (5111) は無影響で継続
+    User->>M: (任意) Stop projB
+    M->>OS: 5112 の owner を taskkill /T /F (FR-1112)
+```
+
+#### (3) ポート選定ロジックの考え方 (FR-1156 / 1157 / 1158)
+
+```mermaid
+flowchart TD
+    S[project_path 解決済] --> DUP{"同一 project を提供中のサーバ? (FR-1158)"}
+    DUP -->|あり| RE["新規起動せず そのポートをブラウザで開く"]
+    DUP -->|なし| P0["p = config.port (例 5111)"]
+    P0 --> SCAN{"p は空き? (FR-1156)"}
+    SCAN -->|使用中| CEIL{"p+1 が ceiling 超か? (min start+20, 64999)"}
+    CEIL -->|超過| E1["ERROR: No free port in range (FR-1156b)"]
+    CEIL -->|以内| INC["p = p + 1"]
+    INC --> SCAN
+    SCAN -->|空き| LAUNCH["strictdoc server --port p を可視窓で起動"]
+    LAUNCH --> PROBE{"採用確認 poll (1s毎・上限60s): p の状態? (FR-1157)"}
+    PROBE -->|"(a) LISTEN かつ owner=strictdoc"| OK["採用: ブラウザで開く / config 保存"]
+    PROBE -->|"(b) LISTEN だが別プロセス=TOCTOU 競合"| RETRY{"再試行 5回未満 かつ p が ceiling 未満か?"}
+    PROBE -->|"(c) server プロセス消滅・未bind (~3s猶予後)=起動失敗"| FAIL["FR-1157c: cmd窓に [ERROR] + export で原因エコー。 再試行しない"]
+    PROBE -->|"(d) プロセス生存・未bind=起動中(大規模は十数秒)"| PROBE
+    RETRY -->|yes| INC
+    RETRY -->|no| E2["ERROR: Could not bind a free port (FR-1157b)"]
+```
+
+#### (4) 文書にエラーがあり起動できない (FR-1102 / 1157c)
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant M as manage-strictdoc.ps1
+    participant OS as Windows
+    participant SV as Server窓
+    User->>M: 文法エラーを含む projX を D&D
+    M->>OS: 空き探索 (結果 5111)
+    M->>SV: strictdoc server projX --port 5111 を可視窓で起動 (FR-1101)
+    SV-->>SV: error: Could not parse ... TextXSyntaxError (窓に表示, FR-1102)
+    SV-->>SV: プロセス即終了 (ポート bind せず)
+    M->>OS: 採用確認: server プロセス生存? port LISTEN? (FR-1157)
+    OS-->>M: プロセス消滅・port 未 LISTEN (= 起動失敗, FR-1157c)
+    M->>M: strictdoc export projX を同期実行し原因取得 (FR-1157c)
+    M-->>User: cmd 窓に [ERROR] failed to start + Could not parse ... TextXSyntaxError をエコー
+    Note over M: ブラウザは開かない・別ポートで再試行もしない
+```
 
 ---
 
