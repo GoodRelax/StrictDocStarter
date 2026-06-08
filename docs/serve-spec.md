@@ -3,7 +3,7 @@
 | 項目 | 値 |
 |---|---|
 | 文書名 | manage-strictdoc — StrictDoc Server Lifecycle Management 仕様書 |
-| バージョン | v1.1 (改訂: 公式委譲 & 可視ウィンドウ方式) |
+| バージョン | v1.2 (D&D/プロンプト入力 + ポート自動割当。 v1.1: 公式委譲 & 可視ウィンドウ方式) |
 | テンプレート | ANMS v0.33 |
 | ツール名 | **manage-strictdoc** (StrictDocStarter 同梱) |
 | エントリ | `manage-strictdoc.bat` (ダブルクリック → server 窓 + ブラウザ。 v1.1: 最小メニュー Start/Open/Edit config/Quit — FR-1121/D-7) |
@@ -120,8 +120,8 @@
 | `%LOCALAPPDATA%` | `C:\Users\<user>\AppData\Local` (Windows のユーザローカルキャッシュ領域、 NTFS ACL でユーザ単位アクセス制御) |
 | Expand-UserPlaceholders | setup-spec.md FR-208 由来、 `<user>` を `$env:USERNAME` に展開する関数 |
 | Expand-PathPlaceholders | 拡張版。 `<user>` (FR-208) + `<starter_root>` (manage-strictdoc.bat のフォルダ絶対パス) の両方を展開。 unzip-and-go で同梱 `samples/` を default project_path に指せるようにする |
-| `<starter_root>` | path placeholder。 `manage-strictdoc.bat` のフォルダの絶対パスに展開される。 template の default `project_path` で `<starter_root>\samples\sovd-automotive` を使用 |
-| samples/ | StrictDocStarter 同梱の StrictDoc サンプルプロジェクト 2 個。 `samples/hello-strictdoc/` (5 reqs、 編集用テンプレ)、 `samples/sovd-automotive/` (~105 reqs、 中規模、 **初期 default**、 00 概要 + 01-05 要求/基盤 + 06 設計 + 07 API + 08 テスト仕様 + 09 テスト結果 + 90 付録、 要求→設計→API→テスト仕様→結果の V 字を EARS/L0-L3 + Implements/Satisfies/Verifies/ResultOf でトレース、 ASIL/CAL/Layer/Type custom fields、 共有文法 `sovd-grammar.sgra` (REQUIREMENT/COMPONENT/API/TEST/TEST_RESULT)) |
+| `<starter_root>` | path placeholder。 `manage-strictdoc.bat` のフォルダの絶対パスに展開される。 template の default `project_path` で `<starter_root>\samples\sovd-automotive-ja` を使用 |
+| samples/ | StrictDocStarter 同梱の StrictDoc サンプルプロジェクト 3 個。 `samples/hello-strictdoc/` (5 reqs、 編集用テンプレ)、 `samples/sovd-automotive-ja/` (~105 reqs、 中規模、 **初期 default**) と同構成の英語版 `samples/sovd-automotive-en/`。 sovd 系は 00 概要 + 01-05 要求/基盤 + 06 設計 + 07 API + 08 テスト仕様 + 09 テスト結果 + 90 付録、 要求→設計→API→テスト仕様→結果の V 字を EARS/L0-L3 + Implements/Satisfies/Verifies/ResultOf でトレース、 ASIL/CAL/Layer/Type custom fields、 共有文法 `sovd-grammar.sgra` (REQUIREMENT/COMPONENT/API/TEST/TEST_RESULT)) |
 | `$pid` | **PowerShell の予約自動変数** で現プロセス自身の PID を保持。 server プロセスの PID 変数として **使用禁止** (= 自プロセスを stop 対象にしてしまう事故防止)。 `$serverPid` / `$targetPid` 等を使用 |
 | MOTW | Mark-of-the-Web。 Web/Zip 経由で取得したファイルに付くゾーン情報、 PowerShell が実行を阻害することがある |
 | WMI | Windows Management Instrumentation。 プロセス情報等を取得する Windows の管理基盤 |
@@ -369,14 +369,15 @@ StrictDocStarter/
 │   └── server-process.ps1               # (新規) start/stop/status/logs
 ├── setup.config.template.json           # (既存)
 ├── setup.config.json                    # (既存、 gitignore)
-├── server.config.template.json          # (新規、 commit、 default project_path = <starter_root>\samples\sovd-automotive)
+├── server.config.template.json          # (新規、 commit、 default project_path = <starter_root>\samples\sovd-automotive-ja)
 ├── server.config.json                   # (新規、 gitignore)
 ├── samples/                             # (新規、 commit) 同梱サンプル
 │   ├── hello-strictdoc/                 # 5 reqs、 編集用テンプレ
 │   │   ├── 01-hello.sdoc
 │   │   ├── 02-design.sdoc
 │   │   └── strictdoc_config.py          # (D-8) MERMAID/MATHJAX 有効、 project_path 直下 (D-1/FR-1141)
-│   └── sovd-automotive/                 # 初期 default、 ASIL/CAL/Layer/Type custom fields、 SOVD 教材
+│   ├── sovd-automotive-en/             # 英語版 (sovd-automotive-ja と同構成)
+│   └── sovd-automotive-ja/              # 初期 default、 ASIL/CAL/Layer/Type custom fields、 SOVD 教材
 │       ├── sovd-grammar.sgra            # (D-9b) 共有要求文法。 全 .sdoc が IMPORT_FROM_FILE で参照
 │       ├── 00-overview.sdoc             # (D-9b) 前付け: 背景ストーリー/範囲/用語/参照規格/表記規約/構成図
 │       ├── 01-stakeholder-requirements.sdoc  # (D-9f) ステークホルダ要求 (最上位 SYS-L0-001 + 各 L0、 EARS)
@@ -586,6 +587,8 @@ sequenceDiagram
 - **Consequences**: ダブルクリック完結。 CI/automation には不向きだが v1.0 スコープ外。 将来サブコマンド引数式を追加するなら互換性ありで拡張可
 
 #### ADR-103: 1 ポート専用 (vs マルチサーバ管理) — YAGNI
+
+> **v1.2 で緩和**: ADR-114 (ポート自動割当) が本 ADR を supersede。 複数文書の同時提供を許可する (§6.10 参照)。
 
 - **Status**: Accepted
 - **Context**: 「複数 PoC を並行検証したい」 ニーズに対し、 (i) 1 ポート専用 / (ii) ポート切替 / (iii) マルチサーバ一覧管理 の 3 案
@@ -880,20 +883,22 @@ Feature: manage-strictdoc - StrictDoc Server Lifecycle Management
 
 ### 4.2 Configuration (JSON スキーマ)
 
+> ⚠️ **v1.2 supersession**: `project_path` は**任意** (D&D / プロンプト入力が優先され、 確定後に最終使用として保存される)、 `port` は**開始ポート** (実 bind は本値以上で最初に空くポート)。 §6.10.4 が本節の当該記述 (project_path 必須 / port 固定) を supersede する。
+
 **`server.config.template.json`:**
 
 ```jsonc
 {
   "_comment_root": "manage-strictdoc server configuration. Edit this file via menu 5 (Edit config).",
-  "_comment_overview": "Required: project_path. Optional with defaults: host (127.0.0.1); port (5111); open_browser (true); output_path (empty=strictdoc default).",
+  "_comment_overview": "project_path is OPTIONAL (last-used default; primary input = drag a folder/file onto manage-strictdoc.bat, or the startup prompt -- serve-spec 6.10). Optional with defaults: host (127.0.0.1); port (5111 = START port, actual = first free >= it); open_browser (true); output_path (empty=strictdoc default).",
 
-  "_comment_project_path": "Absolute path to the StrictDoc project root (folder with .sdoc files). <user> is replaced with $env:USERNAME at runtime (FR-208).",
-  "project_path": "C:\\Users\\<user>\\Documents\\GitHub\\YourRepo\\strictdoc-project",
+  "_comment_project_path": "Default/last-used StrictDoc project root. Overridden by a folder/file dropped on manage-strictdoc.bat (file -> its parent) or the startup prompt; the chosen folder is saved back here (FR-1150..1155). <starter_root> -> the .bat's folder; <user> -> $env:USERNAME (FR-208).",
+  "project_path": "<starter_root>\\samples\\sovd-automotive-ja",
 
   "_comment_host": "Server bind host. Allowed: IPv4 dotted-decimal (e.g. 127.0.0.1, 0.0.0.0), 'localhost', or IPv6 literal (e.g. ::, ::1). 127.0.0.1 = local only (recommended). 0.0.0.0 and :: = LAN exposed (browser open auto-translates to 127.0.0.1).",
   "host": "127.0.0.1",
 
-  "_comment_port": "Server port (1024..65535). Default 5111 = strictdoc default. Change to run multiple instances in parallel (use separate StrictDocStarter folders).",
+  "_comment_port": "START port (1024..65535). Default 5111. Actual bind port = first free port >= this; additional documents auto-pick the next free port (FR-1156), so multiple docs run at once on 127.0.0.1 with different ports.",
   "port": 5111,
 
   "_comment_open_browser": "Auto-open default browser to http://<host>:<port>/ after Start succeeds. true|false.",
@@ -1039,7 +1044,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 ### 6.8 サンプル / バージョン / その他 (S-1, S-3, S-4, O-* への参照)
 
 - **S-1 サンプル (D-9 決定)**: `samples/sovd-automotive/` に `05-notation-rst.sdoc` (RST raw html の Mermaid + 数式 `.. math::` + 図 `.. image::`、 全版で有効) / `06-notation-markdown.sdoc` (表 / コードハイライト / 画像 + **0.23.0+ なら ` ```mermaid ` フェンス**、 `MARKUP: Markdown`) を追加。 `samples/sovd-automotive/_assets/` 新設。 **hello-strictdoc は最小 (01-hello + 02-design) に戻し、 `03-try.sdoc` を削除、 `04-mermaid.sdoc` を削除して Mermaid デモを上記 `05-notation-rst.sdoc` へ昇格** (hello=最小テンプレ / sovd=ドメイン教材)。 公式 `strictdoc new` の generic skeleton と差別化。 **Mermaid 記法は版依存**: RST raw html は全版で有効、 **Markdown の ` ```mermaid ` フェンスは 0.23.0+ で MERMAID 有効時に正式レンダリング** (公式 0.23.0 リリースノート#8)。 latest 既定 (D-4=0.23.x) なので 06 はフェンス記法を主に使える。 導入版を O-4 smoke test で検証。 **【Phase 1 実装済 (2026-06-06, strictdoc 0.23.1)】`05-notation-rst.sdoc` / `06-notation-markdown.sdoc` と `_assets/`(drawio 編集ソース → svg + png) を作成し export 検証済 (05: `class="mermaid"`×2 + math + SVG=`<object type="image/svg+xml">`、 06: ```mermaid フェンス×1〔`language-mermaid` 化せず〕 + 表 + コードハイライト + PNG=`<img>`)。 hello-strictdoc は 01/02 に最小化 (03-try/04-mermaid 削除、 01 の壊れた markdown 画像参照を除去)。 D-8 の config は各 `project_path` 直下 (`samples/sovd-automotive/strictdoc_config.py` / `samples/hello-strictdoc/strictdoc_config.py`) に配置。 旧 `samples/strictdoc_config.py` は親フォルダにあり default project_path=`samples/sovd-automotive` からは読まれない (D-1/FR-1141) ため撤去。**
-- **D-9b サンプル品質リライト (S-1 の後継、 2026-06-06)**: 上記 Phase 1 の `05/06` 記法デモ文書は「仕様書として不自然」 (ツール解説と要求が混在) のため**廃止**し、 ANMS テンプレート準拠の自然な仕様書へ全面リライトした。 (a) 遠隔診断の背景ストーリーを起点に前付け `00-overview.sdoc` (目的/範囲/用語/参照規格/表記規約/構成図/改訂履歴) を新設、 (b) 要求文を **EARS 化**・単一要求化・受入基準 (VERIFICATION 欄) 付与、 (c) **ASIL (安全) と CAL (セキュリティ) を分離** (00-overview §6.3)、 (d) 図/数式を本来の要求文書へ統合 (認証シーケンス→01、 SOVD↔UDS→02、 DTC ガード→03、 OTA 状態機械→04、 構成図→00)、 (e) 旧 05/06 の記法カバレッジは付録 `90-appendix-notation.sdoc` (Markdown マークアップで RST/Markdown 両記法を実演) に集約、 (f) 共有文法を `sovd-grammar.sgra` に切り出し全 .sdoc が `IMPORT_FROM_FILE` で参照 (ボイラープレート削減・整合保証)。 セクションは 0.23.1 で廃止された `[SECTION]` の後継 `[[SECTION]]` (`IS_COMPOSITE: True`) を使用。 strictdoc 0.23.1 で export クリーン・全図/数式/表/トレース描画確認済。
+- **D-9b サンプル品質リライト (S-1 の後継、 2026-06-06)**: 上記 Phase 1 の `05/06` 記法デモ文書は「仕様書として不自然」 (ツール解説と要求が混在) のため**廃止**し、 ANMS テンプレート準拠の自然な仕様書へ全面リライトした。 (a) 遠隔診断の背景ストーリーを起点に前付け `00-overview.sdoc` (目的/範囲/用語/参照規格/表記規約/構成図/改訂履歴) を新設、 (b) 要求文を **EARS 化**・単一要求化・受入基準 (VERIFICATION 欄) 付与、 (c) **ASIL (安全) と CAL (セキュリティ) を分離** (00-overview §6.3)、 (d) 図/数式を本来の要求文書へ統合 (認証シーケンス→01、 SOVD↔UDS→02、 DTC ガード→03、 OTA 状態機械→04、 構成図→00)、 (e) 旧 05/06 の記法カバレッジは付録 `90-appendix-notation.sdoc` (Markdown マークアップで RST/Markdown 両記法を実演) に集約、 (f) 共有文法を `sovd-grammar.sgra` に切り出し全 .sdoc が `IMPORT_FROM_FILE` で参照 (ボイラープレート削減・整合保証)。 セクションは 0.23.1 で廃止された `[SECTION]` の後継 `[[SECTION]]` (`IS_COMPOSITE: True`) を使用。 strictdoc 0.23.1 で export クリーン・全図/数式/表/トレース描画確認済。 **その後、 同一構成のまま日本語版 `samples/sovd-automotive-ja/` と英語版 `samples/sovd-automotive-en/` の 2 言語へ分離。 既定は `-ja` (server.config.template.json / §3.3 / §6.10.4 と整合)。**
 - **S-3 / S-4 / O-1 / O-5**: setup 側の責務。 [`setup-spec.md`](setup-spec.md) の改訂 (strictdoc.version, uninstall, chromedriver, install phase 完成) を参照
 - **O-2**: `.gitignore` に `__pycache__/` `*.pyc` を追加 (strictdoc_config.py 読込の副生成物)
 
@@ -1099,6 +1104,151 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | TV9 | 大規模初回 (キャッシュ無) | 数秒〜十数秒で Uvicorn 行 (固定タイムアウトで誤失敗しない) | FR-1102 |
 
 **Pass Criteria (§5.3 を置換)**: TV1-TV4 / TV7 / TV8 全 PASS。 `*.pid` / `server-*.log` への依存は無い (生成しない)。 TV5/TV6 は遠隔 Stop/Status を実装する場合のみ。
+
+---
+
+## Chapter 6.10. 改訂 v1.2 — プロジェクト入力 (D&D / プロンプト) + ポート自動割当 (FR-1150 系)
+
+> 本節は v1.2 の **authoritative** な要求。 開く文書 (project_path) の指定を、 従来の「`server.config.json` を毎回編集」から「`.bat` へのフォルダ / ファイルの **ドラッグ&ドロップ**」または「単体起動時の **プロンプト**」へ変更し、 複数文書の同時提供を **ポート自動割当**で可能にする。 §4.2 / ADR-103 / FR-1104 への影響は §6.10.5 を参照。
+
+### 6.10.1 方針 (Goals)
+
+- **G-V2-1**: 開く文書の選択を **D&D 主体**にする。 `server.config.json` の手編集を必須にしない (`project_path` は任意・最終使用の既定値へ降格)。
+- **G-V2-2**: 複数文書を同時に開けること。 **IP は config の host (既定 127.0.0.1) のまま固定**、 区別は**ポート**で行い、 ポートは**自動割当**する (ユーザは手動でポートを変えない)。
+- **G-V2-3**: **ポート衝突を起こさない**・**同一文書のサーバを重複起動しない**こと。
+
+### 6.10.2 入力解決 (FR-1150 系)
+
+> 本節の起動経路は v1.1 の **FR-1101 (可視窓起動・ FR-1133 のパス引用) / FR-1105 (strictdoc 実行ファイル解決・未導入なら abort)** を継承する。 v1.2 の差分は project_path の入力源 (D&D / プロンプト) と採用ポートの決定 (§6.10.3) のみ。 **なお FR-1102 の「ポート poll / 固定タイムアウトを設けない」原則は、 FR-1157 の *ポート採用確認 probe* (最大 8s の限定 probe) に限り narrow される** — 公式 readiness / error の固定ポーリング (旧 30s) を復活させるものではない (§6.10.5 supersession 参照)。
+
+| ID | パターン | 要求 |
+|---|---|---|
+| FR-1150 | When | `manage-strictdoc.bat` にフォルダまたはファイルがドロップされたとき、 そのパス群を `manage-strictdoc.ps1` へ引数転送すること (既存の `%*` 転送・ no_admin で UAC 再起動なし)。 引用は FR-1133 を適用し、 空白 / 非 ASCII / `&` 等を含むパスでも壊れないこと。 |
+| FR-1150b | If | もし引数 0 個 (ドロップ無し) で起動されたら、 `manage-strictdoc.ps1` はこれを受理し FR-1153 のプロンプトへ進むこと。 |
+| FR-1151 | When | ドロップ項目が **(a) ディレクトリ** (`Test-Path -PathType Container` が真) のとき project_path = そのディレクトリ。 **(b) ファイル**のとき project_path = その親ディレクトリ (`Split-Path -Parent`)。 **(c)** 解決結果がドライブ直下 (例 `C:\`) または UNC 共有ルート (`\\server\share`) になる場合は FR-1154a のエラー扱いとし、 ドライブ / 共有全体の走査を防ぐこと (UNC 下の通常フォルダ `\\server\share\proj` は可)。 **(d)** `.lnk` ショートカットは解決対象外とし `[WARN] Shortcuts (.lnk) are not supported; drop the actual folder/file` を表示してスキップ (FR-1153 のプロンプトへ)。 |
+| FR-1152 | If | もし複数項目がドロップされたら、 **先頭 1 項目**のみを採用し、 `[WARN] Multiple items dropped; using the first: <path>` を表示すること。 |
+| FR-1153 | If | もし引数 0 個 (ドロップ無し) ならば、 `Enter folder path (or Q to quit) [default: <default>]: ` のプロンプトでフォルダ入力を求めること。 (a) **空入力 (Enter のみ) → `<default>` を採用**。 (b) `<default>` は config.project_path が有効ならそれ、 無効 / 空なら同梱サンプル `<starter_root>\samples\sovd-automotive-ja` (同梱されており常に存在 = Enter は安全な脱出口)。 (c) **`Q` / `q` 入力 → 中断**し `[INFO] Cancelled.` を表示して exit すること (無効パス再プロンプトの無限ループ脱出口)。 |
+| FR-1154 | If | (a) もし解決 project_path が無効 (展開後の絶対パスが存在しない / ディレクトリでない / ドライブ・共有ルート) ならば `[ERROR] <path> does not exist or is not a usable project folder` を表示し FR-1153 のプロンプトへ戻ること。 (b) もしディレクトリに `*.sdoc` が 1 つも無ければ `[WARN] No .sdoc files found under <path>` を表示し**起動は継続** (strictdoc は空プロジェクトとして空インデックスを表示。 FR-1142 の scaffold は `.sdoc` 有無に依らず実行)。 (c) 同期 / 空白 / 非 ASCII パスは FR-1132 の警告を適用すること。 |
+| FR-1155 | When | project_path が確定したとき: (a) その絶対パスを `server.config.json` の `project_path` へ保存すること (最終使用 = 次回単体起動の既定。 UTF-8 BOM なし・ FR-204 流儀)。 (b) `host` / `port` / `open_browser` / `output_path` は変更しないこと。 (c) 保存失敗 (読み取り専用 / ロック等) は非致命とし `[WARN] Could not save last-used path: <reason>` 表示のうえ続行すること (FR-1144 流儀)。 |
+
+### 6.10.3 ポート自動割当・重複起動防止 (FR-1156 系)
+
+| ID | パターン | 要求 |
+|---|---|---|
+| FR-1156 | When | server 起動時、 `server.config.json` の `port` を**開始ポート** `start` とし、 `start` から **`ceiling = min(start + 20, 64999)`** まで +1 ずつ、 `Get-NetTCPConnection -LocalPort <p> -State Listen` が**存在しない**最初のポートを**候補ポート**とすること。 host は変更しないこと (IP は config の host のまま)。 もし `start..ceiling` に空きが無ければ `[ERROR] No free port in range <start>..<ceiling>` を表示し abort すること。 |
+| FR-1157 | If | 候補ポートで起動後、 **採用確認 (post-launch re-probe)** を行うこと: 起動直後から**最大 8 秒** (1 秒間隔。 FR-1102 が撤廃した 30 秒固定ポーリングとは別の、 ポート採用確認専用の短時間 probe) で、 (i) `Get-NetTCPConnection -LocalPort <候補> -State Listen` が立ち、 (ii) その OwningProcess の CommandLine に `strictdoc` を含む (= 自分が起動したサーバ) ことを確認すること。 もし 8 秒以内に確認できない / 起動プロセスが即終了 (`HasExited`) / リスナーが strictdoc でない (TOCTOU で他に取られた) ならば、 **`候補+1` から FR-1156 の探索を継続して次の空きで再試行**すること (**再試行は最大 5 回、 または `ceiling` 到達のいずれか早い方**)。 全試行が失敗 (採用確認できず) した場合は `[ERROR] Could not bind a free port near <start> (tried N ports)` を表示すること。 ※ これは「採用後の bind 競合」による失敗であり、 FR-1156 の `No free port in range` (初回走査で空きが 1 つも無い) とは**別条件**。 本 re-probe はツール同士 (同時 2 ドロップ) の競合にも適用される。 |
+| FR-1158 | If | もし起動前の時点で、 解決 project_path と**同一ディレクトリ**を既に提供中の strictdoc サーバが在れば、 **新規起動せず**そのサーバの URL (`http://<host>:<its-port>/`) をブラウザで開くに留め `[INFO] Already serving <path> on port <p>. Opening browser...` を表示すること。 稼働サーバ列挙は `Get-CimInstance Win32_Process` で CommandLine に `strictdoc` と `server` を含むプロセスを抽出し、 served path と `--port` を解析。 パス比較は両辺を `[System.IO.Path]::GetFullPath` 正規化・末尾区切り除去・大小無視で行う。 (a) **served path 引数が相対 / 解析不能**で正規化できないときは「一致なし」とみなし新規起動に進む (誤再利用を回避)。 (b) **複数一致**時は最小ポートの URL を開く。 (c) WMI 利用不可等で列挙失敗時は安全側として新規起動に進む (FR-1112 の安全側判定に準拠。 = 同一文書の二重 tab が出るが機能上の害はない)。 |
+| FR-1159 | Where | open_browser=true のとき、 ブラウザ open は **FR-1103 の手順**に従い、 **実際に採用したポート** (FR-1156 / 1157) を対象に行うこと (host=`0.0.0.0`/`::` の `127.0.0.1` 置換も FR-1103 に従う)。 |
+
+> **Limitations (設計上の限界)**: (1) FR-1158 の重複検出は CommandLine 解析依存 (FR-1112 と同じく WMI 無効環境で失敗しうる) → 失敗時は新規起動 (二重 tab は許容)。 (2) `.lnk` ショートカットのドロップは非対応 (FR-1151d で警告スキップ)。 (3) ドライブ直下 / UNC 共有ルートのドロップは拒否 (FR-1151c)。 UNC 下の通常フォルダ (`\\server\share\proj`) は対応。 (4) **同時 2 ドロップの競合**: 2 つの manage インスタンスが同時に同じ候補ポートを掴む競合は FR-1157 の re-probe + 再試行で吸収する。 FR-1158 の重複抑止は同時実行下では best-effort (両者が相手を検出できず同一文書を二重に開く可能性) とする。 (5) `ceiling` を超える同時起動は想定しない (PoC スコープ)。 (6) **OTHER_OWNS_PORT** (開始ポートを strictdoc 以外が占有): FR-1156 が次の空きポートへ自動退避するため、 旧 FR-306/FR-1104 のような占有エラー通知は出さない (意図的)。
+
+### 6.10.4 config スキーマ差分 (§4.2 を改訂)
+
+- `project_path`: **任意 (optional)**。 D&D / プロンプトで与えられた値が優先され、 確定後に最終使用として本フィールドへ保存される (FR-1155)。 初期テンプレートでは同梱サンプル (`<starter_root>\samples\sovd-automotive-ja`) を既定として保持する。
+- `port`: **開始ポート (start port)**。 実 bind ポートは本値以上で最初に空いているポート (FR-1156)。
+- `host` / `open_browser` / `output_path`: 不変。
+
+### 6.10.5 ADR-114 / supersession
+
+#### ADR-114: D&D / プロンプト入力 + ポート自動割当 (ADR-103 を緩和)
+
+- **Status**: Accepted (v1.2)。 **supersedes** ADR-103 (1 ポート専用) の一部 および FR-1104 (二重起動 = ポート使用中チェック → ブラウザのみ)。
+- **Context**: v1.1 までは 1 manage = 1 固定ポート (5111) = 1 文書で、 別文書を開くにはフォルダコピー or config 編集が必要だった (ADR-103)。 ユーザ要望は「`.bat` にフォルダ / ファイルを D&D で開く」「複数文書を同時に開く」。
+- **Decision**: project_path は D&D / プロンプトで与え (FR-1150..1155)、 ポートは `config.port` を起点に**自動割当** (FR-1156 / 1157)。 二重起動は「同一 project_path のサーバが稼働中か」で判定し、 同一なら再オープンのみ (FR-1158)。 IP は固定 (config の host)、 区別はポートで行う。
+- **Consequences**: 複数文書の同時提供が可能。 「ポート使用中 = 既起動」 という旧 FR-1104 の前提は成立しなくなる (別文書なら別ポートで起動するため) → FR-1156 / 1158 が置換。 CommandLine 解析依存の限界あり (上記 Limitations)。
+
+| v1.1 (supersede) | v1.2 置換 | 備考 |
+|---|---|---|
+| FR-1104 (二重起動 = ポート使用中 → ブラウザのみ) | FR-1156 (別文書は別ポートで起動) + FR-1158 (同一文書のみ再オープン) | "ポート使用中 = 既起動" の前提を廃止 |
+| ADR-103 (1 ポート専用) | ADR-114 (ポート自動割当で複数同時) | |
+| §4.2 `project_path` 必須 / `port` 固定 | §6.10.4 (`project_path` 任意・最終使用 / `port` 開始ポート) | |
+| FR-1102 (port poll / 固定タイムアウトを設けない) | FR-1157 が「ポート採用確認 probe」に限り narrow | 採用確認は最大 8s の限定 probe。 公式 readiness/error の固定ポーリング廃止は維持 |
+| §3.4 Domain Model (single server / PidFile entity) | v1.2: N-servers-by-port、 PID file entity 廃止 | §6.7 で §3.x は既に historical |
+
+### 6.10.6 シナリオ (Gherkin)
+
+```gherkin
+  Rule: D&D / プロンプト入力 + ポート自動割当 (FR-1150..1159)
+    Scenario: SC-V07 フォルダ D&D (traces: FR-1150, FR-1151a, FR-1156, FR-1159)
+      Given port 5111 が未使用
+      When ユーザが manage-strictdoc.bat にフォルダ C:\docs\projA をドロップする
+      Then project_path = C:\docs\projA で strictdoc server が起動する
+      And 採用ポート 5111 でブラウザが開く
+      But 他のポートでは起動しない
+
+    Scenario: SC-V08 ファイル D&D は親フォルダ (traces: FR-1151b)
+      When ユーザが manage-strictdoc.bat にファイル C:\docs\projA\01.sdoc をドロップする
+      Then project_path = C:\docs\projA (親フォルダ) で起動する
+
+    Scenario: SC-V09 単体起動はプロンプト + 既定 Enter (traces: FR-1150b, FR-1153)
+      Given server.config.json の project_path が有効
+      When ユーザが manage-strictdoc.bat をドロップ無しで起動し Enter のみ押す
+      Then 既定 (config の project_path) で起動する
+
+    Scenario: SC-V10 複数文書 = 別ポート自動割当 (traces: FR-1156)
+      Given projA が port 5111 で稼働中
+      When ユーザが manage-strictdoc.bat にフォルダ projB をドロップする
+      Then projB は port 5112 (次の空き) で起動する
+      And IP は両方 127.0.0.1
+      But port 5111 は再利用されない (projA を奪わない)
+
+    Scenario: SC-V11 同一文書の重複起動抑止 (traces: FR-1158)
+      Given projA が port 5111 で稼働中
+      When ユーザが manage-strictdoc.bat にフォルダ projA を再度ドロップする
+      Then port 5111 のブラウザが再オープンされる
+      But 新規サーバプロセスは起動されない
+
+    Scenario: SC-V12 無効パスは再プロンプト、 Q で中断 (traces: FR-1154a, FR-1153c)
+      Given 単体起動
+      When ユーザが存在しないパスを入力する
+      Then [ERROR] が表示され、 再度フォルダ入力を求められる
+      And ユーザが Q を入力すると [INFO] Cancelled. で終了する
+
+    Scenario: SC-V13 複数項目ドロップは先頭採用 (traces: FR-1152)
+      When ユーザが projA と projB を同時にドロップする
+      Then [WARN] Multiple items dropped が表示され projA (先頭) で起動する
+      But projB のサーバは起動されない
+
+    Scenario: SC-V14 確定パスの最終使用保存 (traces: FR-1155)
+      When ユーザが projA をドロップして起動する
+      Then server.config.json の project_path が projA に保存される
+      And 次回ドロップ無し起動の既定が projA になる
+      But host / port / open_browser / output_path は変更されない
+
+    Scenario: SC-V15 保存失敗は非致命 (traces: FR-1155c)
+      Given server.config.json が読み取り専用
+      When ユーザが projA をドロップして起動する
+      Then [WARN] Could not save last-used path が表示される
+      But サーバ起動は継続する
+
+    Scenario: SC-V16 ポート採用の競合 → 次ポートで再試行 (traces: FR-1157)
+      Given 候補ポート 5111 が re-probe 確認前に他プロセスに奪われる
+      When 起動アクションを実行する
+      Then 5112 (次の空き) で再試行され起動する
+
+    Scenario: SC-V17 .sdoc 無しフォルダは警告して起動 (traces: FR-1154b)
+      When ユーザが .sdoc を含まないフォルダをドロップする
+      Then [WARN] No .sdoc files found が表示される
+      But サーバは空プロジェクトとして起動する
+```
+
+### 6.10.7 Host テスト (TV10-TV20)
+
+| # | シナリオ | 期待 | traces |
+|---|---|---|---|
+| TV10 | フォルダ D&D | 当該フォルダが採用ポートで開く・他ポートで起動しない | FR-1150 / 1151a / 1156, SC-V07 |
+| TV11 | ファイル D&D | 親フォルダで開く | FR-1151b, SC-V08 |
+| TV12 | 単体起動 + Enter | 既定で開く | FR-1150b / 1153, SC-V09 |
+| TV13 | 複数文書同時 | projA=5111 / projB=5112、 両方 host=127.0.0.1、 5111 再利用なし | FR-1156, SC-V10 |
+| TV14 | 同一文書再ドロップ | 新規起動なし・ブラウザ再オープンのみ | FR-1158, SC-V11 |
+| TV15 | 無効パス入力 → Q | [ERROR] + 再プロンプト、 Q で Cancelled 終了 | FR-1154a / 1153c, SC-V12 |
+| TV16 | 複数項目ドロップ | [WARN] + 先頭のみ起動 | FR-1152, SC-V13 |
+| TV17 | 最終使用保存 | config.project_path 更新・他フィールド不変・次回既定化 | FR-1155, SC-V14 |
+| TV18 | config 読取専用で保存失敗 | [WARN] + 起動継続 | FR-1155c, SC-V15 |
+| TV19 | ポート競合再試行 | 候補が奪われたら次ポートで起動 (全滅で [ERROR]) | FR-1157, SC-V16 |
+| TV20 | .sdoc 無し / ドライブ直下 | 無し= [WARN] + 空起動、 ドライブ直下= [ERROR] 拒否 | FR-1154b / 1151c, SC-V17 |
+
+**Pass Criteria**: TV10-TV18 / TV20 全 PASS。 特に **TV13 (ポート衝突なし)**・**TV14 (重複起動なし)**・**TV17 (他フィールド不変)** を必須とする。 TV19 (競合再試行) は再現困難のため best-effort で確認。
 
 ---
 
