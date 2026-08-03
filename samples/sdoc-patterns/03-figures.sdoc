@@ -1,0 +1,38 @@
+[DOCUMENT]
+TITLE: 書き方の型 - 図
+UID: DOC-PATTERNS-FIG
+VERSION: 1.0
+
+[TEXT]
+STATEMENT: >>>
+図をこの文書へ集めたのは、 要求本体を人が読みやすく保つためである。
+**JSON を軽くするためではない。** `sovd-automotive-ja` で実測したところ、
+Mermaid が占めるのは JSON 全体の 1.6 パーセントであった
+(`docs/02-sdoc-authoring.md` 参照)。
+
+Mermaid は `.. raw:: html` の中に `<pre class="mermaid">` で書く。
+`MERMAID` は strictdoc 0.23.1 では `strictdoc_config.py` への明示指定が要るが、
+0.27.1 では既定で有効であり、 列挙すると DEPRECATION 警告が出る。
+
+.. raw:: html
+
+    <pre class="mermaid">
+    flowchart LR
+      USER[user] --> CLI[command line]
+      CLI --> CORE[conversion core]
+      CORE --> OUT[output file]
+    </pre>
+
+同じ図のソースは `_assets/overview.mmd` にも置いてあり、 `01-requirements.sdoc` の
+PAT-001 が `RELATIONS: TYPE: File` でそれを指している。 Web UI では要求から
+そのファイルのページへリンクが張られる。
+
+数式は `MATHJAX` (`MERMAID` と同じ扱い) で書ける。
+
+.. math::
+
+    t_{\mathrm{total}} = t_{\mathrm{read}} + t_{\mathrm{convert}} + t_{\mathrm{write}}
+
+画像は `_assets/` に置き、 `.. image:: _assets/foo.svg` で埋め込む。
+本サンプルは画像ファイルを同梱していない。
+<<<

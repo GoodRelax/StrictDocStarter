@@ -1,0 +1,70 @@
+[DOCUMENT]
+TITLE: 書き方の型 - 要求
+UID: DOC-PATTERNS-REQ
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: patterns.sgra
+
+[TEXT]
+STATEMENT: >>>
+本書は `.sdoc` の書き方の型を示す。 文書の外形は次の 3 つだけである。
+
+- `[DOCUMENT]` — 1 ファイルに 1 つ。 先頭に置く。
+- `[GRAMMAR]` — 使うフィールドを宣言する。 外部ファイルに出せる。
+- ノード — `[TEXT]` / `[[SECTION]]` / `[REQUIREMENT]` と、 文法で足した型。
+
+図は本書には置かない。 `03-figures.sdoc` に分けてある。 理由は
+`docs/02-sdoc-authoring.md` に書いた。
+<<<
+
+[[SECTION]]
+TITLE: 1. 最上位の要求
+
+[REQUIREMENT]
+UID: PAT-001
+STATUS: Approved
+TITLE: 入力ファイルの変換
+STATEMENT: >>>
+本ツールは、 利用者が指定した入力ファイルを出力形式へ変換すること。
+<<<
+RATIONALE: >>>
+本ツールの存在理由そのものであり、 これを外すと他の要求が意味を失う。
+<<<
+RELATIONS:
+- TYPE: File
+  VALUE: _assets/overview.mmd
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. 下位の要求
+
+[REQUIREMENT]
+UID: PAT-002
+STATUS: Approved
+TITLE: 入力形式の検査
+STATEMENT: >>>
+本ツールは、 変換を開始する前に入力ファイルが想定した形式かを検査し、
+形式が異なる場合は変換を行わずに終了すること。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: PAT-001
+
+[REQUIREMENT]
+UID: PAT-003
+STATUS: Revised
+TITLE: 出力先の上書き禁止
+STATEMENT: >>>
+本ツールは、 出力先に既存のファイルがある場合、 上書きせずに終了すること。
+<<<
+REVISION: >>>
+v1.0: レビュー指摘 FND-001 を受け、 「上書きしてもよい」から
+「上書きせずに終了する」へ変更した。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: PAT-001
+
+[[/SECTION]]

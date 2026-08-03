@@ -110,6 +110,7 @@ StrictDoc website in your browser. There is no menu — **one window per documen
 | `samples/sovd-automotive-ja/` | **Default.** A full Japanese SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) requirements spec — overview, stakeholder requirements, use cases, authentication, data access, DTC diagnostics, OTA software update, architecture, HTTP API, and test spec & results — with ASIL (ISO 26262) and A-SPICE layer custom fields, Mermaid diagrams, math, and traceability. |
 | `samples/sovd-automotive-en/` | English version of the above. |
 | `samples/hello-strictdoc/` | A minimal "hello world" requirements document to copy and start your own. |
+| `samples/sdoc-patterns/` | **Authoring patterns.** The `.sdoc` constructs you actually need, one of each, small enough to read in full: custom grammar (`.sgra`), parent/file relations, a custom `FINDING` node type for review findings, a `REVISION` field, diagrams kept out of the requirement bodies, and the same requirements written in Markdown. This is the sample [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) refers to. |
 
 To open the English sample, drag `samples\sovd-automotive-en` onto `launch-strictdoc.bat`
 (or set it as `project_path` in `server.config.json` to make it the default).
@@ -132,6 +133,8 @@ need reproducibility, pin a version, e.g. `pip install "strictdoc==0.23.1"`.
 ## Documentation
 
 - [`docs/01-environment.md`](docs/01-environment.md) — environment setup walkthrough (Phase 0 / Phase 1)
+- [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) — **how to write `.sdoc`** (and `.md`): the minimum an author — human or AI — needs so the official user guide does not have to be re-read for every requirement. Japanese; every statement verified by running strictdoc 0.27.1
+- [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) — **JSON query cookbook**: seven copy-and-run `jq` queries over `strictdoc export --formats=json`, with their actual output. Japanese
 - [`docs/setup-spec.md`](docs/setup-spec.md) — `setup-strictdoc` specification (requirements, ADRs)
 - [`docs/serve-spec.md`](docs/serve-spec.md) — `launch-strictdoc` specification (visible-window server model)
 
@@ -253,6 +256,7 @@ Web サイトとしてブラウザで開きます。メニューはありませ�
 | `samples/sovd-automotive-ja/` | **既定。** 日本語のフル SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) 要求仕様書 — 全体概要・ステークホルダ要求・ユースケース・認証・データアクセス・DTC 診断・OTA ソフトウェア更新・アーキテクチャ・HTTP API・テスト仕様/結果。ASIL (ISO 26262) と A-SPICE レイヤの custom field、Mermaid 図、数式、トレーサビリティ付き。 |
 | `samples/sovd-automotive-en/` | 上記の英語版。 |
 | `samples/hello-strictdoc/` | 自分の要求書を書き始めるための最小テンプレート。 |
+| `samples/sdoc-patterns/` | **書き方の型。** 実際に必要になる `.sdoc` の構文を 1 つずつ、全部読める分量で収めたもの: カスタム文法 (`.sgra`)・親/ファイル関係・レビュー指摘用のカスタムノード型 `FINDING`・`REVISION` フィールド・要求本体から外に出した図、および同じ要求の Markdown 版。[`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) が参照するサンプル。 |
 
 英語版を開くには、`samples\sovd-automotive-en` を `launch-strictdoc.bat` にドラッグ&ドロップ
 してください (既定にするなら `server.config.json` の `project_path` を変更)。
@@ -274,6 +278,8 @@ Web サイトとしてブラウザで開きます。メニューはありませ�
 ## ドキュメント
 
 - [`docs/01-environment.md`](docs/01-environment.md) — 環境構築の手順 (Phase 0 / Phase 1)
+- [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) — **`.sdoc` (と `.md`) の書き方。** 書き手 (人でも AI でも) が、要求 1 件ごとに公式ユーザーガイドを読み直さずに済むだけの最小限。記述はすべて strictdoc 0.27.1 で実行して確認済み
+- [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) — **JSON クエリ集。** `strictdoc export --formats=json` の出力に対する、コピーして実行できる `jq` クエリ 7 種と実際の出力
 - [`docs/setup-spec.md`](docs/setup-spec.md) — `setup-strictdoc` 仕様書 (要求・ADR)
 - [`docs/serve-spec.md`](docs/serve-spec.md) — `launch-strictdoc` 仕様書 (可視ウィンドウ方式)
 
