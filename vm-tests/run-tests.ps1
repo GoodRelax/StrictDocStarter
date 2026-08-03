@@ -923,7 +923,11 @@ $failCount = 0
 $skipCount = 0
 foreach ($k in $results.Keys) {
     $r = $results[$k]
-    $line = "  $($k.PadRight(22)) : $($r.Status)  $($r.Detail)"
+    # Skip reasons are a sentence long and wrecked this table's alignment.
+    # The full text already appeared on the scenario's own [SKIP] line above.
+    $detail = [string]$r.Detail
+    if ($detail.Length -gt 58) { $detail = $detail.Substring(0, 55) + "..." }
+    $line = "  $($k.PadRight(22)) : $($r.Status.PadRight(4))  $detail"
     if ($r.Status -eq "PASS") {
         Write-Host $line -ForegroundColor Green
     } elseif ($r.Status -eq "SKIP") {
