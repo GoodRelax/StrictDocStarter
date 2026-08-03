@@ -1,6 +1,6 @@
 # StrictDocStarter - main dispatcher
 # Spec: setup-spec.md (Ch 3.2 / 3.5)
-# Subcommands: auto, check, config, install, clone, all, dryrun, help
+# Subcommands: auto, check, config, install, upgrade, clone, all, dryrun, help
 # Output language: English ASCII only (per ADR-008).
 #
 # UAC self-elevation is now performed by setup-strictdoc.bat, not this script.
@@ -16,7 +16,8 @@ param(
     [string]$LogPath     = "",
     [switch]$SkipCheck,
     [switch]$ForceConfig,
-    [switch]$NonInteractive
+    [switch]$NonInteractive,
+    [switch]$Preview
 )
 
 # FR-803: no argument means 'auto'
@@ -68,8 +69,11 @@ if (-not $LogPath) {
 }
 $script:EnvReportPath = Join-Path $script:WorkDir "env-report.json"
 
-# Commands that require Administrator (FR-603, narrowed for usability)
-$script:AdminRequired = @("install", "clone", "all", "auto")
+# Commands that require Administrator (FR-603, narrowed for usability).
+# 'upgrade' is here because pip writes into the machine-wide Python that
+# setup installs (e.g. C:\Python313\Lib\site-packages), which a normal user
+# cannot modify.
+$script:AdminRequired = @("install", "upgrade", "clone", "all", "auto")
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -91,6 +95,7 @@ function Show-Help {
     Write-Host "  check          Detect tools, proxy, SSL inspection. Writes env-report.json"
     Write-Host "  config         Generate setup.config.json from template (Python dialog, edit, yes)"
     Write-Host "  install        Install tools per setup.config.json    [Phase A only]"
+    Write-Host "  upgrade        Change the installed StrictDoc version (asks 'yes' first)"
     Write-Host "  clone          Clone repository and create junction   [stub]"
     Write-Host "  all            check -> config -> install -> clone (power-user flow)"
     Write-Host "  dryrun         Enumerate planned actions without executing"
@@ -102,6 +107,13 @@ function Show-Help {
     Write-Host "  -SkipCheck             Skip 'check' inside 'all' / 'dryrun'"
     Write-Host "  -ForceConfig           Regenerate setup.config.json even if it exists"
     Write-Host "  -NonInteractive        Skip prompts (auto/config use defaults)"
+    Write-Host "  -Preview               'upgrade' only: ask pip what it would install first"
+    Write-Host ""
+    Write-Host "Upgrading StrictDoc:"
+    Write-Host "  Re-running setup does NOT change an installed StrictDoc - that is what"
+    Write-Host "  makes re-running safe. Use 'upgrade' to move to another version."
+    Write-Host "  The version it moves to comes from strictdoc.version in setup.config.json"
+    Write-Host "  ('latest' by default; pin with '==0.23.1' for reproducibility)."
 }
 
 function Import-OnboardLogger {
@@ -214,6 +226,11 @@ try {
             if (-not $ok) { exit 1 }
         }
 
+        "upgrade" {
+            $ok = Invoke-Upgrade -ConfigPath $ConfigPath -NonInteractive:$NonInteractive -Preview:$Preview
+            if (-not $ok) { exit 1 }
+        }
+
         "clone" {
             $ok = Invoke-Clone -ConfigPath $ConfigPath
             if (-not $ok) { exit 1 }
@@ -318,7 +335,7 @@ try {
     # Keep the window open so the user can read the summary or error.
     # Always pause when something went wrong (HadException), regardless of cmd.
     $needPause = (-not $NonInteractive) -and (
-        $script:HadException -or ($cmd -in @("auto", "install", "clone", "all"))
+        $script:HadException -or ($cmd -in @("auto", "install", "upgrade", "clone", "all"))
     )
     if ($needPause) {
         Write-Host ""

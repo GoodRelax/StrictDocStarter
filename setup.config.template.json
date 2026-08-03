@@ -42,6 +42,11 @@
     "version": "3.13"
   },
 
+  "strictdoc": {
+    "_comment": "StrictDoc pip version spec (FR-330). 'latest' (default) installs the newest release. For reproducibility pin it with a PEP 440 specifier: '==0.23.1', '~=0.23.0', '>=0.23,<0.24'. A bare version like '0.23.1' is read as '=='. The version this repository was verified against is recorded in README.md. This value is applied on FIRST install (FR-331) and by 'setup-strictdoc.bat upgrade' (FR-334); an existing installation is never changed by 'auto' (FR-335).",
+    "version": "latest"
+  },
+
   "options": {
     "_comment_claude_winget": "Anthropic Claude Code CLI via winget. Default: false (opt-in, requires subscription). Mutually exclusive with install_claude_npm (FR-305).",
     "install_claude_winget": false,

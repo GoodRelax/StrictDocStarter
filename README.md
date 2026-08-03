@@ -119,7 +119,43 @@ To open the English sample, drag `samples\sovd-automotive-en` onto `launch-stric
 
 Tested with **strictdoc 0.23.1** (Windows 11 / Python 3.13). The default install pulls the
 **latest** StrictDoc, so a future release could change how the bundled samples render; if you
-need reproducibility, pin a version, e.g. `pip install "strictdoc==0.23.1"`.
+need reproducibility, pin a version — see below.
+
+`setup-strictdoc.bat check` prints the installed version and writes it to `env-report.json`.
+
+## Changing the StrictDoc version
+
+**Re-running setup does not change an installed StrictDoc.** That is what makes re-running
+safe, so there is a separate command for it:
+
+```
+setup-strictdoc.bat upgrade
+```
+
+It shows the current version, what it will run, and the command that puts it back, then asks
+for `yes`. Add `-Preview` to ask pip which version it would land on first (one extra network
+round trip, which took about a minute on the machine this was measured on).
+
+Which version it moves to comes from `strictdoc.version` in `setup.config.json`:
+
+| Value | Meaning |
+|---|---|
+| `latest` (default) | newest release on PyPI |
+| `==0.23.1` | exactly this version — use for reproducibility |
+| `~=0.23.0` | `>=0.23, <0.24` |
+| `0.23.1` | bare version, read as `==0.23.1` |
+
+The same setting is applied when StrictDoc is installed for the first time. An unrecognised
+value stops the command rather than quietly falling back to `latest`.
+
+**Before upgrading**, see section 9 of [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md)
+for the differences measured between 0.23.1 and 0.27.1. Note that on 0.27.1 the bundled
+`hello-strictdoc` and `sovd-automotive-*` samples print a DEPRECATION warning, because they
+list `MATHJAX` / `MERMAID` in `strictdoc_config.py` and those are enabled by default there.
+They still render. `sdoc-patterns` is clean on both versions.
+
+If you would rather not use the launcher, `pip install --upgrade strictdoc` does the same
+thing.
 
 ## Requirements
 
@@ -265,7 +301,42 @@ Web サイトとしてブラウザで開きます。メニューはありませ�
 
 **strictdoc 0.23.1** (Windows 11 / Python 3.13) で検証済み。既定のインストールは
 **最新版**の StrictDoc を取得するため、将来版で同梱サンプルの描画が変わる可能性があります。
-再現性を固定したい場合はバージョンを固定してください (例: `pip install "strictdoc==0.23.1"`)。
+再現性を固定したい場合はバージョンを固定してください (下記参照)。
+
+`setup-strictdoc.bat check` が導入済みバージョンを表示し、`env-report.json` にも記録します。
+
+## StrictDoc のバージョンを変える
+
+**setup を再実行しても、導入済みの StrictDoc は変わりません。** 再実行が安全である理由が
+それなので、変更は別のコマンドで行います。
+
+```
+setup-strictdoc.bat upgrade
+```
+
+現在のバージョン・実行するコマンド・元に戻すコマンドを表示してから `yes` を尋ねます。
+`-Preview` を付けると、pip にどのバージョンになるかを先に問い合わせます (ネットワーク往復が
+1 回増えます。計測した環境では約 1 分かかりました)。
+
+どのバージョンにするかは `setup.config.json` の `strictdoc.version` で決まります。
+
+| 値 | 意味 |
+|---|---|
+| `latest` (既定) | PyPI の最新版 |
+| `==0.23.1` | このバージョンちょうど。再現性を固定したいとき |
+| `~=0.23.0` | `>=0.23, <0.24` |
+| `0.23.1` | 演算子なし。`==0.23.1` として読まれます |
+
+同じ設定が初回インストール時にも適用されます。解釈できない値の場合、`latest` に黙って
+フォールバックせずコマンドを停止します。
+
+**上げる前に**、[`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) の §9 (0.23.1 と
+0.27.1 の間で実測した差分) を確認してください。0.27.1 では同梱の `hello-strictdoc` と
+`sovd-automotive-*` が DEPRECATION 警告を出します — `strictdoc_config.py` に
+`MATHJAX` / `MERMAID` を列挙しており、0.27.1 ではこれらが既定で有効なためです。描画自体は
+従来どおりです。`sdoc-patterns` は両バージョンで警告が出ません。
+
+ランチャを使わない場合は `pip install --upgrade strictdoc` でも同じことができます。
 
 ## 動作要件
 

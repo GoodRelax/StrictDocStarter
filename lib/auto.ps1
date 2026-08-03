@@ -130,10 +130,31 @@ function Build-AutoPlan {
     }
 
     # Phase C: required.
-    if (Test-StrictDocInstalled) {
-        $plan.PhaseC.Steps += Format-PlanRow -Action SKIP    -Name "strictdoc" -Reason "already installed"
+    # FR-335: the plan never probes PyPI. A version query cost about 60
+    # seconds on the reference machine, and the plan is on the path of every
+    # double-click. The row therefore reports local facts only and names the
+    # command that does go to the network.
+    $sdSpec   = Get-StrictDocVersionSpec -Config $Config
+    $sdTarget = Resolve-StrictDocPipTarget -Spec $sdSpec
+
+    # A bad spec is reported whatever the installed state is. Checking it only
+    # on the not-installed branch would hide the typo from exactly the people
+    # most likely to have set it: those with a working install who edited the
+    # config to pin a version.
+    if (-not $sdTarget) {
+        $sdWhen = if (Test-StrictDocInstalled) { "'upgrade' will refuse" } else { "Phase C will stop" }
+        $plan.PhaseC.Steps += Format-PlanRow -Action SKIP -Name "strictdoc" `
+            -Reason "INVALID strictdoc.version '$sdSpec' in setup.config.json - $sdWhen"
+    } elseif (Test-StrictDocInstalled) {
+        $sdReason = "already installed: $(Get-StrictDocVersion)"
+        if ($sdSpec -ne "latest") {
+            $sdReason += " (config pins $sdSpec - apply with 'setup-strictdoc.bat upgrade')"
+        } else {
+            $sdReason += " (to update: 'setup-strictdoc.bat upgrade')"
+        }
+        $plan.PhaseC.Steps += Format-PlanRow -Action SKIP -Name "strictdoc" -Reason $sdReason
     } else {
-        $plan.PhaseC.Steps += Format-PlanRow -Action INSTALL -Name "strictdoc" -Reason "required (pip install strictdoc)"
+        $plan.PhaseC.Steps += Format-PlanRow -Action INSTALL -Name "strictdoc" -Reason "required (pip install $sdTarget)"
     }
 
     # Phase D: optional (skipped when URL empty / skip_clone=true).
@@ -292,8 +313,11 @@ function Invoke-PhaseB {
 }
 
 function Invoke-PhaseC {
+    # FR-331: the configured strictdoc.version reaches pip through here, so
+    # the config has to be threaded in rather than defaulted inside.
+    param($Config = $null)
     Write-OnboardStep "Phase C: StrictDoc (pip install strictdoc)"
-    return Install-StrictDoc
+    return Install-StrictDoc -Config $Config
 }
 
 function Test-PhaseDShouldSkip {
@@ -395,7 +419,7 @@ function Invoke-Auto {
 
     $summary["Phase A"] = Invoke-PhaseA
     $summary["Phase B"] = Invoke-PhaseB -PythonVersion $PythonVersion
-    $summary["Phase C"] = Invoke-PhaseC
+    $summary["Phase C"] = Invoke-PhaseC -Config $config
     $summary["Phase D"] = Invoke-PhaseD -Config $config
     $summary["Phase E"] = Invoke-PhaseE -Config $config
 

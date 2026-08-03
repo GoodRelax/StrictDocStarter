@@ -639,7 +639,7 @@ Feature: StrictDocStarter - StrictDoc Environment Setup
       When setup-strictdoc.bat auto を実行し plan が表示された
       Then proxy 関連の [WARN] 行は一切表示されない
 
-  Rule: 自動テスト coverage (FR-1000 系、 §5.2 シナリオ #6〜#10 対応)
+  Rule: 自動テスト coverage (FR-1000 系、 §5.2 シナリオ #6〜#11 対応)
 
     Scenario: SC-011 Phase A Claude 拡張カバレッジ (traces: FR-805, FR-607, FR-1008)
       Given 全ツール導入済 VM で Claude Code 拡張がインストール済
@@ -729,7 +729,7 @@ Feature: StrictDocStarter - StrictDoc Environment Setup
   },
 
   "strictdoc": {
-    "_comment": "StrictDoc pip version spec. Default 'latest' (pip install strictdoc). For reproducibility pin a range, e.g. '~=0.23.0' (>=0.23,<0.24) or '==0.23.1'. Tested version is recorded in README. Consumed by install Phase C (FR-331).",
+    "_comment": "StrictDoc pip version spec. Default 'latest' (pip install strictdoc). For reproducibility pin a range, e.g. '~=0.23.0' (>=0.23,<0.24) or '==0.23.1'. A bare version ('0.23.1') is read as '=='. Tested version is recorded in README. Applied on FIRST install by Phase C (FR-331) and by 'upgrade' (FR-334); an existing installation is never changed by 'auto' (FR-335).",
     "version": "latest"
   },
 
@@ -777,6 +777,7 @@ Subcommands:
   check          Detect existing tools, proxy, SSL inspection. Writes env-report.json    [FR-101..107]
   config         Generate setup.config.json from template (asks Python version, then edit-then-yes) [FR-201..208]
   install        Install tools per setup.config.json (Phase A only; full flow uses 'auto')
+  upgrade        Change the version of an already-installed StrictDoc (yes prompt)        [FR-334..336]
   clone          Clone repository and create junction                                     [FR-401..404]
   all            Run check -> config -> install -> clone in sequence (legacy power-user flow)
   dryrun         Show planned actions using the same planner as 'auto', no side effects   [FR-601..607]
@@ -788,15 +789,17 @@ Options:
   -SkipCheck            Skip 'check' phase in 'all' or 'dryrun'
   -ForceConfig          Regenerate setup.config.json from template
   -NonInteractive       Skip prompts (used by automated tests)
+  -Preview              'upgrade' only: run pip --dry-run first and show the target version
 
 Admin requirement (for setup-strictdoc.bat sub-commands):
-  - admin required: auto, install, clone, all
+  - admin required: auto, install, upgrade, clone, all
+      ('upgrade' writes into the machine-wide Python that setup installs)
   - admin not required: check, config, dryrun, help
   - UAC self-elevation is performed by _lib\elevate.bat (FR-806)
 
 Separate entry .bat files (not subcommands of setup-strictdoc.bat):
   - gather-logs.bat                   (no_admin) -- bundles logs + diagnostics into a ZIP
-  - vm-tests\run-tests.bat            (need_admin) -- 10-scenario automated test runner
+  - vm-tests\run-tests.bat            (need_admin) -- 11-scenario automated test runner
   - vm-tests\gather-test-logs.bat     (no_admin) -- bundles test-results + parent log into a ZIP
   - uninstall-strictdoc.bat           (need_admin) -- uninstall StrictDoc + StrictDocStarter artifacts (config-driven, dry-run + yes; FR-340..345)
   All separate entry .bat files go through _lib\elevate.bat (FR-806).
@@ -886,13 +889,13 @@ Choose (1-3) [default: 1]:
 | 単体 | JSON parser ラップ / detect ロジック / config-builder | Pester で関数単位テスト | Pester | 全 PASS |
 | 結合 | dryrun 実行 | `setup-strictdoc.bat dryrun` で副作用なし全 step 走破 | 手動 | 予定アクションが各 step で列挙される (FR-604〜607) |
 | E2E auto | クリーン Win11 VM での `setup-strictdoc.bat auto` 完全実行 | Hyper-V スナップショット → 実行 → スナップショット復元 | 手動チェックリスト | Ch 4.1 全 Gherkin PASS |
-| **E2E 自動 (10 シナリオ)** | 既存全ツール導入済 VM 上での挙動回帰検知 | `vm-tests\run-tests.bat` (5.2 シナリオ表参照) | 自動 (FR-1000 系) | 10 シナリオ全 PASS |
+| **E2E 自動 (11 シナリオ)** | 既存全ツール導入済 VM 上での挙動回帰検知 | `vm-tests\run-tests.bat` (5.2 シナリオ表参照) | 自動 (FR-1000 系) | 11 シナリオ全 PASS |
 | **E2E dryrun** | dryrun 経路の plan 出力検証 | `vm-tests\run-tests.bat dryrun` (host でも可) | 自動 | dryrun assert シナリオ (T_dryrun_assert) で 4 状態タグ / Phase ヘッダ / Phase E sort のいずれかを正規表現で検証 |
 | **negative test** | 異常系の挙動 | `vm-tests\run-tests.bat` 内に組込み (T_negative_*) | 自動 (FR-1006) | 期待 exit code + 期待 log 文字列の存在を確認 |
 | 失敗注入 | install 失敗時の継続性 | 存在しない winget ID を混ぜる | 手動 | サマリで失敗が見える、後続継続 |
 | proxy 検出 | proxy 環境での warn 表示 | proxy 設定環境で `setup-strictdoc.bat auto` 実行 | 手動 | yes プロンプト直前に 3 行 warn 表示 (FR-700) |
 
-### 5.2 自動テストシナリオ一覧 (10 件)
+### 5.2 自動テストシナリオ一覧 (11 件)
 
 `vm-tests\run-tests.ps1` で実装。 シナリオ独立性 (FR-1001) を保つため、 uninstall 対象は **シナリオ間で重複させない**。 各シナリオは pre-condition / action / post-condition / cleanup の 4 段で記述。
 
@@ -908,6 +911,7 @@ Choose (1-3) [default: 1]:
 | 8 | **`T_negative_abort`** (新) | FR-209 / FR-1006 | (なし) | **実装制約**: PowerShell `Read-Host` は piped stdin を読まないため自動化不能。 v1.0 では `vm-test-checklist.md` に **手動 negative test** として記載 (run-tests.ps1 では SKIP + warn 表示)。 v2.x で Read-YesConfirmation に test-mode escape hatch (env var) 追加を再検討 |
 | 9 | **`T_negative_claude_both`** (新) | FR-305 / FR-1006 | (`setup.config.json` を一時改変、 両 true) | exit 非 0 + log にエラー停止メッセージ含む + cleanup で改変を戻す |
 | 10 | **`T_dryrun_assert`** (新) | FR-604〜607 / FR-901〜904 / FR-1007 | (なし、 dryrun 実行) | plan 出力 capture → `[REQUIRED]` / `[OPTIONAL]` phase header 両方含む / `[SKIP]` row 1 件以上 / Phase E 内に `[SKIP]` と `[INSTALL]` が両方ある場合は `[SKIP]` が先 |
+| 11 | **`T_strictdoc_upgrade`** (v1.2) | Phase C / FR-334〜338 | (なし。 `strictdoc.version` を**導入済みと異なる版**に一時ピン) | **(a) FR-335: `auto` 実行後もバージョンが変わらないこと** (最重要。 破れると再実行が既存環境を書き換える) / (b) FR-334: `upgrade` 実行後にピンした版になること / (c) FR-336: 出力に `02-sdoc-authoring` と切り戻しコマンドが含まれること (soft) / cleanup で config と版を復元 |
 
 ### 5.3 シナリオ独立性保証 (FR-1001 厳守、 重複なし)
 
@@ -982,6 +986,22 @@ Choose (1-3) [default: 1]:
 | FR-332 | Ubiquitous | **動作確認済みの strictdoc バージョンを `README.md` に明記**すること (**Phase 0 で strictdoc 0.23.1 を検証し README へ記録済**)。 既定 `latest` は最新を取りに行くため、 同梱サンプル/設定が将来版で壊れ得る旨も注記 (O-4 smoke test で検知) |
 | FR-333 | Optional | doctor/health-check (将来) を設ける場合、 インストール済み strictdoc 版がテスト済み版/範囲外なら `[WARN]` を出すこと (O-1 連動) |
 
+**FR-333 の実現方法 (v1.2):** 専用の doctor コマンドは設けず、 **`check` サブコマンドが担う**。 `env-report.json` に `strictdoc` ブロック (`installed` / `verified_version` / `matches_verified`) と `existing_tools.strictdoc` を書き、 画面にも 1 行出す。 **`[WARN]` は出さない** — 既定インストールは `latest` を取りに行くため「検証済み版と違う」 のは既定動作であって異常ではない。 両方の版を示し、 差分の所在 (`docs/02-sdoc-authoring.md` §9) と変更手段 (`upgrade`) を案内するにとどめる。
+
+**FR-331 の validate 失敗時の扱い (v1.2):** 不正な指定子は **`latest` へフォールバックせず、 その Phase / コマンドを停止する (MUST NOT フォールバック)**。 利用者が固定したつもりの版と違う版が黙って入るほうが、 止まるより害が大きい。 エラーには不正な値と受理される形式を併記する。
+
+### 7.1.1 strictdoc のバージョン変更 (FR-334 系) — v1.2
+
+> **背景。** FR-330/331 は **初回インストール時の版指定**を定めるが、 **既にインストール済みの環境の版を変える手段が無かった**。 `Install-StrictDoc` は FR-309 (導入済みならスキップ) に従って早期 return するため、 **`strictdoc.version` を書き換えて `auto` を再実行しても FR-331 に到達しない**。 「既に StrictDoc を使っている人が版を上げられない」 という穴であり、 本節がそれを塞ぐ。
+
+| ID | パターン | 要求 |
+|---|---|---|
+| FR-334 | Ubiquitous | `setup-strictdoc.bat upgrade` サブコマンドを設けること。 インストール済み strictdoc の版を `strictdoc.version` (FR-330) が指す版へ変更する。 **実行前に現在の版・設定値・実行するコマンド・切り戻しコマンドを表示し、 `yes` を求めること** (`-NonInteractive` 時は省略)。 結果は FR-312 の二段確認で判定し、 **変更前 → 変更後** を報告する。 admin を要する (機械共通の Python へ書き込むため) |
+| FR-335 | Ubiquitous | **`auto` / `install` は、 導入済み strictdoc の版を変更してはならない (MUST NOT)。** FR-309 のスキップを維持する。 版の変更は `upgrade` の明示実行のみ。 **再実行が安全である**という README の約束を壊さないため。 `strictdoc.version` が `latest` 以外のときは、 スキップ時に「設定は `<spec>` を指しているが変更していない。 適用するには `upgrade`」 と案内すること |
+| FR-336 | When | `upgrade` が実際に版を変えたときは、 **版差分の所在 (`docs/02-sdoc-authoring.md` §9) と切り戻しコマンドを表示すること**。 記載は**実測した事実に限る** — どのリリースで挙動が変わったかを確かめずに書いてはならない (MUST NOT) |
+| FR-337 | Ubiquitous | **`auto` / `dryrun` のプラン生成は PyPI へ問い合わせてはならない (MUST NOT)。** 参照機で版問い合わせに約 60 秒を要した実測があり、 プランはダブルクリックのたびに通る経路である。 プラン行は手元の情報 (導入済み版・設定値) のみで構成し、 ネットワークに出るコマンド名 (`upgrade`) を案内する。 不正な `strictdoc.version` は**導入済み・未導入のどちらでもプラン行に表示すること** |
+| FR-338 | Ubiquitous | `upgrade` は `Update-PathFromRegistry` を**呼んではならない (MUST NOT)**。 アップグレードは同一インタプリタ内のパッケージ置換であり実行ファイルは移動しないうえ、 レジストリからの PATH 再構築は**呼び出し側が設定した PATH を破棄する**。 virtualenv 等で実行した場合、 更新に成功しているのに別の (更新されていない) strictdoc を検証して 「変化なし」 と報告する誤りが実際に発生した |
+
 ### 7.2 uninstall-strictdoc.bat (FR-340 系) — S-4
 
 | ID | パターン | 要求 |
@@ -1036,3 +1056,4 @@ Choose (1-3) [default: 1]:
 |---|---|---|
 | v1.0 | 2026-05-27 | Initial public release |
 | v1.1 | 2026-06-06 | Chapter 7 追加: strictdoc バージョン指定 (FR-330系, O-1/D-4)、 uninstall-strictdoc.bat (FR-340系, S-4)、 HTML2PDF chromedriver (FR-350系, S-3)、 install Phase 完成 + __pycache__ gitignore (FR-360系, O-5/O-2)。 公式委譲スコープ (D-5) で serve-spec.md v1.1 と対。 |
+| v1.2 | 2026-08-04 | **§7.1.1 追加: strictdoc のバージョン変更 (FR-334〜338)。** FR-330/331 は初回インストールの版指定しか定めておらず、 FR-309 (導入済みならスキップ) により**既存環境の版を変える手段が存在しなかった**。 `upgrade` サブコマンドで塞ぐ。 あわせて FR-331 の validate 失敗時をフォールバック禁止に、 FR-333 を `check` + `env-report.json` で実現すると確定 (`[WARN]` は出さない)。 FR-337 (プランは PyPI へ問い合わせない) と FR-338 (`upgrade` は PATH を再構築しない) は、 いずれも実測で判明した事象に対する条文。 |

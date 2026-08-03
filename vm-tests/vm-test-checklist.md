@@ -2,7 +2,7 @@
 
 クリーン Windows 11 VM で StrictDocStarter の挙動を回帰検証する。 **T0 (推奨) で一気通貫**、 または個別ステップを手動実行。
 
-仕様参照: [setup-spec.md §5 Test Strategy](../docs/setup-spec.md) (10 シナリオ仕様)。
+仕様参照: [setup-spec.md §5 Test Strategy](../docs/setup-spec.md) (11 シナリオ仕様)。
 
 ---
 
@@ -16,7 +16,7 @@
 2. ホスト `gr-tools\StrictDocStarter\temp\StrictDocStarter.zip` を VM デスクトップに Ctrl+V → 「すべて展開」 → `Desktop\StrictDocStarter\` 1 階層作成
 3. **`Desktop\StrictDocStarter\setup-strictdoc.bat`** ダブルクリック → UAC → `yes` → 完走待ち → Enter (= T1 ベースライン、 Phase A〜E 全 OK)
 4. (任意) `setup-strictdoc.bat dryrun` を別途実行 → plan 出力が正常表示されることを確認
-5. **`Desktop\StrictDocStarter\vm-tests\run-tests.bat`** ダブルクリック → UAC → 10 シナリオ自動実行 → サマリ → Enter
+5. **`Desktop\StrictDocStarter\vm-tests\run-tests.bat`** ダブルクリック → UAC → 11 シナリオ自動実行 → サマリ → Enter
 6. **手動 SC-015 (FR-209 abort)** の確認: 別途 `setup-strictdoc.bat` ダブルクリック → UAC → plan 表示 → **`no`** 入力 → `[WARN] Aborted -` 3 行 + `Config:` 行が表示されることを目視確認 → Enter
 7. **`vm-tests\gather-test-logs.bat`** ダブルクリック → エクスプローラ選択状態の ZIP を Ctrl+C → ホストの `TestResult/` に Ctrl+V
 
@@ -24,9 +24,9 @@
 
 - ステップ 3: Phase A〜E 全 OK、 Phase D は SKIP (URL 空既定)
 - ステップ 4: dryrun 完走、 plan に `[REQUIRED]` / `[OPTIONAL]` / `[SKIP]` / `[INSTALL]` タグ表示
-- ステップ 5: **9 シナリオ PASS、 1 シナリオ SKIPPED** (NegativeAbort、 手動 fallback)
+- ステップ 5: **10 シナリオ PASS、 1 シナリオ SKIPPED** (NegativeAbort、 手動 fallback)
 - ステップ 6: abort guidance 3 行が表示される
-- ステップ 7: `StrictDocStarter-test-result-*.zip` に per-scenario log (10 件) + final setup.log + diagnostics.txt
+- ステップ 7: `StrictDocStarter-test-result-*.zip` に per-scenario log (11 件) + final setup.log + diagnostics.txt
 
 ---
 
@@ -39,7 +39,7 @@
 
 ---
 
-## 10 シナリオ一覧 (run-tests.bat で自動)
+## 11 シナリオ一覧 (run-tests.bat で自動)
 
 | # | シナリオ | 内容 | uninstall 対象 | 所要 (目安) |
 |---|---|---|---|---|
@@ -50,9 +50,10 @@
 | 5 | Mixed | optional + 拡張 1 件 uninstall (他シナリオと完全独立) | Obsidian, MS-CEINTL.vscode-language-pack-ja | ~3〜5 分 |
 | 6 | ClaudeExtension | Phase A coverage、 Claude 拡張 uninstall → 再 install | anthropic.claude-code | ~30 秒 |
 | 7 | StrictDocPip | Phase C coverage、 pip uninstall → 再 install | strictdoc (pip) | ~3〜5 分 |
-| 8 | NegativeAbort | **SKIPPED** (手動 SC-015 に委ね) | (なし) | ~1 秒 (skip msg のみ) |
-| 9 | NegativeClaudeBoth | FR-305 排他: config 改変 → 期待動作確認 → 復元 | (なし、 config 一時改変) | ~1〜2 分 |
-| 10 | DryrunAssert | dryrun 出力の [REQUIRED]/[OPTIONAL]/[SKIP] タグ + Phase E sort assert | (なし、 dryrun のみ) | ~10 秒 |
+| 8 | **StrictDocUpgrade** | FR-334〜338: `strictdoc.version` を別版にピン → **`auto` で変わらないこと**を確認 → `upgrade` で変わることを確認 → config と版を復元 | (なし、 strictdoc の版を一時変更) | ~3〜5 分 |
+| 9 | NegativeAbort | **SKIPPED** (手動 SC-015 に委ね) | (なし) | ~1 秒 (skip msg のみ) |
+| 10 | NegativeClaudeBoth | FR-305 排他: config 改変 → 期待動作確認 → 復元 | (なし、 config 一時改変) | ~1〜2 分 |
+| 11 | DryrunAssert | dryrun 出力の [REQUIRED]/[OPTIONAL]/[SKIP] タグ + Phase E sort assert | (なし、 dryrun のみ) | ~10 秒 |
 
 シナリオ独立性は **setup-spec.md §5.3 uninstall マトリクス** で保証。 各ツールは 1 シナリオでのみ touch される。
 
@@ -134,8 +135,8 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 `vm-tests\gather-test-logs.bat` ダブルクリック → `%TEMP%\StrictDocStarter-test-result-*.zip` 生成 → エクスプローラで select 状態 → Ctrl+C → ホストへ Ctrl+V
 
 含まれるファイル (期待):
-- `T_*.log` × 10 (各シナリオの setup-strictdoc.ps1 transcript)
-- `T_*.runner-capture.log` × 10 (runner 側の生 stdout/stderr capture、 FR-1004)
+- `T_*.log` × 11 (各シナリオの setup-strictdoc.ps1 transcript)
+- `T_*.runner-capture.log` × 11 (runner 側の生 stdout/stderr capture、 FR-1004)
 - 最新 `setup.log` (T1 ベースラインの transcript)
 - `diagnostics.txt` (Windows / PS / winget version、 既存 tool、 PATH 等)
 
@@ -143,11 +144,11 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 
 ## 報告いただきたい内容
 
-各テスト (T1 / 10 シナリオ / SC-015) について:
+各テスト (T1 / 11 シナリオ / SC-015) について:
 - [ ] 期待通り動作したか (OK / NG)
 - [ ] NG なら: 実際の出力と推定原因
 - [ ] 所要時間 (NFR-008 で REAL モード合計 60 分以内が目標)
-- [ ] サマリの 10 シナリオ結果 (PASS / FAIL / SKIPPED)
+- [ ] サマリの 11 シナリオ結果 (PASS / FAIL / SKIPPED)
 - [ ] 違和感を覚えた挙動・出力 (細かい UX 含む)
 
 特に NegativeClaudeBoth は v1.0 で FR-305 が auto.ps1 に未実装の場合 `[WARN] FR-305 enforcement not yet observable in log` という soft warn が出る — それが想定挙動。

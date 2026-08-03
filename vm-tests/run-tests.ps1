@@ -1,6 +1,6 @@
 # StrictDocStarter - automated test orchestrator (run by run-tests.bat).
-# Drives 'setup-strictdoc.ps1' through 10 scenarios (5 positive + 2 negative +
-# 1 dryrun-assert + 2 phase-coverage) and reports PASS / FAIL per scenario.
+# Drives 'setup-strictdoc.ps1' through 11 scenarios (5 positive + 2 negative +
+# 1 dryrun-assert + 3 phase-coverage) and reports PASS / FAIL per scenario.
 #
 # Spec refs: §2.1.10 FR-1000 series, §5 Test Strategy
 #
@@ -291,7 +291,7 @@ function Restore-Config {
 }
 
 # ---------------------------------------------------------------------------
-# Scenarios (10 total: 5 positive + 2 phase-coverage + 2 negative + 1 dryrun-assert)
+# Scenarios (11 total: 5 positive + 3 phase-coverage + 2 negative + 1 dryrun-assert)
 #
 # Independence (FR-1001): uninstall targets are non-overlapping where
 # practical. Mixed reuses jq (#2) and ms-vscode.PowerShell (#4) but does
@@ -428,6 +428,86 @@ function Test-StrictDocPip {
     }
 }
 
+function Test-StrictDocUpgrade {
+    # FR-334..338: 'upgrade' is the only path that changes the version of an
+    # installed strictdoc. Exercised as an explicit downgrade-then-restore so
+    # the assertion is a real version CHANGE, not just "the command exited 0".
+    #
+    # FR-335 is asserted first and matters most: a plain 'auto' must leave the
+    # installed version alone. If that ever regresses, re-running setup starts
+    # silently mutating working environments.
+    if ($script:DryRun) {
+        Write-Host "    skipped in dryrun mode (changes the installed strictdoc version)"
+        return
+    }
+
+    $py = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $py) { throw "python not on PATH; cannot exercise upgrade" }
+    if (-not (Test-CmdWorks "strictdoc")) { throw "strictdoc not installed; run setup-strictdoc.bat once first" }
+
+    $original = (& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)
+    if (-not $original) { throw "could not read the current strictdoc version" }
+    $original = ([string]$original).Trim()
+    Write-Host "    current strictdoc: $original"
+
+    $backup = Backup-Config
+    try {
+        if (-not (Test-Path $ConfigPath)) {
+            throw "setup.config.json missing -- run setup-strictdoc.bat once first"
+        }
+
+        # Pin to a version that is NOT the installed one so a no-op cannot pass.
+        $pinTo = if ($original -eq "0.23.1") { "0.23.0" } else { "0.23.1" }
+
+        $cfg = Get-Content $ConfigPath -Raw | ConvertFrom-Json
+        if (-not ($cfg.PSObject.Properties.Name -contains "strictdoc")) {
+            $cfg | Add-Member -NotePropertyName "strictdoc" -NotePropertyValue ([pscustomobject]@{ version = "latest" })
+        }
+        $cfg.strictdoc.version = "==$pinTo"
+        ($cfg | ConvertTo-Json -Depth 10) | Set-Content -Path $ConfigPath -Encoding UTF8
+
+        # FR-335: 'auto' must NOT act on the pin.
+        $rAuto = Invoke-OnboardSubprocess -ScenarioName "T_strictdoc_upgrade_auto" -NonInteractive
+        Assert-Exit0 $rAuto "T_strictdoc_upgrade_auto"
+        $afterAuto = ([string](& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)).Trim()
+        if ($afterAuto -ne $original) {
+            throw "FR-335 violated: 'auto' changed strictdoc $original -> $afterAuto; see $($rAuto.Log)"
+        }
+        Write-Host "    FR-335 ok: 'auto' left strictdoc at $afterAuto"
+
+        # FR-334: 'upgrade' applies the pin.
+        $rUp = Invoke-OnboardSubprocess -ScenarioName "T_strictdoc_upgrade" -SubCmd "upgrade" -NonInteractive
+        Assert-Exit0 $rUp "T_strictdoc_upgrade"
+        $afterUp = ([string](& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)).Trim()
+        if ($afterUp -ne $pinTo) {
+            throw "FR-334: expected strictdoc $pinTo after upgrade, got '$afterUp'; see $($rUp.Log)"
+        }
+        Write-Host "    FR-334 ok: 'upgrade' moved strictdoc $original -> $afterUp"
+
+        # FR-336: the version change must point at the differences and at the
+        # command that undoes it.
+        $upText = ($rUp.Capture -join "`n")
+        if ($upText -notmatch '02-sdoc-authoring') {
+            Write-Host "    [WARN] FR-336: upgrade output did not reference docs/02-sdoc-authoring.md" -ForegroundColor Yellow
+        }
+        if ($upText -notmatch "strictdoc==$([regex]::Escape($original))") {
+            Write-Host "    [WARN] FR-336: upgrade output did not show the rollback command" -ForegroundColor Yellow
+        }
+    } finally {
+        # Restore the config first so the restoring 'upgrade' reads the pin we
+        # want, then put the original version back. Both run even on failure --
+        # leaving a downgraded strictdoc behind would contaminate every later
+        # scenario (FR-1001).
+        Restore-Config $backup
+        Write-Host "    restoring strictdoc $original"
+        & python -m pip install --quiet "strictdoc==$original" 2>&1 | Out-Null
+        $restored = ([string](& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)).Trim()
+        if ($restored -ne $original) {
+            Write-Host "    [WARN] strictdoc left at $restored (expected $original) -- fix manually" -ForegroundColor Yellow
+        }
+    }
+}
+
 function Test-NegativeAbort {
     # FR-209 / FR-1006 / SC-015: automation impossible in v1.0 -- PowerShell
     # Read-Host does not consume piped stdin (reads Console.ReadLine
@@ -519,6 +599,7 @@ $tests = @(
     @{ Name = "Mixed";              Func = ${function:Test-Mixed};              Note = "uninstall jq + ms-vscode.PowerShell (no gh, FR-1001)" }
     @{ Name = "ClaudeExtension";    Func = ${function:Test-ClaudeExtension};    Note = "Phase A coverage (FR-805 / FR-1008)" }
     @{ Name = "StrictDocPip";       Func = ${function:Test-StrictDocPip};       Note = "Phase C coverage (FR-311 / FR-1009)" }
+    @{ Name = "StrictDocUpgrade";   Func = ${function:Test-StrictDocUpgrade};   Note = "version change via 'upgrade' (FR-334..338)" }
     @{ Name = "NegativeAbort";      Func = ${function:Test-NegativeAbort};      Note = "negative: feed 'no' to yes prompt (FR-209)" }
     @{ Name = "NegativeClaudeBoth"; Func = ${function:Test-NegativeClaudeBoth}; Note = "negative: both claude flags true (FR-305)" }
     @{ Name = "DryrunAssert";       Func = ${function:Test-DryrunAssert};       Note = "dryrun output assertions (FR-1007)" }

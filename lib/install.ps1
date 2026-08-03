@@ -410,8 +410,64 @@ function Install-VSCodeExtensions {
     return $results
 }
 
+# FR-332: the strictdoc version this repository has been verified against.
+# Kept in sync with the "Verified StrictDoc version" section of README.md.
+# Used for reporting only -- nothing refuses to run on a different version.
+$script:StrictDocVerifiedVersion = "0.23.1"
+
 function Test-StrictDocInstalled {
     return [bool](Get-Command strictdoc -ErrorAction SilentlyContinue)
+}
+
+function Get-StrictDocVersionSpec {
+    # FR-330: read strictdoc.version from setup.config.json.
+    # Returns "latest" for missing/blank so callers never handle $null.
+    [CmdletBinding()]
+    param($Config = $null)
+
+    if (-not $Config) { return "latest" }
+    if (-not ($Config.PSObject.Properties.Name -contains "strictdoc")) { return "latest" }
+    $sd = $Config.strictdoc
+    if (-not $sd) { return "latest" }
+    if (-not ($sd.PSObject.Properties.Name -contains "version")) { return "latest" }
+    $v = [string]$sd.version
+    if ([string]::IsNullOrWhiteSpace($v)) { return "latest" }
+    return $v.Trim()
+}
+
+function Resolve-StrictDocPipTarget {
+    # FR-331: turn a configured version spec into the single argument handed
+    # to pip.
+    #     "latest"        -> "strictdoc"
+    #     "==0.23.1"      -> "strictdoc==0.23.1"
+    #     ">=0.23,<0.24"  -> "strictdoc>=0.23,<0.24"
+    #     "0.23.1"        -> "strictdoc==0.23.1"   (bare version is common)
+    #
+    # Returns $null when the spec is not recognised. Callers MUST refuse
+    # rather than fall back to "latest": silently installing a different
+    # version than the one the user pinned is worse than stopping. The
+    # operator sees the offending value and the accepted forms.
+    #
+    # The alternation lists two-character operators before their one-character
+    # prefixes so ">=" is not matched as ">".
+    [CmdletBinding()]
+    param([string]$Spec)
+
+    if ([string]::IsNullOrWhiteSpace($Spec)) { return "strictdoc" }
+    $s = $Spec.Trim()
+    if ($s -eq "latest") { return "strictdoc" }
+    if ($s -match '^(~=|==|>=|<=|!=|<|>)') { return "strictdoc$s" }
+    if ($s -match '^\d')                   { return "strictdoc==$s" }
+    return $null
+}
+
+function Show-StrictDocSpecError {
+    # Shared message for an unusable strictdoc.version value (FR-331).
+    [CmdletBinding()]
+    param([string]$Spec)
+    Write-OnboardError "Invalid strictdoc.version in setup.config.json: '$Spec'"
+    Write-OnboardError "Accepted: 'latest', a PEP 440 specifier ('==0.23.1', '~=0.23.0', '>=0.23,<0.24'),"
+    Write-OnboardError "          or a bare version ('0.23.1', read as '==0.23.1')."
 }
 
 function Get-StrictDocVersion {
@@ -429,7 +485,7 @@ function Get-StrictDocVersion {
 
 function Install-StrictDoc {
     [CmdletBinding()]
-    param()
+    param($Config = $null)
 
     $python = Get-PythonCommand
     if (-not $python) {
@@ -437,9 +493,25 @@ function Install-StrictDoc {
         return $false
     }
 
+    # FR-330 / FR-331: the configured spec decides what gets installed.
+    $spec   = Get-StrictDocVersionSpec -Config $Config
+    $target = Resolve-StrictDocPipTarget -Spec $spec
+    if (-not $target) {
+        Show-StrictDocSpecError -Spec $spec
+        return $false
+    }
+
+    # FR-309 / FR-335: an existing installation is never touched here. Changing
+    # the version of a working environment is an explicit action -- that is
+    # what 'setup-strictdoc.bat upgrade' (FR-334) is for. Re-running setup
+    # therefore stays a no-op, which is the promise README makes about it.
     if (Test-StrictDocInstalled) {
         $ver = Get-StrictDocVersion
         Write-OnboardSkip "strictdoc already installed: $ver"
+        if ($spec -ne "latest") {
+            Write-OnboardInfo "setup.config.json pins strictdoc.version='$spec'; the installed version is left as-is."
+            Write-OnboardInfo "To apply the pin, run: setup-strictdoc.bat upgrade"
+        }
         return $true
     }
 
@@ -463,7 +535,7 @@ function Install-StrictDoc {
         $ErrorActionPreference = $oldEAP
     }
 
-    Write-OnboardInfo "pip install strictdoc..."
+    Write-OnboardInfo "pip install $target..."
     # FR-311 / ADR-011: do NOT return early on non-zero exit -- pip emits
     # "ERROR: ..." text to stderr in many benign cases. Capture the exit
     # code, then use FR-312 / ADR-013 two-stage verification.
@@ -471,10 +543,10 @@ function Install-StrictDoc {
     $oldEAP = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     try {
-        & $python -m pip install strictdoc 2>&1 | ForEach-Object { Write-Host "  $_" }
+        & $python -m pip install $target 2>&1 | ForEach-Object { Write-Host "  $_" }
         $pipExit = $LASTEXITCODE
     } catch {
-        Write-OnboardWarn "pip install strictdoc threw (continuing to verify): $($_.Exception.Message)"
+        Write-OnboardWarn "pip install $target threw (continuing to verify): $($_.Exception.Message)"
     } finally {
         $ErrorActionPreference = $oldEAP
     }
@@ -653,4 +725,155 @@ function Invoke-Install {
     $plan = Get-InstallPlan -ConfigPath $ConfigPath
     foreach ($line in $plan) { Write-Host "  - $line" }
     return $false
+}
+
+function Invoke-Upgrade {
+    # FR-334: change the version of an already-installed strictdoc.
+    #
+    # This is the ONLY code path that changes the version of a working
+    # installation. 'auto' deliberately never does (FR-309 / FR-335), so
+    # re-running setup cannot alter an environment that is in use.
+    #
+    # No PyPI probe runs before the confirmation. Every PyPI round trip took
+    # about 60 seconds on the reference machine, and a preview would double
+    # that for no decision the user cannot already make: the action is
+    # "move strictdoc to <spec>", and the resulting version is reported
+    # afterwards along with the command that puts it back. Pass -Preview to
+    # pay for the extra round trip and see the target first.
+    [CmdletBinding()]
+    param(
+        [string]$ConfigPath = (Join-Path (Get-Location) "setup.config.json"),
+        [switch]$NonInteractive,
+        [switch]$Preview
+    )
+    Write-OnboardStep "Upgrade StrictDoc"
+
+    $python = Get-PythonCommand
+    if (-not $python) {
+        Write-OnboardError "Python not found on PATH. Cannot upgrade strictdoc."
+        return $false
+    }
+
+    if (-not (Test-StrictDocInstalled)) {
+        Write-OnboardWarn "strictdoc is not installed - there is nothing to upgrade."
+        Write-OnboardInfo "Double-click setup-strictdoc.bat to install it."
+        return $false
+    }
+
+    $before = Get-StrictDocVersion
+
+    # The spec is optional: 'upgrade' works on a machine that has never had a
+    # setup.config.json (someone who installed strictdoc by hand), in which
+    # case it means "move to the newest release".
+    $config = $null
+    if (Test-Path $ConfigPath) {
+        try {
+            $config = Get-Content $ConfigPath -Raw | ConvertFrom-Json
+        } catch {
+            Write-OnboardWarn "Could not parse ${ConfigPath}: $($_.Exception.Message)"
+            Write-OnboardWarn "Continuing with strictdoc.version='latest'."
+        }
+    } else {
+        Write-OnboardInfo "setup.config.json not found - using strictdoc.version='latest'."
+    }
+
+    $spec   = Get-StrictDocVersionSpec -Config $config
+    $target = Resolve-StrictDocPipTarget -Spec $spec
+    if (-not $target) {
+        Show-StrictDocSpecError -Spec $spec
+        return $false
+    }
+
+    Write-Host ""
+    Write-Host "  Installed now  : $before"
+    Write-Host "  Configured spec: $spec"
+    Write-Host "  Will run       : pip install --upgrade $target"
+    Write-Host "  Verified by    : README.md records $script:StrictDocVerifiedVersion"
+    Write-Host ""
+    Write-Host "  To go back afterwards: pip install `"strictdoc==$before`""
+    Write-Host ""
+
+    if ($Preview) {
+        Write-OnboardInfo "Asking pip what this would install (network; can take a minute)..."
+        $oldEAP = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        try {
+            & $python -m pip install --upgrade $target --dry-run 2>&1 |
+                Where-Object { $_ -match '^Would install' } |
+                ForEach-Object { Write-Host "  $_" }
+        } catch {
+            Write-OnboardWarn "Preview failed (continuing): $($_.Exception.Message)"
+        } finally {
+            $ErrorActionPreference = $oldEAP
+        }
+        Write-Host ""
+    }
+
+    if ($NonInteractive) {
+        Write-OnboardInfo "Non-interactive mode: skipping yes prompt"
+    } else {
+        $reply = Read-Host "Upgrade strictdoc? Type 'yes' to proceed, anything else to abort"
+        if ($reply -ne "yes") {
+            Write-OnboardWarn "Aborted - strictdoc left at $before."
+            return $false
+        }
+    }
+
+    # FR-311 / ADR-011: pip writes benign text to stderr, so relax EAP locally
+    # and trust $LASTEXITCODE, exactly as Install-StrictDoc does.
+    Write-OnboardInfo "pip install --upgrade $target ..."
+    $pipExit = 1
+    $oldEAP = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & $python -m pip install --upgrade $target 2>&1 | ForEach-Object { Write-Host "  $_" }
+        $pipExit = $LASTEXITCODE
+    } catch {
+        Write-OnboardWarn "pip upgrade threw (continuing to verify): $($_.Exception.Message)"
+    } finally {
+        $ErrorActionPreference = $oldEAP
+    }
+
+    # FR-312 / ADR-013: two-stage verification.
+    #
+    # Deliberately NO Update-PathFromRegistry here, unlike the install path.
+    # An upgrade replaces the package in the same interpreter, so strictdoc.exe
+    # does not move -- it was already on PATH when this function started. What
+    # rebuilding PATH from the registry WOULD do is discard a PATH the caller
+    # set, so a virtualenv or a non-registry Python would be upgraded and then
+    # verified against a different, unchanged strictdoc. That produced a
+    # confident "nothing changed" on an upgrade that had in fact succeeded.
+    $installed = Test-StrictDocInstalled
+    $after     = if ($installed) { Get-StrictDocVersion } else { $null }
+    $ok = Confirm-InstallResult -ExitOk ($pipExit -eq 0) `
+                                -StateOk $installed `
+                                -Label "strictdoc" `
+                                -Version $after
+    if (-not $ok) {
+        Write-OnboardError "Upgrade failed. strictdoc reports: $(if ($after) { $after } else { 'not runnable' })"
+        Write-OnboardInfo "To restore the previous version: pip install `"strictdoc==$before`""
+        return $false
+    }
+
+    Write-Host ""
+    if ($after -eq $before) {
+        Write-OnboardOk "strictdoc is already at $after - nothing changed."
+        return $true
+    }
+
+    Write-OnboardOk "strictdoc: $before -> $after"
+    Write-Host ""
+
+    # FR-336: a version change can alter how existing documents render, so
+    # point at the differences instead of leaving the user to discover them.
+    # Only observed facts are stated here. The 0.23.1 -> 0.27.1 differences
+    # were measured; which release introduced each one was not, so no release
+    # boundary is claimed.
+    Write-OnboardWarn "Version differences are listed in docs/02-sdoc-authoring.md (section 9)."
+    Write-OnboardInfo "Measured between 0.23.1 and 0.27.1: on 0.27.1, MATHJAX and MERMAID are on by"
+    Write-OnboardInfo "  default. samples/hello-strictdoc and samples/sovd-automotive-* still list them"
+    Write-OnboardInfo "  in strictdoc_config.py, so on 0.27.1 they print a DEPRECATION warning and"
+    Write-OnboardInfo "  otherwise render as before. samples/sdoc-patterns is clean on both."
+    Write-OnboardInfo "To go back: pip install `"strictdoc==$before`""
+    return $true
 }
