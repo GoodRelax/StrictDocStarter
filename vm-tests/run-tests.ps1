@@ -724,6 +724,24 @@ if (-not $script:DryRun) {
 }
 Write-Host ""
 
+# Baseline versions, recorded BEFORE any scenario runs.
+#
+# Get-AllToolsStatus answers "is it there", not "which one". On an all-PASS run
+# nothing else prints a version, so the result ZIP could not say what was
+# actually tested -- and on a clean VM the installed strictdoc is whatever PyPI
+# served that day. StrictDocUpgrade also moves the version and puts it back, so
+# a baseline is what makes a failed restore detectable at the end.
+$script:BaselineStrictDoc = $null
+if (-not $script:DryRun) {
+    try {
+        $sdOut = & strictdoc --version 2>$null
+        $sdOut = $sdOut | Where-Object { $_ } | Select-Object -First 1
+        if ($sdOut) { $script:BaselineStrictDoc = ([string]$sdOut).Trim() }
+    } catch {}
+    Write-Host "Baseline strictdoc: $(if ($script:BaselineStrictDoc) { $script:BaselineStrictDoc } else { '(could not read)' })"
+    Write-Host ""
+}
+
 $results = [ordered]@{}
 $tStart  = Get-Date
 
@@ -765,6 +783,29 @@ foreach ($k in $results.Keys) {
 }
 Write-Host ""
 Write-Host ("Total elapsed: {0:0}s  ({1} of {2} passed)" -f $totalElapsed, ($tests.Count - $failCount), $tests.Count)
+
+# Closing version check. StrictDocUpgrade changes the installed version and
+# restores it in a finally block; if that restore ever fails, every later run
+# on this VM starts from a version nobody chose. Comparing against the baseline
+# turns that into a visible line instead of a silent drift.
+if (-not $script:DryRun) {
+    $sdEnd = $null
+    try {
+        $o = & strictdoc --version 2>$null
+        $o = $o | Where-Object { $_ } | Select-Object -First 1
+        if ($o) { $sdEnd = ([string]$o).Trim() }
+    } catch {}
+    Write-Host ""
+    if (-not $sdEnd) {
+        Write-Host "strictdoc: BASELINE $script:BaselineStrictDoc -> NOT RUNNABLE - restore it manually" -ForegroundColor Red
+    } elseif ($script:BaselineStrictDoc -and $sdEnd -ne $script:BaselineStrictDoc) {
+        Write-Host "strictdoc: BASELINE $script:BaselineStrictDoc -> $sdEnd  (CHANGED - a scenario did not restore it)" -ForegroundColor Red
+        Write-Host "  Restore with: pip install `"strictdoc==$script:BaselineStrictDoc`"" -ForegroundColor Yellow
+    } else {
+        Write-Host "strictdoc: $sdEnd (unchanged from baseline)"
+    }
+}
+
 Write-Host ""
 Write-Host "Per-scenario logs in: $LogDir" -ForegroundColor DarkGray
 Write-Host "  (file pattern: <ScenarioName>.log + <ScenarioName>.runner-capture.log)" -ForegroundColor DarkGray

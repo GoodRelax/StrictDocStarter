@@ -8,25 +8,45 @@
 
 ## T0: クリーン VM での通しテスト (推奨、一発)
 
-**所要 60〜80 分、手動操作は ZIP 展開 + ダブルクリック 3 回 + 手動 SC-015 (10 分)。**
+**所要 80〜110 分、手動操作は ZIP 展開 + ダブルクリック 3 回 + 手動 SC-015 / SC-016 / SC-017 (30 分)。**
+
+> **今回の重点は SC-016 (upgrade)。** シナリオ 8 と SC-016 が新規で、 それ以外は回帰確認。
+> **時間が無いなら T0 のステップ 3 → 4 → 5 → 7 → 11 だけでも成立する。**
+> ステップ 3 と 5 (`check` の 2 回) は省かない — **どの版で試験したのかが残らないと、 結果を後から読めない。**
 
 ### 手順
 
 1. **VM スナップショットを復元** (完全クリーン状態)
-2. ホスト `gr-tools\StrictDocStarter\temp\StrictDocStarter.zip` を VM デスクトップに Ctrl+V → 「すべて展開」 → `Desktop\StrictDocStarter\` 1 階層作成
-3. **`Desktop\StrictDocStarter\setup-strictdoc.bat`** ダブルクリック → UAC → `yes` → 完走待ち → Enter (= T1 ベースライン、 Phase A〜E 全 OK)
-4. (任意) `setup-strictdoc.bat dryrun` を別途実行 → plan 出力が正常表示されることを確認
-5. **`Desktop\StrictDocStarter\vm-tests\run-tests.bat`** ダブルクリック → UAC → 11 シナリオ自動実行 → サマリ → Enter
-6. **手動 SC-015 (FR-209 abort)** の確認: 別途 `setup-strictdoc.bat` ダブルクリック → UAC → plan 表示 → **`no`** 入力 → `[WARN] Aborted -` 3 行 + `Config:` 行が表示されることを目視確認 → Enter
-7. **`vm-tests\gather-test-logs.bat`** ダブルクリック → エクスプローラ選択状態の ZIP を Ctrl+C → ホストの `TestResult/` に Ctrl+V
+2. ホスト `StrictDocStarter\temp\StrictDocStarter.zip` を VM デスクトップに Ctrl+V → 「すべて展開」 → `Desktop\StrictDocStarter\` 1 階層作成 (ZIP の作り方は「前提」節)
+3. **`setup-strictdoc.bat check`** を実行 (**setup の前**。 admin 不要) → `env-report.json` が出る
+   → **スナップショットが本当にクリーンか**を先に確定させる。 `strictdoc: NOT FOUND` と
+   `existing_tools` が全て空であることを確認。 **ここで何か入っていたらスナップショットが汚れており、
+   以降の結果は全て無効**なので、先に復元をやり直す
+4. **`Desktop\StrictDocStarter\setup-strictdoc.bat`** ダブルクリック → UAC → `yes` → 完走待ち → Enter (= T1 ベースライン、 Phase A〜E 全 OK)
+5. **`setup-strictdoc.bat check`** を再実行 → **導入された strictdoc の版を記録する**
+   → クリーン VM は `latest` を取るため、 **その日の PyPI 最新が入る**。 以降の全ての判断がこの版を基準にする。
+   `env-report.json` をホストへ退避しておくと後で照合できる
+6. (任意) `setup-strictdoc.bat dryrun` → plan の Phase C 行が `already installed: <版>` に変わることを確認
+7. **`Desktop\StrictDocStarter\vm-tests\run-tests.bat`** ダブルクリック → UAC → 11 シナリオ自動実行 → サマリ → Enter
+   → 冒頭の `Baseline strictdoc: <版>` と末尾の `strictdoc: <版> (unchanged from baseline)` を必ず見る
+8. **手動 SC-015 (FR-209 abort)** の確認: 別途 `setup-strictdoc.bat` ダブルクリック → UAC → plan 表示 → **`no`** 入力 → `[WARN] Aborted -` 3 行 + `Config:` 行が表示されることを目視確認 → Enter
+9. **手動 SC-016 (upgrade)** を実施 — 自動テストが見られない対話部分
+10. **手動 SC-017 (サンプル目視)** を実施 — ランチャ経由で 3 サンプルを開く
+11. **`vm-tests\gather-test-logs.bat`** ダブルクリック → エクスプローラ選択状態の ZIP を Ctrl+C → ホストの `TestResult/` に Ctrl+V
 
 ### 期待結果
 
-- ステップ 3: Phase A〜E 全 OK、 Phase D は SKIP (URL 空既定)
-- ステップ 4: dryrun 完走、 plan に `[REQUIRED]` / `[OPTIONAL]` / `[SKIP]` / `[INSTALL]` タグ表示
-- ステップ 5: **10 シナリオ PASS、 1 シナリオ SKIPPED** (NegativeAbort、 手動 fallback)
-- ステップ 6: abort guidance 3 行が表示される
-- ステップ 7: `StrictDocStarter-test-result-*.zip` に per-scenario log (11 件) + final setup.log + diagnostics.txt
+- ステップ 3: `strictdoc: NOT FOUND` + `existing_tools` が空 (= スナップショットがクリーン)
+- ステップ 4: Phase A〜E 全 OK、 Phase D は SKIP (URL 空既定)
+- ステップ 5: `strictdoc: <版> (README records 0.23.1)` — **この版を記録する。以降の基準**
+- ステップ 6: dryrun 完走、 plan に `[REQUIRED]` / `[OPTIONAL]` / `[SKIP]` / `[INSTALL]` タグ表示
+- ステップ 7: **10 シナリオ PASS、 1 シナリオ SKIPPED** (NegativeAbort、 手動 fallback)。
+  冒頭の `Baseline strictdoc:` がステップ 5 の版と一致し、 末尾が `(unchanged from baseline)` であること。
+  **`(CHANGED - a scenario did not restore it)` が出たら FAIL 扱い** — シナリオ 8 の復元が効いていない
+- ステップ 8: abort guidance 3 行が表示される
+- ステップ 9: SC-016 の A〜H が全て期待どおり (**特に C と H — 版が変わらないこと**)
+- ステップ 10: SC-017 で `sdoc-patterns` に警告が出ず、 既存 2 サンプルは警告つきで描画される
+- ステップ 11: `StrictDocStarter-test-result-*.zip` に per-scenario log (11 件) + final setup.log + diagnostics.txt
 
 ---
 
@@ -35,7 +55,25 @@
 - クリーン Win11 VM (Hyper-V 等)、 スナップショット取得済
 - VM に winget が利用可能 (`winget --version` で確認)
 - VM のネットワーク疎通 OK
-- ホストの `gr-tools\StrictDocStarter\temp\StrictDocStarter.zip` を VM に運ぶ準備 (拡張セッションのクリップボード)
+- ホストの `StrictDocStarter\temp\StrictDocStarter.zip` を VM に運ぶ準備 (拡張セッションのクリップボード)
+
+**ZIP の作り方 (専用スクリプトは無い)。** リポジトリのルートで PowerShell:
+
+```powershell
+$stage = Join-Path $env:TEMP "StrictDocStarter"
+Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
+git ls-files | ForEach-Object {
+    $dst = Join-Path $stage $_
+    New-Item (Split-Path $dst) -ItemType Directory -Force | Out-Null
+    Copy-Item $_ $dst
+}
+New-Item temp -ItemType Directory -Force | Out-Null
+Compress-Archive -Path $stage -DestinationPath temp\StrictDocStarter.zip -Force
+```
+
+`git ls-files` を基準にするのは、`docs/in-private-work/` ・ `output/` ・ `setup.config.json` ・
+`*.log` を**除外し忘れないため**。 追跡対象のファイルだけが入り、作業ツリーの未コミット変更は
+そのまま反映される (= 検証したいものが入る)。
 
 ---
 
@@ -130,6 +168,40 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 
 ---
 
+## SC-016: 手動 upgrade テスト (FR-334〜338)
+
+`T_strictdoc_upgrade` は `-NonInteractive` で走るため **`yes` プロンプトそのものを検証できない**。
+版が変わる操作の確認は人が見る。 **T1 完了後の VM で実施する。**
+
+`setup.config.json` は `Desktop\StrictDocStarter\setup.config.json`。 編集はメモ帳でよい。
+
+| # | 操作 | 期待 |
+|:-:|---|---|
+| **A** | `setup-strictdoc.bat check` | 画面末尾に `strictdoc: <版>`。 `env-report.json` に `strictdoc` ブロック (`installed` / `verified_version` / `matches_verified`) と `existing_tools.strictdoc` |
+| **B** | `setup-strictdoc.bat dryrun` | Phase C 行が `[SKIP] strictdoc  already installed: <版> (to update: 'setup-strictdoc.bat upgrade')` |
+| **C** | `setup-strictdoc.bat upgrade` → プロンプトに **`no`** | `Installed now` / `Configured spec` / `Will run` / `To go back afterwards` の 4 行が**先に**出る。 `no` で `[WARN] Aborted - strictdoc left at <版>.`。 **`strictdoc --version` が変わらないこと** |
+| **D** | `strictdoc.version` を `"newest please"` にして `dryrun` | Phase C 行が `INVALID strictdoc.version 'newest please' ... - 'upgrade' will refuse` |
+| **E** | 続けて `setup-strictdoc.bat upgrade` | `[ERROR] Invalid strictdoc.version ...` + 受理される形式の案内。 **`latest` にフォールバックしない**。 版は変わらない |
+| **F** | `strictdoc.version` を `"==0.23.1"` にして `upgrade` → `yes` | `strictdoc: <元の版> -> 0.23.1`。 続けて `docs/02-sdoc-authoring.md` への誘導と `pip install "strictdoc==<元の版>"` が表示される |
+| **G** | `strictdoc.version` を `"latest"` に戻して `upgrade -Preview` → `yes` | `-Preview` で `Would install strictdoc-...` が先に出る (ネットワーク待ちが 1 回増える)。 その後 `0.23.1 -> <最新版>` |
+| **H** | `setup-strictdoc.bat` (通常起動) → `yes` | **Phase C が SKIP のまま。 版が変わらないこと (FR-335)**。 これが破れると再実行が既存環境を書き換える |
+
+> **D / E で編集した `setup.config.json` は F / G / H の前に必ず戻す。** 戻し忘れると以降が全て停止する。
+
+## SC-017: 同梱サンプルの目視 (0.27.1 での描画)
+
+クリーン VM の `pip install strictdoc` は**最新版**を取る。 0.23.1 との差分は
+`docs/02-sdoc-authoring.md` §9 にある。 ランチャ経由で実際に開いて確認する。
+
+| # | 操作 | 期待 |
+|:-:|---|---|
+| **A** | `samples\sdoc-patterns` を `launch-strictdoc.bat` にドラッグ | ブラウザに 4 文書。 **DEPRECATION 警告が出ないこと**。 `01-requirements` の PAT-001 から `_assets/overview.mmd` へのリンク、 `03-figures` で Mermaid と数式が描画、 `04-markdown-form` が `.md` のまま文書として並ぶ |
+| **B** | `samples\hello-strictdoc` をドラッグ | 表示は従来どおり。 **サーバ窓に MATHJAX / MERMAID の DEPRECATION 警告が出る — これは既知・想定**(`strictdoc_config.py` が両者を列挙しているため) |
+| **C** | `samples\sovd-automotive-ja` をドラッグ | 同上。 警告は出るが 13 文書が従来どおり描画されること |
+
+> **B / C の警告は不具合ではない。** 既存 2 サンプルの `strictdoc_config.py` は未変更である
+> (既存サンプルの書き換えは今回の作業範囲外)。 **描画が壊れていたら報告対象。**
+
 ## ログ回収
 
 `vm-tests\gather-test-logs.bat` ダブルクリック → `%TEMP%\StrictDocStarter-test-result-*.zip` 生成 → エクスプローラで select 状態 → Ctrl+C → ホストへ Ctrl+V
@@ -144,7 +216,7 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 
 ## 報告いただきたい内容
 
-各テスト (T1 / 11 シナリオ / SC-015) について:
+各テスト (T1 / 11 シナリオ / SC-015 / SC-016 / SC-017) について:
 - [ ] 期待通り動作したか (OK / NG)
 - [ ] NG なら: 実際の出力と推定原因
 - [ ] 所要時間 (NFR-008 で REAL モード合計 60 分以内が目標)
