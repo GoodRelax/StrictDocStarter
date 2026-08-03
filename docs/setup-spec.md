@@ -907,11 +907,11 @@ Choose (1-3) [default: 1]:
 | 4 | `T_extensions_only` | Phase E (拡張のみ) | bierner.markdown-mermaid + ms-vscode.PowerShell | 2 拡張再 install 検出 (gh と重複しないよう ms-python は対象外) |
 | 5 | `T_mixed` | Phase E (他シナリオと完全独立) | **Obsidian + MS-CEINTL.vscode-language-pack-ja** (他シナリオの対象と全く重ならない / FR-1001) | Obsidian + 日本語パック再 install 検出 |
 | 6 | **`T_claude_extension`** (新) | Phase A / FR-805 / FR-607 / FR-1008 | `anthropic.claude-code` 拡張 | 拡張再 install 検出 (Phase A 経路カバレッジ) |
-| 7 | **`T_strictdoc_pip`** (新) | Phase C / FR-311 / FR-312 / FR-1009 | `pip uninstall strictdoc -y` | `strictdoc --version` 復活 + log に [VERIFIED] が無いこと (= 正常 install path 経由) |
+| 7 | **`T_strictdoc_pip`** (新) | Phase C / FR-311 / FR-312 / FR-1009 / **FR-340a** | `pip uninstall strictdoc -y` | `strictdoc --version` 復活 + log に [VERIFIED] が無いこと (= 正常 install path 経由)。 **cleanup で元のバージョンへ復元する** — `auto` は `latest` を入れるため、 最新版でない環境では版が変わる (FR-340a) |
 | 8 | **`T_negative_abort`** (新) | FR-209 / FR-1006 | (なし) | **実装制約**: PowerShell `Read-Host` は piped stdin を読まないため自動化不能。 v1.0 では `vm-test-checklist.md` に **手動 negative test** として記載 (run-tests.ps1 では SKIP + warn 表示)。 v2.x で Read-YesConfirmation に test-mode escape hatch (env var) 追加を再検討 |
 | 9 | **`T_negative_claude_both`** (新) | FR-305 / FR-1006 | (`setup.config.json` を一時改変、 両 true) | exit 非 0 + log にエラー停止メッセージ含む + cleanup で改変を戻す |
 | 10 | **`T_dryrun_assert`** (新) | FR-604〜607 / FR-901〜904 / FR-1007 | (なし、 dryrun 実行) | plan 出力 capture → `[REQUIRED]` / `[OPTIONAL]` phase header 両方含む / `[SKIP]` row 1 件以上 / Phase E 内に `[SKIP]` と `[INSTALL]` が両方ある場合は `[SKIP]` が先 |
-| 11 | **`T_strictdoc_upgrade`** (v1.2) | Phase C / FR-334〜338 | (なし。 `strictdoc.version` を**導入済みと異なる版**に一時ピン) | **(a) FR-335: `auto` 実行後もバージョンが変わらないこと** (最重要。 破れると再実行が既存環境を書き換える) / (b) FR-334: `upgrade` 実行後にピンした版になること / (c) FR-336: 出力に `02-sdoc-authoring` と切り戻しコマンドが含まれること (soft) / cleanup で config と版を復元 |
+| 11 | **`T_strictdoc_upgrade`** (v1.2) | Phase C / FR-334〜338 | (なし。 `strictdoc.version` を**導入済みと異なる版**に一時ピン) | **(a) FR-335: `auto` 実行後にピンした版になること** (reconcile) / (b) FR-335: **満たされたピンでの再実行が no-op** であり `matches strictdoc.version` を報告すること (pip を呼ばない) / (c) FR-334: `upgrade` が版を動かすこと / cleanup で config と版を復元 |
 
 ### 5.3 シナリオ独立性保証 (FR-1001 厳守、 重複なし)
 
@@ -997,11 +997,14 @@ Choose (1-3) [default: 1]:
 | ID | パターン | 要求 |
 |---|---|---|
 | FR-334 | Ubiquitous | `setup-strictdoc.bat upgrade` サブコマンドを設けること。 インストール済み strictdoc の版を `strictdoc.version` (FR-330) が指す版へ変更する。 **実行前に現在の版・設定値・実行するコマンド・切り戻しコマンドを表示し、 `yes` を求めること** (`-NonInteractive` 時は省略)。 結果は FR-312 の二段確認で判定し、 **変更前 → 変更後** を報告する。 admin を要する (機械共通の Python へ書き込むため) |
-| FR-335 | Ubiquitous | **`auto` / `install` は、 導入済み strictdoc の版を変更してはならない (MUST NOT)。** FR-309 のスキップを維持する。 版の変更は `upgrade` の明示実行のみ。 **再実行が安全である**という README の約束を壊さないため。 `strictdoc.version` が `latest` 以外のときは、 スキップ時に「設定は `<spec>` を指しているが変更していない。 適用するには `upgrade`」 と案内すること |
+| FR-335 | Ubiquitous | **`auto` の Phase C は、 導入済み strictdoc の版を `strictdoc.version` と突き合わせて合わせること (reconcile)。** `latest` ならば `pip install --upgrade strictdoc` を実行し、 指定子ならばそれを適用する。 **`==X` または数字始まりの指定が導入済み版と文字列一致する場合は SKIP し、 pip を呼ばない** (比較は手元で完結するため)。 **同意はプランの `yes` 1 回で取る** — プラン行を `[INSTALL]` とし何が起きるかを明記する。 `yes` 以外なら Phase C 到達前に中止される。 **旧 FR-335 は逆の内容 (`auto` は版を変えてはならない) であった。 撤回する。** 理由: 導入済みの機械では `latest` が latest を意味せず、 **同じコマンドが未導入機では最新版・導入済み機では据え置きという二通りの結果**を出していた。 設定が宣言的でありながら強制されない状態は、 「再実行が安全」 という利得より害が大きいと判断した |
 | FR-336 | When | `upgrade` が実際に版を変えたときは、 **版差分の所在 (`docs/02-sdoc-authoring.md` §9) と切り戻しコマンドを表示すること**。 記載は**実測した事実に限る** — どのリリースで挙動が変わったかを確かめずに書いてはならない (MUST NOT) |
-| FR-337 | Ubiquitous | **`auto` / `dryrun` のプラン生成は PyPI へ問い合わせてはならない (MUST NOT)。** 参照機で版問い合わせに約 60 秒を要した実測があり、 プランはダブルクリックのたびに通る経路である。 プラン行は手元の情報 (導入済み版・設定値) のみで構成し、 ネットワークに出るコマンド名 (`upgrade`) を案内する。 不正な `strictdoc.version` は**導入済み・未導入のどちらでもプラン行に表示すること** |
+| FR-337 | Ubiquitous | **`auto` / `dryrun` のプラン生成は PyPI へ問い合わせてはならない (MUST NOT)。** **FR-335 の reconcile を入れた後も本条は維持する** — プラン行は 「最新でなければ上げる」 とだけ書けばよく、 最新版が何かを知る必要がない。 実際の問い合わせは `yes` 取得後の Phase C で pip が行う。 参照機で版問い合わせに約 60 秒を要した実測があり、 プランはダブルクリックのたびに通る経路である。 プラン行は手元の情報 (導入済み版・設定値) のみで構成し、 ネットワークに出るコマンド名 (`upgrade`) を案内する。 不正な `strictdoc.version` は**導入済み・未導入のどちらでもプラン行に表示すること** |
 | FR-338 | Ubiquitous | `upgrade` は `Update-PathFromRegistry` を**呼んではならない (MUST NOT)**。 アップグレードは同一インタプリタ内のパッケージ置換であり実行ファイルは移動しないうえ、 レジストリからの PATH 再構築は**呼び出し側が設定した PATH を破棄する**。 virtualenv 等で実行した場合、 更新に成功しているのに別の (更新されていない) strictdoc を検証して 「変化なし」 と報告する誤りが実際に発生した |
 | FR-339 | Ubiquitous | **テストランナーは strictdoc のバージョンを、 シナリオ開始前と全シナリオ終了後の 2 点で記録すること。** 前提確認 (`Get-AllToolsStatus`) は**有無しか見ておらず**、 全 PASS の走行では版が結果 ZIP に一切残らない。 クリーン VM に入るのは「その日の PyPI 最新」であり、 版が記録されなければ試験結果の基準が定まらない。 終了時は開始時と突き合わせ、 **一致しなければ赤字で報告し復元コマンドを示すこと** — `T_strictdoc_upgrade` は版を変えて戻すため、 戻し損ねが以降の全走行を汚染する |
+| FR-340a | Ubiquitous | **strictdoc を削除して `auto` に入れ直させるシナリオ (`T_strictdoc_pip`) は、 元のバージョンへ復元すること (FR-1001)。** `auto` は `strictdoc.version` に従い既定は `latest` であるため、 **最新版でない環境ではこのシナリオが版を変えてしまう** — 実測で 0.23.1 の VM が 0.27.1 になった。 復元は `finally` に置き、 途中で失敗した場合も実行されること。 **バージョンを記録するまでこの欠陥は誰にも見えていなかった** (FR-339 が発見した) |
+| FR-341a | Ubiquitous | **テストランナーは、 走らせられなかったシナリオを PASS でも FAIL でもなく SKIP として報告すること。** `run-tests.bat` は `need_admin` (FR-806) で必ず昇格するが、 **winget は昇格中に user scope のパッケージを削除しない** (exit `-1978335107`)。 jq / ripgrep / Obsidian は user scope で入るため、 これらを uninstall するシナリオはこの構成では実行不能である。 **FAIL と報告すれば製品の不具合に見え、 PASS と報告すれば行われなかった検証を主張することになる。** 理由つきの SKIP のみが事実に一致する。 exit code は SKIP を失敗に数えない |
+| FR-342a | Ubiquitous | **uninstall を行うシナリオは、 対象が実際に消えたことを確認してから先へ進むこと。** `T_mixed` は Obsidian を uninstall した後、 消えたかを一切確認せず PASS していた — **winget が拒否していても PASS していた**。 確認手段がコマンドの PATH 上の有無で得られない対象 (Obsidian 等) は `winget list` で確認する |
 
 ### 7.2 uninstall-strictdoc.bat (FR-340 系) — S-4
 
@@ -1057,4 +1060,5 @@ Choose (1-3) [default: 1]:
 |---|---|---|
 | v1.0 | 2026-05-27 | Initial public release |
 | v1.1 | 2026-06-06 | Chapter 7 追加: strictdoc バージョン指定 (FR-330系, O-1/D-4)、 uninstall-strictdoc.bat (FR-340系, S-4)、 HTML2PDF chromedriver (FR-350系, S-3)、 install Phase 完成 + __pycache__ gitignore (FR-360系, O-5/O-2)。 公式委譲スコープ (D-5) で serve-spec.md v1.1 と対。 |
+| v1.3 | 2026-08-04 | **FR-335 を反転。** `auto` の Phase C が導入済み strictdoc を `strictdoc.version` に合わせる (reconcile) ようにした。 **旧 FR-335 は「`auto` は版を変えてはならない」であり、 VM 実機で検証まで済ませたうえで撤回した。** 撤回理由は利用者の指摘による — 設定に `latest` と書いてあるのに 0.23.1 のままで、 **未導入機は最新版・導入済み機は据え置きと、 同じコマンドが二通りの結果**を出していた。 同意はプランの `yes` 1 回で取る (プラン行は `[INSTALL]`)。 満たされたピンは文字列比較で SKIP し pip を呼ばない。 FR-337 (プランは PyPI を見ない) は維持。 vm-tests シナリオ 11 の判定も反転。 |
 | v1.2 | 2026-08-04 | **§7.1.1 追加: strictdoc のバージョン変更 (FR-334〜338)。** FR-330/331 は初回インストールの版指定しか定めておらず、 FR-309 (導入済みならスキップ) により**既存環境の版を変える手段が存在しなかった**。 `upgrade` サブコマンドで塞ぐ。 あわせて FR-331 の validate 失敗時をフォールバック禁止に、 FR-333 を `check` + `env-report.json` で実現すると確定 (`[WARN]` は出さない)。 FR-337 (プランは PyPI へ問い合わせない) と FR-338 (`upgrade` は PATH を再構築しない) は、 いずれも実測で判明した事象に対する条文。 |

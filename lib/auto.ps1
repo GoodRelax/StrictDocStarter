@@ -1,12 +1,18 @@
 # StrictDocStarter - lib/auto.ps1
 # 'auto' subcommand: one-yes-and-go full setup orchestration.
 # Spec refs: FR-803, FR-804, FR-805
-# Implementation status:
-#   Phase A: VS Code + Claude Code extension          [implemented]
-#   Phase B: Git / Python / GitHub CLI via winget     [TODO]
-#   Phase C: pip install strictdoc                    [TODO]
-#   Phase D: git clone + junction                     [TODO]
-#   Phase E: optional tools + VS Code extensions      [TODO]
+# Phases (all implemented; FR-360 completed the B-E stubs):
+#   Phase A: VS Code + Claude Code extension        Install-VSCodeIfNeeded,
+#                                                   Install-ClaudeCodeExtension
+#   Phase B: Git / Python / GitHub CLI via winget   Install-RequiredTools
+#   Phase C: StrictDoc via pip                      Install-StrictDoc
+#   Phase D: git clone + Obsidian junction          Invoke-GitClone,
+#                                                   Invoke-CreateJunction
+#   Phase E: optional tools + VS Code extensions    Install-OptionalTools,
+#                                                   Install-VSCodeExtensions
+#
+# Phase D reports SKIP when repository.url is empty or options.skip_clone is
+# set -- that is configuration, not an unimplemented phase.
 
 function Resolve-AutoConfig {
     # Ensures setup.config.json exists. If not, generates from template silently.
@@ -87,7 +93,15 @@ function Build-AutoPlan {
             Steps = @()
         }
         PhaseC = [ordered]@{
-            Name  = "Phase C: StrictDoc (pip install strictdoc)   [REQUIRED]"
+            # Named by subject, not by command -- matching Phase A's
+            # "(VS Code extension)". The old "(pip install strictdoc)" claimed
+            # an action the phase often does not take (every row below can be
+            # [SKIP]) and, since strictdoc.version arrived, named a command
+            # that may not be the one that runs: a pinned config produces
+            # "pip install strictdoc==0.23.1". The actual command belongs in
+            # the INSTALL row's reason and in Install-StrictDoc's own log line,
+            # where it is derived rather than hardcoded.
+            Name  = "Phase C: StrictDoc (pip package)             [REQUIRED]"
             Steps = @()
         }
         PhaseD = [ordered]@{
@@ -142,17 +156,31 @@ function Build-AutoPlan {
     # most likely to have set it: those with a working install who edited the
     # config to pin a version.
     if (-not $sdTarget) {
-        $sdWhen = if (Test-StrictDocInstalled) { "'upgrade' will refuse" } else { "Phase C will stop" }
         $plan.PhaseC.Steps += Format-PlanRow -Action SKIP -Name "strictdoc" `
-            -Reason "INVALID strictdoc.version '$sdSpec' in setup.config.json - $sdWhen"
+            -Reason "INVALID strictdoc.version '$sdSpec' in setup.config.json - Phase C will stop"
     } elseif (Test-StrictDocInstalled) {
-        $sdReason = "already installed: $(Get-StrictDocVersion)"
-        if ($sdSpec -ne "latest") {
-            $sdReason += " (config pins $sdSpec - apply with 'setup-strictdoc.bat upgrade')"
+        # FR-335: Phase C reconciles the installed version with the config, so
+        # this row has to say which way it will go. Answering anything but
+        # 'yes' to the plan aborts before any of it happens.
+        $sdVer = Get-StrictDocVersion
+
+        # Only "==X" and a bare "X" name one exact version, and matching one
+        # is decided by comparing two strings -- no network, no pip call.
+        # Ranges are left to pip, so they show as [INSTALL].
+        $sdPin = $null
+        if ($sdSpec -match '^==\s*(.+)$') { $sdPin = $Matches[1].Trim() }
+        elseif ($sdSpec -match '^\d')     { $sdPin = $sdSpec }
+
+        if ($sdPin -and $sdVer -eq $sdPin) {
+            $plan.PhaseC.Steps += Format-PlanRow -Action SKIP -Name "strictdoc" `
+                -Reason "already installed: $sdVer (matches strictdoc.version='$sdSpec')"
+        } elseif ($sdSpec -eq "latest") {
+            $plan.PhaseC.Steps += Format-PlanRow -Action INSTALL -Name "strictdoc" `
+                -Reason "installed: $sdVer - strictdoc.version='latest', will upgrade if a newer release exists"
         } else {
-            $sdReason += " (to update: 'setup-strictdoc.bat upgrade')"
+            $plan.PhaseC.Steps += Format-PlanRow -Action INSTALL -Name "strictdoc" `
+                -Reason "installed: $sdVer - applying strictdoc.version='$sdSpec' (pip install $sdTarget)"
         }
-        $plan.PhaseC.Steps += Format-PlanRow -Action SKIP -Name "strictdoc" -Reason $sdReason
     } else {
         $plan.PhaseC.Steps += Format-PlanRow -Action INSTALL -Name "strictdoc" -Reason "required (pip install $sdTarget)"
     }
@@ -316,7 +344,7 @@ function Invoke-PhaseC {
     # FR-331: the configured strictdoc.version reaches pip through here, so
     # the config has to be threaded in rather than defaulted inside.
     param($Config = $null)
-    Write-OnboardStep "Phase C: StrictDoc (pip install strictdoc)"
+    Write-OnboardStep "Phase C: StrictDoc (pip package)"
     return Install-StrictDoc -Config $Config
 }
 

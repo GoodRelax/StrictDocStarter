@@ -1,8 +1,9 @@
 # StrictDocStarter - lib/install.ps1
 # Tool installation (winget / pip / VS Code extensions).
-# STATUS: Phase A implemented (VS Code + Claude Code extension).
-# Phase B (Git/Python/gh), C (pip strictdoc), D (clone), E (extras) are still stubs.
-# Spec refs: FR-301 to FR-310, FR-805
+# STATUS: all phases implemented (FR-360). Phase A = VS Code + Claude Code
+# extension, B = Git/Python/gh via winget, C = StrictDoc via pip, D = clone
+# (lib/clone.ps1), E = optional tools + VS Code extensions.
+# Spec refs: FR-301 to FR-310, FR-330 to FR-339, FR-805
 
 # Extension ID for the Claude Code VS Code extension.
 # Update if Anthropic publishes under a different ID.
@@ -483,6 +484,56 @@ function Get-StrictDocVersion {
     return $null
 }
 
+function Invoke-StrictDocPip {
+    # One place that actually calls pip for strictdoc, used by the install
+    # path, the reconcile path and 'upgrade'. Returns $true when pip exited 0.
+    #
+    # FR-311 / ADR-011: pip writes benign text to stderr, so $ErrorActionPreference
+    # is relaxed locally and $LASTEXITCODE is what gets trusted. Callers pair
+    # this with the FR-312 two-stage check (does strictdoc actually run?).
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [string]$Python,
+        [Parameter(Mandatory)] [string]$Target,
+        [switch]$Upgrade
+    )
+    # --quiet matches how winget is driven here (--silent + our own [INFO]/[OK]
+    # lines). Without it every run prints 80+ "Requirement already satisfied"
+    # lines, which became noise on EVERY setup once Phase C started calling pip
+    # instead of skipping. -q leaves warnings and errors visible, and the
+    # outcome is reported by the caller as "<before> -> <after>" anyway.
+    $pipArgs = @("-m", "pip", "install", "--quiet")
+    if ($Upgrade) { $pipArgs += "--upgrade" }
+    $pipArgs += $Target
+
+    Write-OnboardInfo ("pip " + (($pipArgs | Select-Object -Skip 2) -join " ") + " ... (may take a few minutes)")
+
+    $exit = 1
+    $oldEAP = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        # 2>&1 on a native command turns each stderr line into an ErrorRecord,
+        # and printing one directly yields the useless string
+        # "System.Management.Automation.RemoteException" instead of the text.
+        # pip writes its "[notice] A new release of pip..." there, so that
+        # artifact showed up on every run and read like a failure. Unwrap it.
+        & $Python @pipArgs 2>&1 | ForEach-Object {
+            $line = if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                $_.Exception.Message
+            } else {
+                [string]$_
+            }
+            if (-not [string]::IsNullOrWhiteSpace($line)) { Write-Host "  $line" }
+        }
+        $exit = $LASTEXITCODE
+    } catch {
+        Write-OnboardWarn "pip threw (continuing to verify): $($_.Exception.Message)"
+    } finally {
+        $ErrorActionPreference = $oldEAP
+    }
+    return ($exit -eq 0)
+}
+
 function Install-StrictDoc {
     [CmdletBinding()]
     param($Config = $null)
@@ -501,16 +552,50 @@ function Install-StrictDoc {
         return $false
     }
 
-    # FR-309 / FR-335: an existing installation is never touched here. Changing
-    # the version of a working environment is an explicit action -- that is
-    # what 'setup-strictdoc.bat upgrade' (FR-334) is for. Re-running setup
-    # therefore stays a no-op, which is the promise README makes about it.
+    # FR-335: reconcile an existing installation with strictdoc.version.
+    #
+    # This phase used to return here untouched, so "version: latest" in the
+    # config did not mean latest: a machine without strictdoc got the newest
+    # release while a machine that already had it stayed frozen, from the same
+    # command. The config was declarative but unenforced.
+    #
+    # The user's single 'yes' on the plan is the consent for this. The plan row
+    # says [INSTALL] and names what will happen, so nothing changes silently,
+    # and answering anything else aborts before this runs.
     if (Test-StrictDocInstalled) {
         $ver = Get-StrictDocVersion
-        Write-OnboardSkip "strictdoc already installed: $ver"
-        if ($spec -ne "latest") {
-            Write-OnboardInfo "setup.config.json pins strictdoc.version='$spec'; the installed version is left as-is."
-            Write-OnboardInfo "To apply the pin, run: setup-strictdoc.bat upgrade"
+
+        # A pin that already matches needs no pip call at all -- comparing two
+        # version strings is local and instant. Only "==X" and a bare "X" name
+        # one exact version; ranges are handed to pip, which decides.
+        $pinned = $null
+        if ($spec -match '^==\s*(.+)$') { $pinned = $Matches[1].Trim() }
+        elseif ($spec -match '^\d')     { $pinned = $spec }
+        if ($pinned -and $ver -eq $pinned) {
+            Write-OnboardSkip "strictdoc already installed: $ver (matches strictdoc.version='$spec')"
+            return $true
+        }
+
+        if ($spec -eq "latest") {
+            Write-OnboardInfo "strictdoc $ver installed; strictdoc.version='latest' - checking for a newer release..."
+        } else {
+            Write-OnboardInfo "strictdoc $ver installed; strictdoc.version='$spec' - applying it..."
+        }
+
+        $ok = Invoke-StrictDocPip -Python $python -Target $target -Upgrade:($spec -eq "latest")
+        $after = if (Test-StrictDocInstalled) { Get-StrictDocVersion } else { $null }
+
+        if (-not $ok -or -not $after) {
+            Write-OnboardError "strictdoc is no longer runnable after the attempt (was $ver)."
+            Write-OnboardInfo "Restore with: pip install `"strictdoc==$ver`""
+            return $false
+        }
+        if ($after -eq $ver) {
+            Write-OnboardOk "strictdoc $after (already up to date)"
+        } else {
+            Write-OnboardOk "strictdoc: $ver -> $after"
+            Write-OnboardWarn "Version differences are listed in docs/02-sdoc-authoring.md (section 9)."
+            Write-OnboardInfo "To go back: pip install `"strictdoc==$ver`""
         }
         return $true
     }
@@ -535,21 +620,10 @@ function Install-StrictDoc {
         $ErrorActionPreference = $oldEAP
     }
 
-    Write-OnboardInfo "pip install $target..."
     # FR-311 / ADR-011: do NOT return early on non-zero exit -- pip emits
     # "ERROR: ..." text to stderr in many benign cases. Capture the exit
     # code, then use FR-312 / ADR-013 two-stage verification.
-    $pipExit = 1
-    $oldEAP = $ErrorActionPreference
-    $ErrorActionPreference = "Continue"
-    try {
-        & $python -m pip install $target 2>&1 | ForEach-Object { Write-Host "  $_" }
-        $pipExit = $LASTEXITCODE
-    } catch {
-        Write-OnboardWarn "pip install $target threw (continuing to verify): $($_.Exception.Message)"
-    } finally {
-        $ErrorActionPreference = $oldEAP
-    }
+    $pipExit = if (Invoke-StrictDocPip -Python $python -Target $target) { 0 } else { 1 }
 
     Update-PathFromRegistry
     $installed = Test-StrictDocInstalled
@@ -819,20 +893,7 @@ function Invoke-Upgrade {
         }
     }
 
-    # FR-311 / ADR-011: pip writes benign text to stderr, so relax EAP locally
-    # and trust $LASTEXITCODE, exactly as Install-StrictDoc does.
-    Write-OnboardInfo "pip install --upgrade $target ..."
-    $pipExit = 1
-    $oldEAP = $ErrorActionPreference
-    $ErrorActionPreference = "Continue"
-    try {
-        & $python -m pip install --upgrade $target 2>&1 | ForEach-Object { Write-Host "  $_" }
-        $pipExit = $LASTEXITCODE
-    } catch {
-        Write-OnboardWarn "pip upgrade threw (continuing to verify): $($_.Exception.Message)"
-    } finally {
-        $ErrorActionPreference = $oldEAP
-    }
+    $pipExit = if (Invoke-StrictDocPip -Python $python -Target $target -Upgrade) { 0 } else { 1 }
 
     # FR-312 / ADR-013: two-stage verification.
     #

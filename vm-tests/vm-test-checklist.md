@@ -40,11 +40,14 @@
 - ステップ 4: Phase A〜E 全 OK、 Phase D は SKIP (URL 空既定)
 - ステップ 5: `strictdoc: <版> (README records 0.23.1)` — **この版を記録する。以降の基準**
 - ステップ 6: dryrun 完走、 plan に `[REQUIRED]` / `[OPTIONAL]` / `[SKIP]` / `[INSTALL]` タグ表示
-- ステップ 7: **10 シナリオ PASS、 1 シナリオ SKIPPED** (NegativeAbort、 手動 fallback)。
+- ステップ 7: **PASS / FAIL / SKIP の 3 状態で集計される**。 `NegativeAbort` は常に SKIP (手動 SC-015 に委ねるため)。
+  **user scope で入っているツール (jq / ripgrep / Obsidian) の uninstall シナリオも SKIP になる** —
+  `run-tests.bat` は昇格して動くが、 winget は昇格中に user scope のパッケージを削除しないため。
+  **これは製品の不具合ではない。** exit code は SKIP を失敗に数えない。
   冒頭の `Baseline strictdoc:` がステップ 5 の版と一致し、 末尾が `(unchanged from baseline)` であること。
   **`(CHANGED - a scenario did not restore it)` が出たら FAIL 扱い** — シナリオ 8 の復元が効いていない
 - ステップ 8: abort guidance 3 行が表示される
-- ステップ 9: SC-016 の A〜H が全て期待どおり (**特に C と H — 版が変わらないこと**)
+- ステップ 9: SC-016 の A〜I が全て期待どおり (**特に G と H — `no` で変わらず、 `yes` で最新版になること**)
 - ステップ 10: SC-017 で `sdoc-patterns` に警告が出ず、 既存 2 サンプルは警告つきで描画される
 - ステップ 11: `StrictDocStarter-test-result-*.zip` に per-scenario log (11 件) + final setup.log + diagnostics.txt
 
@@ -82,14 +85,14 @@ Compress-Archive -Path $stage -DestinationPath temp\StrictDocStarter.zip -Force
 | # | シナリオ | 内容 | uninstall 対象 | 所要 (目安) |
 |---|---|---|---|---|
 | 1 | Idempotency | 何も変えず再実行、 全 SKIP | (なし) | ~30 秒 |
-| 2 | PartialOptional | 3 件 uninstall → 再 install | jq, ripgrep, gitlens 拡張 | ~3〜5 分 |
+| 2 | PartialOptional | 3 件 uninstall → 再 install。 **jq / ripgrep は user scope のため昇格下では消せず SKIP になる** | jq, ripgrep, gitlens 拡張 | ~3〜5 分 |
 | 3 | RequiredOnly | gh uninstall → 再 install | GitHub CLI | ~2 分 |
 | 4 | ExtensionsOnly | 拡張 2 件 uninstall → 再 install | bierner.markdown-mermaid, ms-python.python | ~30 秒 |
-| 5 | Mixed | optional + 拡張 1 件 uninstall (他シナリオと完全独立) | Obsidian, MS-CEINTL.vscode-language-pack-ja | ~3〜5 分 |
+| 5 | Mixed | optional + 拡張 1 件 uninstall (他シナリオと完全独立)。 **Obsidian は user scope のため SKIP になる** | Obsidian, MS-CEINTL.vscode-language-pack-ja | ~3〜5 分 |
 | 6 | ClaudeExtension | Phase A coverage、 Claude 拡張 uninstall → 再 install | anthropic.claude-code | ~30 秒 |
-| 7 | StrictDocPip | Phase C coverage、 pip uninstall → 再 install | strictdoc (pip) | ~3〜5 分 |
-| 8 | **StrictDocUpgrade** | FR-334〜338: `strictdoc.version` を別版にピン → **`auto` で変わらないこと**を確認 → `upgrade` で変わることを確認 → config と版を復元 | (なし、 strictdoc の版を一時変更) | ~3〜5 分 |
-| 9 | NegativeAbort | **SKIPPED** (手動 SC-015 に委ね) | (なし) | ~1 秒 (skip msg のみ) |
+| 7 | StrictDocPip | Phase C coverage、 pip uninstall → 再 install → **元の版へ復元** | strictdoc (pip) | ~3〜5 分 |
+| 8 | **StrictDocUpgrade** | FR-334〜338: `strictdoc.version` を別版にピン → **`auto` がそのピンを適用すること**を確認 → 満たされたピンでの再実行が **no-op** であることを確認 → `upgrade` でも版が動くことを確認 → config と版を復元 | (なし、 strictdoc の版を一時変更) | ~3〜5 分 |
+| 9 | NegativeAbort | **常に SKIP** (手動 SC-015 に委ね)。 従来は PASS と表示されていた | (なし) | ~1 秒 |
 | 10 | NegativeClaudeBoth | FR-305 排他: config 改変 → 期待動作確認 → 復元 | (なし、 config 一時改変) | ~1〜2 分 |
 | 11 | DryrunAssert | dryrun 出力の [REQUIRED]/[OPTIONAL]/[SKIP] タグ + Phase E sort assert | (なし、 dryrun のみ) | ~10 秒 |
 
@@ -175,18 +178,27 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 
 `setup.config.json` は `Desktop\StrictDocStarter\setup.config.json`。 編集はメモ帳でよい。
 
+> **前提: 導入済み版が最新でないこと** (例 0.23.1)。 最新版が入っている状態では B と H が
+> 「変化なし」 になり、 何も確かめられない。 最新なら先に `pip install "strictdoc==0.23.1"`
+> で下げてから始める。
+
 | # | 操作 | 期待 |
 |:-:|---|---|
 | **A** | `setup-strictdoc.bat check` | 画面末尾に `strictdoc: <版>`。 `env-report.json` に `strictdoc` ブロック (`installed` / `verified_version` / `matches_verified`) と `existing_tools.strictdoc` |
-| **B** | `setup-strictdoc.bat dryrun` | Phase C 行が `[SKIP] strictdoc  already installed: <版> (to update: 'setup-strictdoc.bat upgrade')` |
+| **B** | `setup-strictdoc.bat dryrun` | Phase C 行が **`[INSTALL] strictdoc  installed: 0.23.1 - strictdoc.version='latest', will upgrade if a newer release exists`**。 **`[SKIP]` ではない** (FR-335 の reconcile) |
 | **C** | `setup-strictdoc.bat upgrade` → プロンプトに **`no`** | `Installed now` / `Configured spec` / `Will run` / `To go back afterwards` の 4 行が**先に**出る。 `no` で `[WARN] Aborted - strictdoc left at <版>.`。 **`strictdoc --version` が変わらないこと** |
-| **D** | `strictdoc.version` を `"newest please"` にして `dryrun` | Phase C 行が `INVALID strictdoc.version 'newest please' ... - 'upgrade' will refuse` |
+| **D** | `strictdoc.version` を `"newest please"` にして `dryrun` | Phase C 行が `INVALID strictdoc.version 'newest please' ... - Phase C will stop` |
 | **E** | 続けて `setup-strictdoc.bat upgrade` | `[ERROR] Invalid strictdoc.version ...` + 受理される形式の案内。 **`latest` にフォールバックしない**。 版は変わらない |
-| **F** | `strictdoc.version` を `"==0.23.1"` にして `upgrade` → `yes` | `strictdoc: <元の版> -> 0.23.1`。 続けて `docs/02-sdoc-authoring.md` への誘導と `pip install "strictdoc==<元の版>"` が表示される |
-| **G** | `strictdoc.version` を `"latest"` に戻して `upgrade -Preview` → `yes` | `-Preview` で `Would install strictdoc-...` が先に出る (ネットワーク待ちが 1 回増える)。 その後 `0.23.1 -> <最新版>` |
-| **H** | `setup-strictdoc.bat` (通常起動) → `yes` | **Phase C が SKIP のまま。 版が変わらないこと (FR-335)**。 これが破れると再実行が既存環境を書き換える |
+| **F** | `strictdoc.version` を **`"==0.23.1"`** にして `dryrun` | Phase C 行が **`[SKIP] strictdoc  already installed: 0.23.1 (matches strictdoc.version='==0.23.1')`**。 **ピンが一致していれば pip を呼ばない** — 画面が即座に出ること (待ちが入ったら実装が間違い) |
+| **G** | **`H` の主役。** `strictdoc.version` を `"latest"` に戻して **`setup-strictdoc.bat`** → プランで Phase C が `[INSTALL]` であることを確認 → **`no`** | **中止され、 版が変わらないこと。** 確認なしに変わらないことの担保 |
+| **H** | 同じく `setup-strictdoc.bat` → 今度は **`yes`** | **`[OK] strictdoc: 0.23.1 -> <最新版>`** が出て、 続けて `docs/02-sdoc-authoring.md` への誘導と `pip install "strictdoc==0.23.1"` (戻し方) が表示される。 **`strictdoc --version` が最新版になること (FR-335)** |
+| **I** | もう一度 `setup-strictdoc.bat` → `yes` | **`[OK] strictdoc <最新版> (already up to date)`**。 2 回目は変化しないこと |
 
-> **D / E で編集した `setup.config.json` は F / G / H の前に必ず戻す。** 戻し忘れると以降が全て停止する。
+> **D / E で編集した `setup.config.json` は F 以降の前に必ず戻す。** 戻し忘れると以降が全て停止する。
+
+> **旧版からの変更点。** 以前の H は 「`setup-strictdoc.bat` を実行しても版が変わらないこと」
+> を期待していた。 **FR-335 の反転により逆になった** — 設定が `latest` なら setup で最新版に
+> なるのが正しい。 変わらないでほしい場合は `strictdoc.version` を固定する (F)。
 
 ## SC-017: 同梱サンプルの目視 (0.27.1 での描画)
 

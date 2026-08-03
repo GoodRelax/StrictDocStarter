@@ -125,8 +125,20 @@ need reproducibility, pin a version — see below.
 
 ## Changing the StrictDoc version
 
-**Re-running setup does not change an installed StrictDoc.** That is what makes re-running
-safe, so there is a separate command for it:
+**Running setup keeps StrictDoc at the version `setup.config.json` asks for.** With the
+default `latest`, that means re-running `setup-strictdoc.bat` moves you to the newest
+release. The plan says so before anything happens:
+
+```
+Phase C: StrictDoc (pip package)             [REQUIRED]
+  - [INSTALL] strictdoc   installed: 0.23.1 - strictdoc.version='latest',
+                          will upgrade if a newer release exists
+```
+
+Answer `yes` and it upgrades; answer anything else and setup aborts without touching it.
+Nothing changes without that confirmation.
+
+To change the version without running the rest of setup:
 
 ```
 setup-strictdoc.bat upgrade
@@ -136,7 +148,7 @@ It shows the current version, what it will run, and the command that puts it bac
 for `yes`. Add `-Preview` to ask pip which version it would land on first (one extra network
 round trip, which took about a minute on the machine this was measured on).
 
-Which version it moves to comes from `strictdoc.version` in `setup.config.json`:
+Either way, the version comes from `strictdoc.version` in `setup.config.json`:
 
 | Value | Meaning |
 |---|---|
@@ -144,6 +156,10 @@ Which version it moves to comes from `strictdoc.version` in `setup.config.json`:
 | `==0.23.1` | exactly this version — use for reproducibility |
 | `~=0.23.0` | `>=0.23, <0.24` |
 | `0.23.1` | bare version, read as `==0.23.1` |
+
+**Pin it if you do not want setup moving you.** With `==0.23.1` and 0.23.1 installed, Phase C
+reports `[SKIP] ... (matches strictdoc.version)` and never calls pip — the check is a string
+comparison, so it costs nothing.
 
 The same setting is applied when StrictDoc is installed for the first time. An unrecognised
 value stops the command rather than quietly falling back to `latest`.
@@ -307,8 +323,18 @@ Web サイトとしてブラウザで開きます。メニューはありませ�
 
 ## StrictDoc のバージョンを変える
 
-**setup を再実行しても、導入済みの StrictDoc は変わりません。** 再実行が安全である理由が
-それなので、変更は別のコマンドで行います。
+**setup は、`setup.config.json` が指定したバージョンに合わせます。** 既定の `latest` なら、
+`setup-strictdoc.bat` を実行するだけで最新版になります。**何が起きるかはプランに出ます。**
+
+```
+Phase C: StrictDoc (pip package)             [REQUIRED]
+  - [INSTALL] strictdoc   installed: 0.23.1 - strictdoc.version='latest',
+                          will upgrade if a newer release exists
+```
+
+`yes` で更新、それ以外なら**何も触らずに中止**します。確認なしに変わることはありません。
+
+setup 全体を走らせずにバージョンだけ変えたい場合は、こちらを使います。
 
 ```
 setup-strictdoc.bat upgrade
@@ -318,7 +344,7 @@ setup-strictdoc.bat upgrade
 `-Preview` を付けると、pip にどのバージョンになるかを先に問い合わせます (ネットワーク往復が
 1 回増えます。計測した環境では約 1 分かかりました)。
 
-どのバージョンにするかは `setup.config.json` の `strictdoc.version` で決まります。
+どちらも、どのバージョンにするかは `setup.config.json` の `strictdoc.version` で決まります。
 
 | 値 | 意味 |
 |---|---|
@@ -326,6 +352,10 @@ setup-strictdoc.bat upgrade
 | `==0.23.1` | このバージョンちょうど。再現性を固定したいとき |
 | `~=0.23.0` | `>=0.23, <0.24` |
 | `0.23.1` | 演算子なし。`==0.23.1` として読まれます |
+
+**setup に動かされたくない場合はバージョンを固定してください。** `==0.23.1` で 0.23.1 が
+入っていれば、Phase C は `[SKIP] ... (matches strictdoc.version)` と表示して pip を
+呼びません (文字列の比較だけなので待ち時間もゼロです)。
 
 同じ設定が初回インストール時にも適用されます。解釈できない値の場合、`latest` に黙って
 フォールバックせずコマンドを停止します。
