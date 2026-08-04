@@ -109,17 +109,18 @@ StrictDoc website in your browser. There is no menu — **one window per documen
 |---|---|
 | `samples/sovd-automotive-ja/` | **Default.** A full Japanese SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) requirements spec — overview, stakeholder requirements, use cases, authentication, data access, DTC diagnostics, OTA software update, architecture, HTTP API, and test spec & results — with ASIL (ISO 26262) and A-SPICE layer custom fields, Mermaid diagrams, math, and traceability. |
 | `samples/sovd-automotive-en/` | English version of the above. |
-| `samples/hello-strictdoc/` | A minimal "hello world" requirements document to copy and start your own. |
-| `samples/sdoc-patterns/` | **Authoring patterns.** The `.sdoc` constructs you actually need, one of each, small enough to read in full: custom grammar (`.sgra`), parent/file relations, a custom `FINDING` node type for review findings, a `REVISION` field, diagrams kept out of the requirement bodies, and the same requirements written in Markdown. This is the sample [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) refers to. |
+| `samples/sdoc-patterns/` | **Authoring patterns — start here to write your own.** `00-hello.sdoc` is the minimal document to copy: three requirements, no custom grammar. The rest add one construct each, small enough to read in full: custom grammar (`.sgra`), parent/file relations, a custom `FINDING` node type for review findings, a `REVISION` field, diagrams kept out of the requirement bodies, the same requirements written in Markdown, and what the export formats are for. `queries/` holds the seven ready-to-run jq filters from [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md). This is the sample [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) refers to. |
 
 To open the English sample, drag `samples\sovd-automotive-en` onto `launch-strictdoc.bat`
 (or set it as `project_path` in `server.config.json` to make it the default).
 
 ## Verified StrictDoc version
 
-Tested with **strictdoc 0.23.1** (Windows 11 / Python 3.13). The default install pulls the
-**latest** StrictDoc, so a future release could change how the bundled samples render; if you
-need reproducibility, pin a version — see below.
+The bundled samples and docs assume **strictdoc 0.27 or newer**, and are verified against
+**0.27.1** (Windows 11 / Python 3.13). The default install pulls the **latest** StrictDoc, so
+that requirement is met out of the box. If you need reproducibility, pin a version — see
+below; if you pin an older one, section 9 of
+[`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) lists what changes.
 
 `setup-strictdoc.bat check` prints the installed version and writes it to `env-report.json`.
 
@@ -131,7 +132,7 @@ release. The plan says so before anything happens:
 
 ```
 Phase C: StrictDoc (pip package)             [REQUIRED]
-  - [INSTALL] strictdoc   installed: 0.23.1 - strictdoc.version='latest',
+  - [INSTALL] strictdoc   installed: 0.27.1 - strictdoc.version='latest',
                           will upgrade if a newer release exists
 ```
 
@@ -153,22 +154,22 @@ Either way, the version comes from `strictdoc.version` in `setup.config.json`:
 | Value | Meaning |
 |---|---|
 | `latest` (default) | newest release on PyPI |
-| `==0.23.1` | exactly this version — use for reproducibility |
-| `~=0.23.0` | `>=0.23, <0.24` |
-| `0.23.1` | bare version, read as `==0.23.1` |
+| `==0.27.1` | exactly this version — use for reproducibility |
+| `~=0.27.0` | `>=0.27, <0.28` |
+| `0.27.1` | bare version, read as `==0.27.1` |
 
-**Pin it if you do not want setup moving you.** With `==0.23.1` and 0.23.1 installed, Phase C
+**Pin it if you do not want setup moving you.** With `==0.27.1` and 0.27.1 installed, Phase C
 reports `[SKIP] ... (matches strictdoc.version)` and never calls pip — the check is a string
 comparison, so it costs nothing.
 
 The same setting is applied when StrictDoc is installed for the first time. An unrecognised
 value stops the command rather than quietly falling back to `latest`.
 
-**Before upgrading**, see section 9 of [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md)
-for the differences measured between 0.23.1 and 0.27.1. Note that on 0.27.1 the bundled
-`hello-strictdoc` and `sovd-automotive-*` samples print a DEPRECATION warning, because they
-list `MATHJAX` / `MERMAID` in `strictdoc_config.py` and those are enabled by default there.
-They still render. `sdoc-patterns` is clean on both versions.
+**Pinning below 0.27 is not recommended.** The bundled samples no longer list `MATHJAX` /
+`MERMAID` in `strictdoc_config.py`, because 0.27 enables both by default and warns if they are
+listed. On an older StrictDoc those toggles are required, so diagrams show as raw text and
+formulas do not render. Section 9 of [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md)
+lists the rest of the differences.
 
 If you would rather not use the launcher, `pip install --upgrade strictdoc` does the same
 thing.
@@ -307,17 +308,18 @@ Web サイトとしてブラウザで開きます。メニューはありませ�
 |---|---|
 | `samples/sovd-automotive-ja/` | **既定。** 日本語のフル SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) 要求仕様書 — 全体概要・ステークホルダ要求・ユースケース・認証・データアクセス・DTC 診断・OTA ソフトウェア更新・アーキテクチャ・HTTP API・テスト仕様/結果。ASIL (ISO 26262) と A-SPICE レイヤの custom field、Mermaid 図、数式、トレーサビリティ付き。 |
 | `samples/sovd-automotive-en/` | 上記の英語版。 |
-| `samples/hello-strictdoc/` | 自分の要求書を書き始めるための最小テンプレート。 |
-| `samples/sdoc-patterns/` | **書き方の型。** 実際に必要になる `.sdoc` の構文を 1 つずつ、全部読める分量で収めたもの: カスタム文法 (`.sgra`)・親/ファイル関係・レビュー指摘用のカスタムノード型 `FINDING`・`REVISION` フィールド・要求本体から外に出した図、および同じ要求の Markdown 版。[`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) が参照するサンプル。 |
+| `samples/sdoc-patterns/` | **書き方の型 — 自分の要求書はここから始める。** `00-hello.sdoc` が写して使う最小の文書 (要求 3 件、カスタム文法なし)。以降は構文を 1 つずつ、全部読める分量で足していく: カスタム文法 (`.sgra`)・親/ファイル関係・レビュー指摘用のカスタムノード型 `FINDING`・`REVISION` フィールド・要求本体から外に出した図・同じ要求の Markdown 版・出力形式の使い分け。`queries/` に [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) の jq フィルタ 7 本をそのまま同梱。[`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) が参照するサンプル。 |
 
 英語版を開くには、`samples\sovd-automotive-en` を `launch-strictdoc.bat` にドラッグ&ドロップ
 してください (既定にするなら `server.config.json` の `project_path` を変更)。
 
 ## 動作確認済み StrictDoc バージョン
 
-**strictdoc 0.23.1** (Windows 11 / Python 3.13) で検証済み。既定のインストールは
-**最新版**の StrictDoc を取得するため、将来版で同梱サンプルの描画が変わる可能性があります。
-再現性を固定したい場合はバージョンを固定してください (下記参照)。
+同梱サンプルとドキュメントは **strictdoc 0.27 以降**を前提とし、**0.27.1**
+(Windows 11 / Python 3.13) で検証済みです。既定のインストールは**最新版**を取得するため、
+この前提は何もしなくても満たされます。再現性を固定したい場合はバージョンを固定して
+ください (下記参照)。それより古い版に固定する場合、変わる点は
+[`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) の §9 にあります。
 
 `setup-strictdoc.bat check` が導入済みバージョンを表示し、`env-report.json` にも記録します。
 
@@ -328,7 +330,7 @@ Web サイトとしてブラウザで開きます。メニューはありませ�
 
 ```
 Phase C: StrictDoc (pip package)             [REQUIRED]
-  - [INSTALL] strictdoc   installed: 0.23.1 - strictdoc.version='latest',
+  - [INSTALL] strictdoc   installed: 0.27.1 - strictdoc.version='latest',
                           will upgrade if a newer release exists
 ```
 
@@ -349,22 +351,22 @@ setup-strictdoc.bat upgrade
 | 値 | 意味 |
 |---|---|
 | `latest` (既定) | PyPI の最新版 |
-| `==0.23.1` | このバージョンちょうど。再現性を固定したいとき |
-| `~=0.23.0` | `>=0.23, <0.24` |
-| `0.23.1` | 演算子なし。`==0.23.1` として読まれます |
+| `==0.27.1` | このバージョンちょうど。再現性を固定したいとき |
+| `~=0.27.0` | `>=0.27, <0.28` |
+| `0.27.1` | 演算子なし。`==0.27.1` として読まれます |
 
-**setup に動かされたくない場合はバージョンを固定してください。** `==0.23.1` で 0.23.1 が
+**setup に動かされたくない場合はバージョンを固定してください。** `==0.27.1` で 0.27.1 が
 入っていれば、Phase C は `[SKIP] ... (matches strictdoc.version)` と表示して pip を
 呼びません (文字列の比較だけなので待ち時間もゼロです)。
 
 同じ設定が初回インストール時にも適用されます。解釈できない値の場合、`latest` に黙って
 フォールバックせずコマンドを停止します。
 
-**上げる前に**、[`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) の §9 (0.23.1 と
-0.27.1 の間で実測した差分) を確認してください。0.27.1 では同梱の `hello-strictdoc` と
-`sovd-automotive-*` が DEPRECATION 警告を出します — `strictdoc_config.py` に
-`MATHJAX` / `MERMAID` を列挙しており、0.27.1 ではこれらが既定で有効なためです。描画自体は
-従来どおりです。`sdoc-patterns` は両バージョンで警告が出ません。
+**0.27 未満への固定は推奨しません。** 同梱サンプルは `strictdoc_config.py` に
+`MATHJAX` / `MERMAID` を列挙していません — 0.27 では既定で有効であり、列挙すると
+DEPRECATION 警告が出るためです。古い版ではこの指定が必要なので、**図が生のテキストとして
+表示され、数式も描画されません。** 他の差分は
+[`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) の §9 にあります。
 
 ランチャを使わない場合は `pip install --upgrade strictdoc` でも同じことができます。
 

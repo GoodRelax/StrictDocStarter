@@ -48,7 +48,7 @@
   **`(CHANGED - a scenario did not restore it)` が出たら FAIL 扱い** — シナリオ 8 の復元が効いていない
 - ステップ 8: abort guidance 3 行が表示される
 - ステップ 9: SC-016 の A〜I が全て期待どおり (**特に G と H — `no` で変わらず、 `yes` で最新版になること**)
-- ステップ 10: SC-017 で `sdoc-patterns` に警告が出ず、 既存 2 サンプルは警告つきで描画される
+- ステップ 10: SC-017 で **3 サンプルとも DEPRECATION 警告が出ず**、 図と数式が描画される
 - ステップ 11: `StrictDocStarter-test-result-*.zip` に per-scenario log (11 件) + final setup.log + diagnostics.txt
 
 ---
@@ -202,17 +202,23 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 
 ## SC-017: 同梱サンプルの目視 (0.27.1 での描画)
 
-クリーン VM の `pip install strictdoc` は**最新版**を取る。 0.23.1 との差分は
-`docs/02-sdoc-authoring.md` §9 にある。 ランチャ経由で実際に開いて確認する。
+クリーン VM の `pip install strictdoc` は**最新版**を取る。 同梱サンプルは
+**0.27 以降を前提**にしてあり、 前提が満たされる版で描画されることを見る。
+古い版で何が変わるかは `docs/02-sdoc-authoring.md` §9。 ランチャ経由で実際に開く。
 
 | # | 操作 | 期待 |
 |:-:|---|---|
-| **A** | `samples\sdoc-patterns` を `launch-strictdoc.bat` にドラッグ | ブラウザに 4 文書。 **DEPRECATION 警告が出ないこと**。 `01-requirements` の PAT-001 から `_assets/overview.mmd` へのリンク、 `03-figures` で Mermaid と数式が描画、 `04-markdown-form` が `.md` のまま文書として並ぶ |
-| **B** | `samples\hello-strictdoc` をドラッグ | 表示は従来どおり。 **サーバ窓に MATHJAX / MERMAID の DEPRECATION 警告が出る — これは既知・想定**(`strictdoc_config.py` が両者を列挙しているため) |
-| **C** | `samples\sovd-automotive-ja` をドラッグ | 同上。 警告は出るが 13 文書が従来どおり描画されること |
+| **A** | `samples\sdoc-patterns` を `launch-strictdoc.bat` にドラッグ | ブラウザに **5 文書**。 **DEPRECATION 警告が出ないこと**。 `01-requirements` の PAT-001 から `_assets/overview.mmd` へのリンク、 `03-figures` で Mermaid と数式が描画、 `04-markdown-form` が `.md` のまま文書として並び **末尾の MD-003 に Mermaid 図が描画**、 `05-outputs` が並ぶ。 **`queries/README.md` が文書として現れないこと** (`exclude_doc_paths`) |
+| **B** | `samples\sovd-automotive-ja` をドラッグ | **DEPRECATION 警告が出ないこと**。 13 文書が従来どおり描画され、 Mermaid 図と数式も従来どおり出ること |
+| **C** | `samples\sovd-automotive-en` をドラッグ | 同上 (英語版) |
 
-> **B / C の警告は不具合ではない。** 既存 2 サンプルの `strictdoc_config.py` は未変更である
-> (既存サンプルの書き換えは今回の作業範囲外)。 **描画が壊れていたら報告対象。**
+> **3 サンプルとも警告が出ないのが正しい状態になった。** `MATHJAX` / `MERMAID` の列挙を
+> 全サンプルの `strictdoc_config.py` から外したためである (0.27 では既定で有効)。
+> **警告が出た場合も、 図や数式が描画されない場合も報告対象。**
+
+> **`samples\hello-strictdoc` は無くなった。** `sdoc-patterns` の `00-hello.sdoc` が
+> その役目 (写して始める最小の文書) を引き継いでいる。 **フォルダが残っていたら
+> ZIP の作り直し漏れである。**
 
 ## ログ回収
 

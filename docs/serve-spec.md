@@ -121,7 +121,7 @@
 | Expand-UserPlaceholders | setup-spec.md FR-208 由来、 `<user>` を `$env:USERNAME` に展開する関数 |
 | Expand-PathPlaceholders | 拡張版。 `<user>` (FR-208) + `<starter_root>` (launch-strictdoc.bat のフォルダ絶対パス) の両方を展開。 unzip-and-go で同梱 `samples/` を default project_path に指せるようにする |
 | `<starter_root>` | path placeholder。 `launch-strictdoc.bat` のフォルダの絶対パスに展開される。 template の default `project_path` で `<starter_root>\samples\sovd-automotive-ja` を使用 |
-| samples/ | StrictDocStarter 同梱の StrictDoc サンプルプロジェクト 3 個。 `samples/hello-strictdoc/` (5 reqs、 編集用テンプレ)、 `samples/sovd-automotive-ja/` (~105 reqs、 中規模、 **初期 default**) と同構成の英語版 `samples/sovd-automotive-en/`。 sovd 系は 00 概要 + 01-05 要求/基盤 + 06 設計 + 07 API + 08 テスト仕様 + 09 テスト結果 + 90 付録、 要求→設計→API→テスト仕様→結果の V 字を EARS/L0-L3 + Implements/Satisfies/Verifies/ResultOf でトレース、 ASIL/CAL/Layer/Type custom fields、 共有文法 `sovd-grammar.sgra` (REQUIREMENT/COMPONENT/API/TEST/TEST_RESULT)) |
+| samples/ | StrictDocStarter 同梱の StrictDoc サンプルプロジェクト 3 個。 `samples/sdoc-patterns/` (書き方の型。 `00-hello.sdoc` が編集用テンプレ)、 `samples/sovd-automotive-ja/` (~105 reqs、 中規模、 **初期 default**) と同構成の英語版 `samples/sovd-automotive-en/`。 sovd 系は 00 概要 + 01-05 要求/基盤 + 06 設計 + 07 API + 08 テスト仕様 + 09 テスト結果 + 90 付録、 要求→設計→API→テスト仕様→結果の V 字を EARS/L0-L3 + Implements/Satisfies/Verifies/ResultOf でトレース、 ASIL/CAL/Layer/Type custom fields、 共有文法 `sovd-grammar.sgra` (REQUIREMENT/COMPONENT/API/TEST/TEST_RESULT)) |
 | `$pid` | **PowerShell の予約自動変数** で現プロセス自身の PID を保持。 server プロセスの PID 変数として **使用禁止** (= 自プロセスを stop 対象にしてしまう事故防止)。 `$serverPid` / `$targetPid` 等を使用 |
 | MOTW | Mark-of-the-Web。 Web/Zip 経由で取得したファイルに付くゾーン情報、 PowerShell が実行を阻害することがある |
 | WMI | Windows Management Instrumentation。 プロセス情報等を取得する Windows の管理基盤 |
@@ -374,10 +374,11 @@ StrictDocStarter/
 ├── server.config.template.json          # (新規、 commit、 default project_path = <starter_root>\samples\sovd-automotive-ja)
 ├── server.config.json                   # (新規、 gitignore)
 ├── samples/                             # (新規、 commit) 同梱サンプル
-│   ├── hello-strictdoc/                 # 5 reqs、 編集用テンプレ
-│   │   ├── 01-hello.sdoc
-│   │   ├── 02-design.sdoc
-│   │   └── strictdoc_config.py          # (D-8) MERMAID/MATHJAX 有効、 project_path 直下 (D-1/FR-1141)
+│   ├── sdoc-patterns/                   # 書き方の型。 00-hello.sdoc が編集用テンプレ (D-9 改)
+│   │   ├── 00-hello.sdoc                # 要求 3 件、 カスタム文法なし。 写して始める用
+│   │   ├── 01-requirements.sdoc 〜 05-outputs.sdoc
+│   │   ├── patterns.sgra / _assets/ / queries/
+│   │   └── strictdoc_config.py          # (D-8) project_path 直下 (D-1/FR-1141)。 MERMAID/MATHJAX は列挙しない (0.27 既定)
 │   ├── sovd-automotive-en/             # 英語版 (sovd-automotive-ja と同構成)
 │   └── sovd-automotive-ja/              # 初期 default、 ASIL/CAL/Layer/Type custom fields、 SOVD 教材
 │       ├── sovd-grammar.sgra            # (D-9b) 共有要求文法。 全 .sdoc が IMPORT_FROM_FILE で参照
@@ -941,6 +942,24 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 ### 6.8 サンプル / バージョン / その他 (S-1, S-3, S-4, O-* への参照)
 
 - **S-1 サンプル (D-9 決定)**: `samples/sovd-automotive/` に `05-notation-rst.sdoc` (RST raw html の Mermaid + 数式 `.. math::` + 図 `.. image::`、 全版で有効) / `06-notation-markdown.sdoc` (表 / コードハイライト / 画像 + **0.23.0+ なら ` ```mermaid ` フェンス**、 `MARKUP: Markdown`) を追加。 `samples/sovd-automotive/_assets/` 新設。 **hello-strictdoc は最小 (01-hello + 02-design) に戻し、 `03-try.sdoc` を削除、 `04-mermaid.sdoc` を削除して Mermaid デモを上記 `05-notation-rst.sdoc` へ昇格** (hello=最小テンプレ / sovd=ドメイン教材)。 公式 `strictdoc new` の generic skeleton と差別化。 **Mermaid 記法は版依存**: RST raw html は全版で有効、 **Markdown の ` ```mermaid ` フェンスは 0.23.0+ で MERMAID 有効時に正式レンダリング** (公式 0.23.0 リリースノート#8)。 latest 既定 (D-4=0.23.x) なので 06 はフェンス記法を主に使える。 導入版を O-4 smoke test で検証。 **【Phase 1 実装済 (2026-06-06, strictdoc 0.23.1)】`05-notation-rst.sdoc` / `06-notation-markdown.sdoc` と `_assets/`(drawio 編集ソース → svg + png) を作成し export 検証済 (05: `class="mermaid"`×2 + math + SVG=`<object type="image/svg+xml">`、 06: ```mermaid フェンス×1〔`language-mermaid` 化せず〕 + 表 + コードハイライト + PNG=`<img>`)。 hello-strictdoc は 01/02 に最小化 (03-try/04-mermaid 削除、 01 の壊れた markdown 画像参照を除去)。 D-8 の config は各 `project_path` 直下 (`samples/sovd-automotive/strictdoc_config.py` / `samples/hello-strictdoc/strictdoc_config.py`) に配置。 旧 `samples/strictdoc_config.py` は親フォルダにあり default project_path=`samples/sovd-automotive` からは読まれない (D-1/FR-1141) ため撤去。**
+
+> **【D-9 改訂 (2026-08-04)】`samples/hello-strictdoc/` を廃止し、 `samples/sdoc-patterns/` に統合した。**
+> 上記の「hello=最小テンプレ / sovd=ドメイン教材」という切り分け自体は維持する。 **変えたのは
+> 最小テンプレの置き場所だけである** — `sdoc-patterns/00-hello.sdoc` (要求 3 件、 カスタム文法なし)
+> がその役目を負う。
+>
+> **理由:** 「写して始める最小の例」と「書き方を引く型集」は、 別フォルダに置くほどの距離が無い。
+> 利用者は最小の例から始めて、 そのまま隣の文書へ読み進む。 2 フォルダに分けると、
+> `hello-strictdoc` を開いた人は型集の存在に気づかない。
+>
+> **統合にあたっての制約:** `sdoc-patterns` の先頭には**カスタム文法を使わない文書を必ず置く**こと。
+> `.sgra` が最初に現れた時点で「写して始める」用途に使えなくなるためである。
+>
+> **同時に、 全サンプルの `strictdoc_config.py` から `MATHJAX` / `MERMAID` の列挙を外した。**
+> 同梱サンプルは **strictdoc 0.27 以降を前提**とし、 0.27 では両者が既定で有効かつ列挙すると
+> DEPRECATION 警告が出る (FR-332)。 **上の「Mermaid 記法は版依存」の記述は 0.23.x を既定と
+> していた当時のものであり、 前提が 0.27+ に移った現在は `strictdoc_config.py` 側の指定が
+> 不要になっている。** RST raw html と Markdown フェンスの双方が使える点は変わらない。
 - **D-9b サンプル品質リライト (S-1 の後継、 2026-06-06)**: 上記 Phase 1 の `05/06` 記法デモ文書は「仕様書として不自然」 (ツール解説と要求が混在) のため**廃止**し、 ANMS テンプレート準拠の自然な仕様書へ全面リライトした。 (a) 遠隔診断の背景ストーリーを起点に前付け `00-overview.sdoc` (目的/範囲/用語/参照規格/表記規約/構成図/改訂履歴) を新設、 (b) 要求文を **EARS 化**・単一要求化・受入基準 (VERIFICATION 欄) 付与、 (c) **ASIL (安全) と CAL (セキュリティ) を分離** (00-overview §6.3)、 (d) 図/数式を本来の要求文書へ統合 (認証シーケンス→01、 SOVD↔UDS→02、 DTC ガード→03、 OTA 状態機械→04、 構成図→00)、 (e) 旧 05/06 の記法カバレッジは付録 `90-appendix-notation.sdoc` (Markdown マークアップで RST/Markdown 両記法を実演) に集約、 (f) 共有文法を `sovd-grammar.sgra` に切り出し全 .sdoc が `IMPORT_FROM_FILE` で参照 (ボイラープレート削減・整合保証)。 セクションは 0.23.1 で廃止された `[SECTION]` の後継 `[[SECTION]]` (`IS_COMPOSITE: True`) を使用。 strictdoc 0.23.1 で export クリーン・全図/数式/表/トレース描画確認済。 **その後、 同一構成のまま日本語版 `samples/sovd-automotive-ja/` と英語版 `samples/sovd-automotive-en/` の 2 言語へ分離。 既定は `-ja` (server.config.template.json / §3.3 / §6.10.4 と整合)。**
 - **S-3 / S-4 / O-1 / O-5**: setup 側の責務。 [`setup-spec.md`](setup-spec.md) の改訂 (strictdoc.version, uninstall, chromedriver, install phase 完成) を参照
 - **O-2**: `.gitignore` に `__pycache__/` `*.pyc` を追加 (strictdoc_config.py 読込の副生成物)

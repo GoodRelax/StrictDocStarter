@@ -414,7 +414,7 @@ function Install-VSCodeExtensions {
 # FR-332: the strictdoc version this repository has been verified against.
 # Kept in sync with the "Verified StrictDoc version" section of README.md.
 # Used for reporting only -- nothing refuses to run on a different version.
-$script:StrictDocVerifiedVersion = "0.23.1"
+$script:StrictDocVerifiedVersion = "0.27.1"
 
 function Test-StrictDocInstalled {
     return [bool](Get-Command strictdoc -ErrorAction SilentlyContinue)
@@ -931,10 +931,9 @@ function Invoke-Upgrade {
     # were measured; which release introduced each one was not, so no release
     # boundary is claimed.
     Write-OnboardWarn "Version differences are listed in docs/02-sdoc-authoring.md (section 9)."
-    Write-OnboardInfo "Measured between 0.23.1 and 0.27.1: on 0.27.1, MATHJAX and MERMAID are on by"
-    Write-OnboardInfo "  default. samples/hello-strictdoc and samples/sovd-automotive-* still list them"
-    Write-OnboardInfo "  in strictdoc_config.py, so on 0.27.1 they print a DEPRECATION warning and"
-    Write-OnboardInfo "  otherwise render as before. samples/sdoc-patterns is clean on both."
+    Write-OnboardInfo "The bundled samples assume strictdoc 0.27 or newer, where MATHJAX and MERMAID"
+    Write-OnboardInfo "  are on by default. Below 0.27 those toggles are required, so sample diagrams"
+    Write-OnboardInfo "  show as raw text and formulas do not render."
     Write-OnboardInfo "To go back: pip install `"strictdoc==$before`""
     return $true
 }

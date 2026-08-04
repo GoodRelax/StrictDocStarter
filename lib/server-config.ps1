@@ -19,7 +19,7 @@ function Expand-PathPlaceholders {
     #   <user>          -> $env:USERNAME (FR-208)
     #   <starter_root>  -> absolute path of launch-strictdoc.bat's folder
     # The second placeholder lets server.config.template.json point at the
-    # bundled samples (samples/hello-strictdoc) regardless of where the
+    # bundled samples (samples/sdoc-patterns) regardless of where the
     # user extracted the ZIP -- unzip and "press 1 to Start" just works.
     #
     # Note: use String.Replace() (literal, not regex) for $StarterRoot because
@@ -337,7 +337,7 @@ function Initialize-StrictDocProjectConfig {
     $cfgToml = Join-Path $ProjectPath 'strictdoc.toml'
     if (Test-Path -LiteralPath $cfgPy) { return }                                         # FR-1142
     if (Test-Path -LiteralPath $cfgToml) {                                                # FR-1145
-        Write-Host "[WARN]  Found strictdoc.toml in the project; not scaffolding strictdoc_config.py. Enable MERMAID/MATHJAX there if you need diagrams/math." -ForegroundColor Yellow
+        Write-Host "[WARN]  Found strictdoc.toml in the project; not scaffolding strictdoc_config.py. On strictdoc 0.27+ diagrams and math need no toggle there." -ForegroundColor Yellow
         return
     }
     $content = @'
@@ -345,9 +345,11 @@ function Initialize-StrictDocProjectConfig {
 #
 # Placed in this project folder so `strictdoc server <this folder>` enables the features
 # below. StrictDoc reads the config from the input folder itself, not parent folders
-# (verified on strictdoc 0.23.1). Shape follows the official `strictdoc new` output
-# (create_config() returning a ProjectConfig) plus MERMAID + MATHJAX, which `strictdoc new`
-# leaves off. Edit freely -- StrictDocStarter never overwrites an existing strictdoc_config.py.
+# (verified on strictdoc 0.27.1). Shape follows the official `strictdoc new` output
+# (create_config() returning a ProjectConfig). MATHJAX and MERMAID are deliberately NOT
+# listed: strictdoc 0.27 and newer enable both by default and print a DEPRECATION warning
+# if they are listed. Diagrams and math work without them.
+# Edit freely -- StrictDocStarter never overwrites an existing strictdoc_config.py.
 #
 # Docs: https://strictdoc.readthedocs.io/
 from strictdoc.core.project_config import ProjectConfig
@@ -361,14 +363,12 @@ def create_config() -> ProjectConfig:
             "TRACEABILITY_SCREEN",
             "DEEP_TRACEABILITY_SCREEN",
             "SEARCH",
-            "MATHJAX",
-            "MERMAID",
         ],
     )
 '@
     try {
         Write-FileUtf8NoBom -Path $cfgPy -Content $content
-        Write-Host "[INFO]  Scaffolded strictdoc_config.py (MERMAID + MATHJAX) in the project folder."
+        Write-Host "[INFO]  Scaffolded strictdoc_config.py in the project folder (diagrams and math are on by default on strictdoc 0.27+)."
     } catch {
         Write-Host "[WARN]  Could not scaffold strictdoc_config.py: $($_.Exception.Message)" -ForegroundColor Yellow
     }

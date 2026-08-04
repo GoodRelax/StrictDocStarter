@@ -729,7 +729,7 @@ Feature: StrictDocStarter - StrictDoc Environment Setup
   },
 
   "strictdoc": {
-    "_comment": "StrictDoc pip version spec. Default 'latest' (pip install strictdoc). For reproducibility pin a range, e.g. '~=0.23.0' (>=0.23,<0.24) or '==0.23.1'. A bare version ('0.23.1') is read as '=='. Tested version is recorded in README. Applied on FIRST install by Phase C (FR-331) and by 'upgrade' (FR-334); an existing installation is never changed by 'auto' (FR-335).",
+    "_comment": "StrictDoc pip version spec (FR-330). 'latest' (default) installs the newest release. For reproducibility pin it with a PEP 440 specifier: '==0.27.1', '~=0.27.0', '>=0.27,<0.28'. A bare version like '0.27.1' is read as '=='. The bundled samples assume strictdoc 0.27 or newer; the version this repository was verified against is recorded in README.md. This value is applied on FIRST install (FR-331), by 'setup-strictdoc.bat upgrade' (FR-334), and by 'auto', which reconciles an already-installed StrictDoc with this setting after you confirm the plan (FR-335). A pin that already matches is reported as [SKIP] and never calls pip.",
     "version": "latest"
   },
 
@@ -983,7 +983,7 @@ Choose (1-3) [default: 1]:
 |---|---|---|
 | FR-330 | Ubiquitous | `setup.config.json` に `strictdoc.version` フィールドを設けること (`python.version` と対称)。 既定値は `"latest"`。 PEP 440 のバージョン指定子 (`~=0.23.0` / `==0.23.1` / `>=0.23,<0.24`) または `latest` を受け付ける |
 | FR-331 | When | install Phase C (**旧 FR-306 を改訂**) は `strictdoc.version` を解釈してインストールすること: `latest` ならば `pip install strictdoc`、 それ以外 (指定子) ならば `pip install "strictdoc<spec>"` を実行する。 指定子は pip に渡す前に簡易 validate (先頭が `~=`/`==`/`>=`/`<=`/`!=`/`<`/`>` または数字) すること |
-| FR-332 | Ubiquitous | **動作確認済みの strictdoc バージョンを `README.md` に明記**すること (**Phase 0 で strictdoc 0.23.1 を検証し README へ記録済**)。 既定 `latest` は最新を取りに行くため、 同梱サンプル/設定が将来版で壊れ得る旨も注記 (O-4 smoke test で検知) |
+| FR-332 | Ubiquitous | **動作確認済みの strictdoc バージョンを `README.md` に明記**すること (**strictdoc 0.27.1 を検証し README へ記録済**)。 **同梱サンプルとドキュメントは 0.27 以降を前提とし、 `MATHJAX` / `MERMAID` を `strictdoc_config.py` に列挙しない** (0.27 では既定で有効、 列挙すると DEPRECATION 警告)。 0.27 未満に固定した場合は図と数式が描画されない旨も README に注記 |
 | FR-333 | Optional | doctor/health-check (将来) を設ける場合、 インストール済み strictdoc 版がテスト済み版/範囲外なら `[WARN]` を出すこと (O-1 連動) |
 
 **FR-333 の実現方法 (v1.2):** 専用の doctor コマンドは設けず、 **`check` サブコマンドが担う**。 `env-report.json` に `strictdoc` ブロック (`installed` / `verified_version` / `matches_verified`) と `existing_tools.strictdoc` を書き、 画面にも 1 行出す。 **`[WARN]` は出さない** — 既定インストールは `latest` を取りに行くため「検証済み版と違う」 のは既定動作であって異常ではない。 両方の版を示し、 差分の所在 (`docs/02-sdoc-authoring.md` §9) と変更手段 (`upgrade`) を案内するにとどめる。

@@ -247,18 +247,21 @@ MID → UID → LEVEL → STATUS → TAGS  （既知のメタフィールド）
   → 残りの複数行フィールド（RATIONALE / COMMENT / カスタム）
 ```
 
-## 9. 版による違い（0.23.1 → 0.27.1）
+## 9. 前提とする版
 
-`StrictDocStarter` の README は **0.23.1** で検証済みと書いているが、`pip install strictdoc` は最新版を入れる。実測した差分は次のとおり。
+**本書と同梱サンプルは strictdoc 0.27 以降を前提とする。** `setup-strictdoc.bat` の既定（`strictdoc.version: latest`）はこれを満たす。
 
-| 項目 | 0.23.1 | 0.27.1 |
-|---|---|---|
-| サブコマンド | `import` がある | **`import` が消え、`convert` と `format` が増えた** |
-| `project_features` | `RAPIDOC` がある | **削除された** |
-| `MATHJAX` / `MERMAID` | **明示指定が要る** | **既定で有効。列挙すると DEPRECATION 警告** |
-| JSON の文書メタ | `UID` / `VERSION` / `CLASSIFICATION` が**出ない** | **出る**（`DATE` はどちらも出ない） |
-| `.md` のフィールド表記 | `**STATEMENT**:`（大文字） | `**Statement**:`（先頭大文字）。**0.27.1 は両方読める** |
-| `.gra.md` | **文法として認識されず、普通の Markdown 文書として解析される** | 文法ファイルとして扱われる |
-| 同梱サンプル | — | `hello-strictdoc` / `sovd-automotive-ja` とも動く。SOVD の JSON は**バイト一致**、HTML も 54 ページで一致 |
+0.27 で効いてくる点を挙げる。**古い版を意図して使う場合はここが変わる。**
 
-**`.md` 文書は `.gra.md` ではなく `.sgra` を参照できる。** 両方の版で同じ結果になるので、混在プロジェクトではそちらが安全である（`samples/sdoc-patterns/04-markdown-form.md` がその形）。
+| 項目 | 0.27.1 での挙動 |
+|---|---|
+| `MATHJAX` / `MERMAID` | **既定で有効。`strictdoc_config.py` に書く必要はなく、列挙すると DEPRECATION 警告が出る** |
+| サブコマンド | `import` は無い。`convert` と `format` がある |
+| `project_features` | `RAPIDOC` は無い |
+| JSON の文書メタ | `UID` / `VERSION` / `CLASSIFICATION` が**出る**（`DATE` は出ない） |
+| `.md` のフィールド表記 | `**Statement**:`（先頭大文字）。**大文字の `**STATEMENT**:` も読める** |
+| `.gra.md` | 文法ファイルとして扱われる |
+
+> **上の各行は 0.23.1 と 0.27.1 の両端で実際に走らせて確かめたものである。挙動が変わった中間の版（0.24 / 0.25 / 0.26）は特定していない。**
+
+**`.md` 文書は `.gra.md` ではなく `.sgra` を参照できる。** 混在プロジェクトではそちらが安全である（`samples/sdoc-patterns/04-markdown-form.md` がその形）。

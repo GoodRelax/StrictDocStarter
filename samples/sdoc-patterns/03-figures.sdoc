@@ -10,9 +10,9 @@ STATEMENT: >>>
 Mermaid が占めるのは JSON 全体の 1.6 パーセントであった
 (`docs/02-sdoc-authoring.md` 参照)。
 
-Mermaid は `.. raw:: html` の中に `<pre class="mermaid">` で書く。
-`MERMAID` は strictdoc 0.23.1 では `strictdoc_config.py` への明示指定が要るが、
-0.27.1 では既定で有効であり、 列挙すると DEPRECATION 警告が出る。
+Mermaid は `.. raw:: html` の中に `<pre class="mermaid">` で書く。 `MERMAID` と
+`MATHJAX` は 0.27 以降では既定で有効なので、 `strictdoc_config.py` に書く必要は
+無い。 むしろ列挙すると DEPRECATION 警告が出る。
 
 .. raw:: html
 
@@ -35,4 +35,21 @@ PAT-001 が `RELATIONS: TYPE: File` でそれを指している。 Web UI では
 
 画像は `_assets/` に置き、 `.. image:: _assets/foo.svg` で埋め込む。
 本サンプルは画像ファイルを同梱していない。
+
+図を別ファイルに置いたまま**要求文書の中に出したい**なら、 本書のように隣に並べる
+のではなく `[DOCUMENT_FROM_FILE]` で取り込む。 取り込まれた側は独立した文書として
+公開されない。
+
+::
+
+    [DOCUMENT_FROM_FILE]
+    FILE: 03-figures.sdoc
+
+**取り込めるのは `.sdoc` だけである。** `.md` を渡すと
+``A document file name must have ".sdoc" extension`` で停止する
+(0.23.1 / 0.27.1 の両方で確認)。 `.md` に図を書くこと自体はでき
+(`04-markdown-form.md` を参照)、 その場合は**独立した文書**になる。
+
+**ただし JSON を引く目的なら `--included-documents` を付けてはならない。**
+取り込んだ文書が独立文書としても重複し、 同じ UID が 2 か所に現れる。
 <<<

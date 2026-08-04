@@ -28,3 +28,22 @@
 **Relations**:
 - **Type**: `Parent` \
   **ID**: `MD-001`
+
+## 図の書き方が .sdoc と違う
+
+**UID**: MD-003 \
+**STATUS**: Approved
+
+**Statement**: 本ツールの説明文書は、 図を Markdown 版に置く場合、 コードフェンスで書くこと。
+
+**Rationale**: `.md` では ` ```mermaid ` のフェンスで書く。 `.sdoc` 側の
+`.. raw:: html` + `<pre class="mermaid">` は RST の記法であり、 `.md` に書くと
+そのまま文字として表示される (実測)。 どちらも最終的には `<pre class="mermaid">`
+になる。
+
+```mermaid
+flowchart LR
+  USER[user] --> CLI[command line]
+  CLI --> CORE[conversion core]
+  CORE --> OUT[output file]
+```
