@@ -58,6 +58,33 @@ Mermaid が占めるのは JSON 全体の 1.6 パーセントであった
 (公式ユーザーガイド: "a document can be included to no more than one including
 document")。 2 か所から参照したいなら、 一方は `[LINK: FIG-CONVERT-FLOW]` にする。
 
+**プロジェクト内の `.md` は、 既定で全部 StrictDoc が文書として解析する。**
+`_assets/` の中でも例外ではない。 **「アセット置き場だから解析されない」ということは
+無い。** 文書の走査が無視するのは出力先フォルダだけで、 アセット置き場かどうかは
+見ていない (`document_finder.py` はアセット探索と文書探索を別々に 2 回走らせる)。
+
+そのため **文書として読めない `.md` が 1 つあると export 全体が止まる。**
+最も多いのは見出しが無い場合で、 次のように言われる。
+
+::
+
+    Semantic error: Markdown parsing error: the document must start with an H1 heading.
+
+つまり `.md` は **`#` の見出しで始めること。** どうしても文書にできないものは
+`exclude_doc_paths` で名指しして外す。 本サンプルでは `queries/README.md` がそれ。
+
+**除外はファイル単位で書くこと。 フォルダごと除外してはならない。**
+
+::
+
+    exclude_doc_paths=["_assets/notes.md"]   # OK。 その 1 ファイルだけ文書にしない
+    exclude_doc_paths=["_assets/**"]         # 駄目。 画像も一緒に消える
+
+`_assets/**` と書くとフォルダが走査から外れ、 **アセット置き場としても認識されなく
+なるため画像がコピーされない。** それでも export は成功と報告し、 出来上がった
+HTML の `<img>` だけが 404 になる。 気づきにくい。 **`exclude_doc_paths` は
+文書探索とアセット探索の両方に渡されるためである。**
+
 数式は `MATHJAX` で書ける。 `MERMAID` と同じく 0.27 以降は既定で有効なので、
 `strictdoc_config.py` に列挙する必要は無い。 むしろ列挙すると DEPRECATION 警告が出る。
 

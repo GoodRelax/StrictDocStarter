@@ -878,6 +878,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | FR-1103 | If | もし `config.open_browser=true` ならば、 server 窓を起動した後に `Start-Process http://<host>:<port>/` で既定ブラウザを開くこと (host が `0.0.0.0`/`::` なら `127.0.0.1` に置換、 旧 FR-308 を踏襲)。 server の準備完了を待たずに開いてよい (ブラウザ側 reload で吸収。 大規模初回は数秒〜十数秒かかる旨を README に記載) |
 | FR-1104 | If | 二重起動検出は **ポート使用中チェック**で行うこと: 起動前に `Get-NetTCPConnection -LocalPort <port> -State Listen` が存在すれば「既に起動中」とみなし、 `[INFO] Server already running on port <port>. Opening browser…` としてブラウザを開くだけに留める (新規 server を起動しない)。 Start-Transcript ロック (旧 FR-110 / ADR-112) は使わない |
 | FR-1105 | Ubiquitous | strictdoc の解決は `Resolve-StrictDocExecutable` で絶対パス化すること。 未導入なら `[ERROR] strictdoc not found. Run setup-strictdoc.bat first.` で abort |
+| FR-1106 | Ubiquitous | **起動コマンドに `--watch` を付けること** (strictdoc 0.27.1 で確認)。 ランチャの目的は「編集して見る」ことであり、 **ディスク上の変更にブラウザが追従しなければならない**。 付けない場合、 VS Code 等で `.sdoc` を直しても手動リロードまで反映されない。 **StrictDoc の Web UI 内での編集は `--watch` 無しでも反映される**ため、 この差は見落とされやすい。 **どちらの経路でもサーバを止める必要は無い。** |
 
 ### 6.3 server stop / status (FR-1110 系) — FR-401..411 / FR-501..509 を supersede
 

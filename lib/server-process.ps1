@@ -177,7 +177,12 @@ function Start-StrictDocCliWindow {
         [Parameter(Mandatory)] [int]$Port,
         [string]$OutputPath = ''
     )
-    $argList = @('server', (Quote-ArgIfNeeded $ProjectPath), '--host', $BindHost, '--port', $Port.ToString())
+    # FR-1106: --watch. The launcher exists so that people edit and look, so the
+    # browser has to follow edits made on disk. Without it, a change in VS Code
+    # shows up only after a manual reload; editing inside the StrictDoc web UI
+    # already refreshes on its own, which made the difference easy to miss.
+    # Neither case needs the server stopped -- the window stays up either way.
+    $argList = @('server', (Quote-ArgIfNeeded $ProjectPath), '--host', $BindHost, '--port', $Port.ToString(), '--watch')
     if (-not [string]::IsNullOrWhiteSpace($OutputPath)) {
         $argList += @('--output-path', (Quote-ArgIfNeeded $OutputPath))
     }

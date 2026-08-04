@@ -12,7 +12,12 @@
 # `RELATIONS: TYPE: File` render as a link. Without both, a File relation is
 # parsed and exported to JSON but silently produces no link in the HTML.
 #
-# StrictDoc parses EVERY .md under the project as a document, wherever it sits.
+# StrictDoc parses EVERY .md under the project as a document, wherever it sits --
+# including inside _assets. Being an asset directory grants no exemption:
+# document_finder.py runs two independent scans over the same root, one looking
+# for directories named "_assets" and one looking for files with document
+# extensions, and the second ignores only the output directory. (Measured, and
+# read in the 0.27.1 source.)
 # For _assets/*.md that is what we want: each of those files is one diagram plus
 # the prose that explains it, and being a document is what makes the ```mermaid
 # fence render. They are NOT excluded.
