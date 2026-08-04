@@ -45,7 +45,7 @@ function Format-PlanRow {
     # max name length once and align every row to it.
     [CmdletBinding()]
     param(
-        # BLOCKED (FR-341): the step cannot run and the reason is something the
+        # BLOCKED (FR-343a): the step cannot run and the reason is something the
         # user has to clear first. Distinct from SKIP, which means "nothing to
         # do", and from INSTALL, which means "this will happen if you say yes".
         [Parameter(Mandatory)] [ValidateSet("INSTALL","SKIP","BLOCKED")] [string]$Action,
@@ -179,7 +179,7 @@ function Build-AutoPlan {
             $sdRow = Format-PlanRow -Action SKIP -Name "strictdoc" `
                 -Reason "already installed: $sdVer (matches strictdoc.version='$sdSpec')"
         } elseif (-not $sdVer) {
-            # FR-341: strictdoc.exe on PATH with no package behind it. An
+            # FR-343a: strictdoc.exe on PATH with no package behind it. An
             # upgrade that died on a locked file leaves exactly this, and the
             # row used to read "installed:  - ..." with an empty version.
             $sdRow = Format-PlanRow -Action INSTALL -Name "strictdoc" `
@@ -195,7 +195,7 @@ function Build-AutoPlan {
         $sdRow = Format-PlanRow -Action INSTALL -Name "strictdoc" -Reason "required (pip install $sdTarget)"
     }
 
-    # FR-341: a running strictdoc server holds <python>\Scripts\strictdoc.exe
+    # FR-343a: a running strictdoc server holds <python>\Scripts\strictdoc.exe
     # open, and pip fails on it only AFTER deleting the old package. Say so in
     # the plan, where the user can still act on it, rather than letting them
     # type 'yes' into a broken install. Only rows that would call pip are
@@ -452,6 +452,24 @@ function Invoke-Auto {
     $plan = Build-AutoPlan -PythonVersion $PythonVersion -Config $config
     Show-AutoPlan -Plan $plan
 
+    # FR-345a: a [BLOCKED] row is easy to miss in a plan that is otherwise all
+    # [SKIP], and the prompt right below it says "Type 'yes' to install", which
+    # reads as though everything listed will be attempted. Say plainly what
+    # will not run, before the question is asked. The rest of the plan is
+    # still worth running, so this warns rather than aborts.
+    $blockedSteps = @(
+        foreach ($phase in $plan.Values) {
+            foreach ($step in $phase.Steps) {
+                if ($step.Action -eq "BLOCKED") { $step }
+            }
+        }
+    )
+    if ($blockedSteps.Count -gt 0) {
+        Write-Host ""
+        Write-OnboardWarn "$($blockedSteps.Count) step(s) above are [BLOCKED] and will NOT run: $(($blockedSteps | ForEach-Object { $_.Name }) -join ', ')"
+        Write-OnboardInfo "Clear what the row names, then run this again. Answering 'yes' still runs everything else."
+    }
+
     # 3. Single yes confirmation (FR-804). FR-209: on non-yes input, show
     # the actionable abort guidance (config path + re-run command) via the
     # shared Show-AbortGuidance helper.
@@ -477,6 +495,12 @@ function Invoke-Auto {
     $summary["Phase D"] = Invoke-PhaseD -Config $config
     $summary["Phase E"] = Invoke-PhaseE -Config $config
 
+    # FR-345a: a phase that refused to start because the user has to close
+    # something is not a failure -- nothing ran and nothing changed. Reporting
+    # it as FAILED sent people looking for damage that does not exist.
+    $blockedPhases = @()
+    if ($script:StrictDocBlockedByRunningProcess) { $blockedPhases += "Phase C" }
+
     # 5. Final summary (FR-504)
     Write-OnboardStep "Summary"
     foreach ($k in $summary.Keys) {
@@ -485,18 +509,27 @@ function Invoke-Auto {
             Write-Host "  $($k.PadRight(8)) : SKIP (not implemented)"
         } elseif ($v) {
             Write-Host "  $($k.PadRight(8)) : OK"
+        } elseif ($blockedPhases -contains $k) {
+            Write-Host "  $($k.PadRight(8)) : BLOCKED (nothing was changed)"
         } else {
             Write-Host "  $($k.PadRight(8)) : FAILED"
         }
     }
 
-    # Overall result
-    $hasFail = $false
-    foreach ($v in $summary.Values) {
-        if ($v -eq $false) { $hasFail = $true }
-    }
-    if ($hasFail) {
+    # Overall result. A blocked phase still leaves the run incomplete, so the
+    # exit code stays non-zero -- a required tool was not installed, and the
+    # test runner and any wrapper script must keep seeing that. Only the
+    # wording changes.
+    $failed  = @($summary.Keys | Where-Object { $summary[$_] -eq $false -and $blockedPhases -notcontains $_ })
+    $blocked = @($summary.Keys | Where-Object { $summary[$_] -eq $false -and $blockedPhases -contains $_ })
+
+    if ($failed.Count -gt 0) {
         Write-OnboardWarn "Some phases failed. See log for details: setup.log"
+        return $false
+    }
+    if ($blocked.Count -gt 0) {
+        Write-OnboardWarn "Stopped early: $($blocked -join ', ') blocked. Nothing has been changed."
+        Write-OnboardInfo "Clear what the message above names, then run setup-strictdoc.bat again."
         return $false
     }
     Write-OnboardOk "Auto setup completed."

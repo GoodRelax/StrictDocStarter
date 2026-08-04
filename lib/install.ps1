@@ -421,7 +421,7 @@ function Test-StrictDocInstalled {
 }
 
 function Get-StrictDocServerProcess {
-    # FR-341: live 'strictdoc' processes, which are what make a pip upgrade fail.
+    # FR-343a: live 'strictdoc' processes, which are what make a pip upgrade fail.
     #
     # launch-strictdoc.bat starts the server by running strictdoc.exe directly
     # (lib/server-process.ps1 FR-1101), so an open server window holds a handle
@@ -436,15 +436,25 @@ function Get-StrictDocServerProcess {
     return @(Get-Process -Name strictdoc -ErrorAction SilentlyContinue)
 }
 
+# FR-345a: set when Phase C stopped because something had to be closed first,
+# so the summary can say BLOCKED instead of FAILED. Nothing was attempted and
+# nothing is broken -- calling that a failure sends people looking for damage
+# that is not there.
+$script:StrictDocBlockedByRunningProcess = $false
+
 function Confirm-StrictDocNotRunning {
-    # FR-341: $true when it is safe to let pip touch the strictdoc files.
+    # FR-343a: $true when it is safe to let pip touch the strictdoc files.
     # Prints what has to be closed when it is not.
     # @(...) at the call site: `return @($x)` unwraps a one-element array back
     # to a scalar, and .Count on a scalar is not dependable across object
     # types. One running server is the common case, so this must not be
     # left to that shim.
     $procs = @(Get-StrictDocServerProcess)
-    if ($procs.Count -eq 0) { return $true }
+    if ($procs.Count -eq 0) {
+        $script:StrictDocBlockedByRunningProcess = $false
+        return $true
+    }
+    $script:StrictDocBlockedByRunningProcess = $true
 
     Write-OnboardError "$($procs.Count) strictdoc process(es) are running. pip cannot replace a file that is open."
     foreach ($p in $procs) {
@@ -457,7 +467,7 @@ function Confirm-StrictDocNotRunning {
 }
 
 function Show-StrictDocLockedRecovery {
-    # FR-341: what to do after pip has already failed on a locked file. The
+    # FR-343a: what to do after pip has already failed on a locked file. The
     # plain "pip install strictdoc==<old>" hint is not enough here -- it fails
     # the same way while the file is still open, and pip leaves a renamed
     # '~trictdoc' folder that makes every later pip call print
@@ -567,7 +577,7 @@ function Invoke-StrictDocPip {
 
     Write-OnboardInfo ("pip " + (($pipArgs | Select-Object -Skip 2) -join " ") + " ... (may take a few minutes)")
 
-    # FR-341: remember whether pip failed on a locked file, so the caller can
+    # FR-343a: remember whether pip failed on a locked file, so the caller can
     # print the recovery steps instead of the generic "reinstall the old
     # version" hint, which fails the same way while the file is still open.
     # [WinError 32] is the reliable token: the sentence around it is localised
@@ -643,7 +653,7 @@ function Install-StrictDoc {
             return $true
         }
 
-        # FR-341: refuse before pip runs, not after. An open server window makes
+        # FR-343a: refuse before pip runs, not after. An open server window makes
         # pip fail halfway through -- old package already deleted, new one not
         # written -- so the cost of finding out the hard way is a broken
         # installation, while the check costs one local process enumeration.
@@ -703,7 +713,7 @@ function Install-StrictDoc {
     # FR-311 / ADR-011: do NOT return early on non-zero exit -- pip emits
     # "ERROR: ..." text to stderr in many benign cases. Capture the exit
     # code, then use FR-312 / ADR-013 two-stage verification.
-    # FR-341: same guard as the reconcile branch. Reaching here normally means
+    # FR-343a: same guard as the reconcile branch. Reaching here normally means
     # nothing is installed, so nothing can be locked -- but a strictdoc left
     # running from another Python would still make pip fail on the shared
     # console-script name, and refusing early costs one process enumeration.
@@ -922,7 +932,7 @@ function Invoke-Upgrade {
         return $false
     }
 
-    # FR-341: say so before the summary and the 'yes' prompt, not after pip has
+    # FR-343a: say so before the summary and the 'yes' prompt, not after pip has
     # already half-removed the package. This is the interactive path, so the
     # user is at the keyboard and can close the window and come straight back.
     if (-not (Confirm-StrictDocNotRunning)) { return $false }
@@ -986,7 +996,7 @@ function Invoke-Upgrade {
         }
     }
 
-    # FR-341: check again. The first check ran before the summary, and a server
+    # FR-343a: check again. The first check ran before the summary, and a server
     # can be started while the user reads it and answers the prompt.
     if (-not (Confirm-StrictDocNotRunning)) { return $false }
 

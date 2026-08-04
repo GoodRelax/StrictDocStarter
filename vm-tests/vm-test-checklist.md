@@ -32,7 +32,7 @@
 8. **手動 SC-015 (FR-209 abort)** の確認: 別途 `setup-strictdoc.bat` ダブルクリック → UAC → plan 表示 → **`no`** 入力 → `[WARN] Aborted -` 3 行 + `Config:` 行が表示されることを目視確認 → Enter
 9. **手動 SC-016 (upgrade)** を実施 — 自動テストが見られない対話部分
 10. **手動 SC-017 (サンプル目視)** を実施 — ランチャ経由で 3 サンプルを開く
-11. **手動 SC-018 (サーバ実行中の pip 保護)** を実施 — FR-341。 ホスト機で実際に壊れた経路
+11. **手動 SC-018 (サーバ実行中の pip 保護)** を実施 — FR-343a。 ホスト機で実際に壊れた経路
 12. **`vm-tests\gather-test-logs.bat`** ダブルクリック → エクスプローラ選択状態の ZIP を Ctrl+C → ホストの `TestResult/` に Ctrl+V
 
 ### 期待結果
@@ -222,7 +222,7 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 > その役目 (写して始める最小の文書) を引き継いでいる。 **フォルダが残っていたら
 > ZIP の作り直し漏れである。**
 
-## SC-018: 手動 - サーバ実行中の pip 保護 (FR-341 / FR-341a)
+## SC-018: 手動 - サーバ実行中の pip 保護 (FR-343a / FR-344a)
 
 **自動化していない。** サーバ窓を開いた状態を作る必要があるため。 **T1 完了後に実施する。**
 
@@ -235,13 +235,14 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 |:-:|---|---|
 | **A** | `samples\sdoc-patterns` を `launch-strictdoc.bat` にドラッグしてサーバを立てる。 **窓は開いたまま**にする | ブラウザが開く |
 | **B** | その状態で `setup-strictdoc.bat dryrun` | Phase C 行が **`[BLOCKED] strictdoc  <n> strictdoc process(es) running (PID ...) - close the StrictDoc server window(s) first; ...`**。 **PID が実際の値であること** |
-| **C** | 続けて `setup-strictdoc.bat` → プランで `[BLOCKED]` を確認 → **`yes`** | Phase C が **pip を呼ばずに** 中止。 `[ERROR] <n> strictdoc process(es) are running.` + PID 一覧 + `Nothing has been changed.`。 **`strictdoc --version` が変わらないこと** |
+| **C** | 続けて `setup-strictdoc.bat` | **`yes` プロンプトの前に** `[WARN] 1 step(s) above are [BLOCKED] and will NOT run: strictdoc` が出ること (FR-345a) |
+| **C2** | そのまま **`yes`** | Phase C が **pip を呼ばずに** 中止。 `[ERROR] <n> strictdoc process(es) are running.` + PID 一覧 + `Nothing has been changed.`。 **サマリが `Phase C  : BLOCKED (nothing was changed)`** であり **`FAILED` ではないこと**。 結びが `Stopped early: Phase C blocked.`。 **`strictdoc --version` が変わらないこと** |
 | **D** | `setup-strictdoc.bat upgrade` | 同様に **`yes` プロンプトへ進む前に**中止すること |
 | **E** | サーバ窓を閉じて `setup-strictdoc.bat dryrun` | Phase C が通常の `[INSTALL]` / `[SKIP]` に戻ること |
 
-> **C で pip が走ってしまったら FR-341 違反。** ログに `pip install` の行が出ていないことを確認する。
+> **C で pip が走ってしまったら FR-343a 違反。** ログに `pip install` の行が出ていないことを確認する。
 
-> **半壊状態 (FR-341a) の確認は任意。** 作るには pip を故意に中断させる必要があるため、
+> **半壊状態 (FR-344a) の確認は任意。** 作るには pip を故意に中断させる必要があるため、
 > 通常は C までで足りる。 作った場合の期待は Phase C 行が
 > `on PATH but not runnable (interrupted upgrade?) - will reinstall`。
 
