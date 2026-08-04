@@ -25,7 +25,39 @@ Mermaid は `.. raw:: html` の中に `<pre class="mermaid">` で書く。 `MERM
 
 同じ図のソースは `_assets/overview.mmd` にも置いてあり、 `01-requirements.sdoc` の
 PAT-001 が `RELATIONS: TYPE: File` でそれを指している。 Web UI では要求から
-そのファイルのページへリンクが張られる。
+そのファイルのページへリンクが張られる。 PAT-003 も同じ形で
+`_assets/design-note.md` を指している。
+
+図 1 枚を `.md` 1 ファイルに外出しする形が、 **実運用では一番使われる。**
+`_assets/flow-convert.md` がその例である。 中身は H1・説明の文・mermaid の
+コードフェンスの 3 つだけで、 **StrictDoc はこれを 1 個の文書として公開する。**
+文書だからこそフェンスが図として描画される。
+
+`.sdoc` 側からは `RELATIONS: TYPE: File` で指す。 PAT-001 がそうしている。
+**リンクは 2 本張られる** — 描画された文書と、 生ソースのページ。 読み手は前者を
+辿れば図に着く。
+
+::
+
+    RELATIONS:
+    - TYPE: File
+      VALUE: _assets/flow-convert.md
+
+**代償として、 プロジェクト内の `.md` は全部 StrictDoc が解析する。**
+読めない `.md` が 1 つあると **export 全体が失敗する** (H1 で始まらない、
+UTF-8 でない、 等)。 文書にできない `.md` は `exclude_doc_paths` で名指しする。
+本サンプルでは `queries/README.md` がそれにあたる。
+
+**除外はファイル単位で書くこと。 フォルダごと除外してはならない。**
+
+::
+
+    exclude_doc_paths=["_assets/notes.md"]   # OK。 その 1 ファイルだけ文書にしない
+    exclude_doc_paths=["_assets/**"]         # 駄目。 画像も一緒に消える
+
+`_assets/**` と書くとフォルダが走査から外れ、 **アセット置き場として認識されなく
+なるため画像がコピーされない。** それでも export は成功と報告し、 出来上がった
+HTML の `<img>` だけが 404 になる。 気づきにくい。
 
 数式は `MATHJAX` (`MERMAID` と同じ扱い) で書ける。
 
@@ -33,8 +65,23 @@ PAT-001 が `RELATIONS: TYPE: File` でそれを指している。 Web UI では
 
     t_{\mathrm{total}} = t_{\mathrm{read}} + t_{\mathrm{convert}} + t_{\mathrm{write}}
 
-画像は `_assets/` に置き、 `.. image:: _assets/foo.svg` で埋め込む。
-本サンプルは画像ファイルを同梱していない。
+画像は `_assets/` に置き、 `.. image::` で埋め込む。 このフォルダは StrictDoc が
+自動でコピーするので、 **埋め込むだけなら設定ファイルに何も足さなくてよい。**
+
+**SVG は拡大しても崩れないので、 図はこちらを既定にする。**
+
+.. image:: _assets/pipeline.svg
+   :alt: input file -> format check (PAT-002) -> convert (PAT-001) -> output file (PAT-003), with stop branches
+   :width: 760px
+
+**同じ図の PNG 版。** SVG を扱えない相手 (古いビューア、 一部の Office 貼り付け) 向けに
+併置してある。 図の版が 2 つに増えるので、 **どちらが編集元かをファイル自身に書いておく。**
+
+.. image:: _assets/pipeline.png
+   :alt: the same flow as a raster image
+   :width: 760px
+
+`.md` から埋め込む形は `04-markdown-form.md` にある (`![alt](_assets/pipeline.png)`)。
 
 図を別ファイルに置いたまま**要求文書の中に出したい**なら、 本書のように隣に並べる
 のではなく `[DOCUMENT_FROM_FILE]` で取り込む。 取り込まれた側は独立した文書として

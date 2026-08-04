@@ -95,12 +95,21 @@ first(.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? == "PAT-003"))
   "STATUS": "Revised",
   "TITLE": "出力先の上書き禁止",
   "STATEMENT": "本ツールは、 出力先に既存のファイルがある場合、 上書きせずに終了すること。\n",
-  "REVISION": "v1.0: レビュー指摘 FND-001 を受け、 「上書きしてもよい」から\n「上書きせずに終了する」へ変更した。\n",
+  "REVISION": "v1.0: レビュー指摘 FND-001 を受け、 「上書きしてもよい」から\n「上書きせずに終了する」へ変更した。 判断の根拠は `_assets/design-note.md`。\n",
   "RELATIONS": [
-    { "TYPE": "Parent", "VALUE": "PAT-001" }
+    {
+      "TYPE": "Parent",
+      "VALUE": "PAT-001"
+    },
+    {
+      "TYPE": "File",
+      "VALUE": "_assets/design-note.md"
+    }
   ]
 }
 ```
+
+> `RELATIONS` に `TYPE: File` が並んでいる。**`Parent` と同じ配列に入る**ので、親だけが欲しいなら `select(.TYPE=="Parent")` で絞る（Q4 / Q5 はそうしている）。
 
 > `first(...)` は最初の 1 件で探索を打ち切る。`del(.NODES)` は複合ノードの子を落とすためで、要求ノードには効かないが章にも同じフィルタを使えるようにしてある。
 

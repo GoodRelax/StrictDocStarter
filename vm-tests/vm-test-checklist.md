@@ -210,7 +210,7 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 
 | # | 操作 | 期待 |
 |:-:|---|---|
-| **A** | `samples\sdoc-patterns` を `launch-strictdoc.bat` にドラッグ | ブラウザに **5 文書**。 **DEPRECATION 警告が出ないこと**。 `01-requirements` の PAT-001 から `_assets/overview.mmd` へのリンク、 `03-figures` で Mermaid と数式が描画、 `04-markdown-form` が `.md` のまま文書として並び **末尾の MD-003 に Mermaid 図が描画**、 `05-outputs` が並ぶ。 **`queries/README.md` が文書として現れないこと** (`exclude_doc_paths`) |
+| **A** | `samples\sdoc-patterns` を `launch-strictdoc.bat` にドラッグ | ブラウザに **8 文書** (`_assets/` の `.md` 2 件を含む)。 **DEPRECATION 警告が出ないこと**。 `00-hello` が先頭に並ぶ。 `01-requirements` の PAT-001 から `_assets/overview.mmd`・PAT-003 から `_assets/design-note.md` へのリンクが張られる。 `03-figures` で Mermaid・数式・**SVG と PNG の画像 2 枚が実際に表示される** (枠だけ・壊れ画像アイコンなら NG)。 **`_assets/flow-convert.md` が 1 個の文書として並び、 その中の Mermaid が図として描画される。** PAT-001 の File 関係からその文書へクリックで飛べること。 `04-markdown-form` が `.md` のまま並び **末尾の MD-003 に Mermaid 図と PNG が描画**。 `05-outputs` が並ぶ。 **`queries/README.md` と `_assets/design-note.md` が文書として現れないこと** (`exclude_doc_paths`) |
 | **B** | `samples\sovd-automotive-ja` をドラッグ | **DEPRECATION 警告が出ないこと**。 13 文書が従来どおり描画され、 Mermaid 図と数式も従来どおり出ること |
 | **C** | `samples\sovd-automotive-en` をドラッグ | 同上 (英語版) |
 

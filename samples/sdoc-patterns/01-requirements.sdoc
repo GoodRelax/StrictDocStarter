@@ -34,6 +34,8 @@ RATIONALE: >>>
 RELATIONS:
 - TYPE: File
   VALUE: _assets/overview.mmd
+- TYPE: File
+  VALUE: _assets/flow-convert.md
 
 [[/SECTION]]
 
@@ -61,10 +63,12 @@ STATEMENT: >>>
 <<<
 REVISION: >>>
 v1.0: レビュー指摘 FND-001 を受け、 「上書きしてもよい」から
-「上書きせずに終了する」へ変更した。
+「上書きせずに終了する」へ変更した。 判断の根拠は `_assets/design-note.md`。
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: PAT-001
+- TYPE: File
+  VALUE: _assets/design-note.md
 
 [[/SECTION]]

@@ -12,10 +12,22 @@
 # `RELATIONS: TYPE: File` render as a link. Without both, a File relation is
 # parsed and exported to JSON but silently produces no link in the HTML.
 #
-# exclude_doc_paths keeps queries/README.md out of the document tree. StrictDoc
-# treats EVERY .md under the project as a document, wherever it sits -- a plain
-# README dropped into a subfolder becomes a document with its own table and
-# traceability screens unless it is excluded here.
+# StrictDoc parses EVERY .md under the project as a document, wherever it sits.
+# For _assets/*.md that is what we want: each of those files is one diagram plus
+# the prose that explains it, and being a document is what makes the ```mermaid
+# fence render. They are NOT excluded.
+#
+# The flip side is that every .md has to be readable as a StrictDoc document
+# (an H1 first, UTF-8). One that is not fails the WHOLE export, so a note or a
+# vendored copy that cannot be reshaped has to be named here. queries/README.md
+# is excluded for the milder reason that it documents the filters rather than
+# the product.
+#
+# Exclude by file, never by folder. "_assets/**" would take the directory out
+# of the scan entirely: "Find asset directories" stops seeing it and
+# pipeline.png / pipeline.svg are never copied, so every <img> in the built
+# HTML 404s while the export still reports success. "_assets/*.md" keeps the
+# folder an asset directory. (Both behaviours verified on 0.27.1.)
 from strictdoc.core.project_config import ProjectConfig
 
 

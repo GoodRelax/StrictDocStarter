@@ -47,3 +47,7 @@ flowchart LR
   CLI --> CORE[conversion core]
   CORE --> OUT[output file]
 ```
+
+画像は `![alt](path)` で埋め込む。 `.sdoc` 側の `.. image::` と同じファイルを指せる。
+
+![input file から output file までの流れと停止条件](_assets/pipeline.png)
