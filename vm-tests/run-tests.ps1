@@ -2,7 +2,7 @@
 # Drives 'setup-strictdoc.ps1' through 11 scenarios (5 positive + 2 negative +
 # 1 dryrun-assert + 3 phase-coverage) and reports PASS / FAIL per scenario.
 #
-# Spec refs: §2.1.10 FR-1000 series, §5 Test Strategy
+# Spec refs: section 2.1.10 FR-1000 series, section 5 Test Strategy
 #
 # Output language: English ASCII only (per ADR-008).
 
@@ -243,7 +243,7 @@ function Invoke-OnboardSubprocess {
     # (e.g., parse error), the captured output here is the only evidence --
     # so we save it to a side log.
     #
-    # §5.4: 5-minute timeout via Start-Job + Wait-Job -Timeout. If exceeded,
+    # section 5.4: 5-minute timeout via Start-Job + Wait-Job -Timeout. If exceeded,
     # the job is stopped and the test FAILs with a timeout marker. Note:
     # grandchild processes (winget -> msiexec etc.) are NOT killed -- the
     # user may need to clean them up manually if a real hang occurs.
@@ -438,7 +438,7 @@ function Test-ExtensionsOnly {
 function Test-Mixed {
     # FR-1001 strict independence: Mixed uses Obsidian (winget) + MS-CEINTL
     # language pack (extension), neither of which is touched by any other
-    # scenario. See spec §5.3 uninstall matrix.
+    # scenario. See spec section 5.3 uninstall matrix.
     if (-not $script:DryRun) {
         Assert-UninstallUsable (Uninstall-WingetTool "Obsidian.Obsidian") "Obsidian.Obsidian"
         Uninstall-VSCodeExtension "MS-CEINTL.vscode-language-pack-ja"

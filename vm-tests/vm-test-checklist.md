@@ -8,10 +8,10 @@
 
 ## T0: クリーン VM での通しテスト (推奨、一発)
 
-**所要 80〜110 分、手動操作は ZIP 展開 + ダブルクリック 3 回 + 手動 SC-015 / SC-016 / SC-017 (30 分)。**
+**所要 80〜110 分、手動操作は ZIP 展開 + ダブルクリック 3 回 + 手動 SC-015 / SC-016 / SC-017 / SC-018 (35 分)。**
 
 > **今回の重点は SC-016 (upgrade)。** シナリオ 8 と SC-016 が新規で、 それ以外は回帰確認。
-> **時間が無いなら T0 のステップ 3 → 4 → 5 → 7 → 11 だけでも成立する。**
+> **時間が無いなら T0 のステップ 3 → 4 → 5 → 7 → 12 だけでも成立する。**
 > ステップ 3 と 5 (`check` の 2 回) は省かない — **どの版で試験したのかが残らないと、 結果を後から読めない。**
 
 ### 手順
@@ -32,13 +32,14 @@
 8. **手動 SC-015 (FR-209 abort)** の確認: 別途 `setup-strictdoc.bat` ダブルクリック → UAC → plan 表示 → **`no`** 入力 → `[WARN] Aborted -` 3 行 + `Config:` 行が表示されることを目視確認 → Enter
 9. **手動 SC-016 (upgrade)** を実施 — 自動テストが見られない対話部分
 10. **手動 SC-017 (サンプル目視)** を実施 — ランチャ経由で 3 サンプルを開く
-11. **`vm-tests\gather-test-logs.bat`** ダブルクリック → エクスプローラ選択状態の ZIP を Ctrl+C → ホストの `TestResult/` に Ctrl+V
+11. **手動 SC-018 (サーバ実行中の pip 保護)** を実施 — FR-341。 ホスト機で実際に壊れた経路
+12. **`vm-tests\gather-test-logs.bat`** ダブルクリック → エクスプローラ選択状態の ZIP を Ctrl+C → ホストの `TestResult/` に Ctrl+V
 
 ### 期待結果
 
 - ステップ 3: `strictdoc: NOT FOUND` + `existing_tools` が空 (= スナップショットがクリーン)
 - ステップ 4: Phase A〜E 全 OK、 Phase D は SKIP (URL 空既定)
-- ステップ 5: `strictdoc: <版> (README records 0.23.1)` — **この版を記録する。以降の基準**
+- ステップ 5: `strictdoc: <版> (README records 0.27.1)` — **この版を記録する。以降の基準**
 - ステップ 6: dryrun 完走、 plan に `[REQUIRED]` / `[OPTIONAL]` / `[SKIP]` / `[INSTALL]` タグ表示
 - ステップ 7: **PASS / FAIL / SKIP の 3 状態で集計される**。 `NegativeAbort` は常に SKIP (手動 SC-015 に委ねるため)。
   **user scope で入っているツール (jq / ripgrep / Obsidian) の uninstall シナリオも SKIP になる** —
@@ -49,7 +50,8 @@
 - ステップ 8: abort guidance 3 行が表示される
 - ステップ 9: SC-016 の A〜I が全て期待どおり (**特に G と H — `no` で変わらず、 `yes` で最新版になること**)
 - ステップ 10: SC-017 で **3 サンプルとも DEPRECATION 警告が出ず**、 図と数式が描画される
-- ステップ 11: `StrictDocStarter-test-result-*.zip` に per-scenario log (11 件) + final setup.log + diagnostics.txt
+- ステップ 11: SC-018 で **サーバ窓が開いている間は Phase C が `[BLOCKED]`** になり、 pip が一切呼ばれない
+- ステップ 12: `StrictDocStarter-test-result-*.zip` に per-scenario log (11 件) + final setup.log + diagnostics.txt
 
 ---
 
@@ -220,6 +222,31 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 > その役目 (写して始める最小の文書) を引き継いでいる。 **フォルダが残っていたら
 > ZIP の作り直し漏れである。**
 
+## SC-018: 手動 - サーバ実行中の pip 保護 (FR-341 / FR-341a)
+
+**自動化していない。** サーバ窓を開いた状態を作る必要があるため。 **T1 完了後に実施する。**
+
+> **背景:** ホスト機で実際に壊れた。 `launch-strictdoc.bat` で開いたサーバ窓が
+> `strictdoc.exe` を掴んだまま `setup-strictdoc.bat` を実行し、 pip が
+> `[WinError 32]` で失敗。 **旧パッケージを消し終えた後に失敗したため、
+> `strictdoc.exe` だけが残り `ModuleNotFoundError` になった。**
+
+| # | 操作 | 期待 |
+|:-:|---|---|
+| **A** | `samples\sdoc-patterns` を `launch-strictdoc.bat` にドラッグしてサーバを立てる。 **窓は開いたまま**にする | ブラウザが開く |
+| **B** | その状態で `setup-strictdoc.bat dryrun` | Phase C 行が **`[BLOCKED] strictdoc  <n> strictdoc process(es) running (PID ...) - close the StrictDoc server window(s) first; ...`**。 **PID が実際の値であること** |
+| **C** | 続けて `setup-strictdoc.bat` → プランで `[BLOCKED]` を確認 → **`yes`** | Phase C が **pip を呼ばずに** 中止。 `[ERROR] <n> strictdoc process(es) are running.` + PID 一覧 + `Nothing has been changed.`。 **`strictdoc --version` が変わらないこと** |
+| **D** | `setup-strictdoc.bat upgrade` | 同様に **`yes` プロンプトへ進む前に**中止すること |
+| **E** | サーバ窓を閉じて `setup-strictdoc.bat dryrun` | Phase C が通常の `[INSTALL]` / `[SKIP]` に戻ること |
+
+> **C で pip が走ってしまったら FR-341 違反。** ログに `pip install` の行が出ていないことを確認する。
+
+> **半壊状態 (FR-341a) の確認は任意。** 作るには pip を故意に中断させる必要があるため、
+> 通常は C までで足りる。 作った場合の期待は Phase C 行が
+> `on PATH but not runnable (interrupted upgrade?) - will reinstall`。
+
+---
+
 ## ログ回収
 
 `vm-tests\gather-test-logs.bat` ダブルクリック → `%TEMP%\StrictDocStarter-test-result-*.zip` 生成 → エクスプローラで select 状態 → Ctrl+C → ホストへ Ctrl+V
@@ -234,7 +261,7 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 
 ## 報告いただきたい内容
 
-各テスト (T1 / 11 シナリオ / SC-015 / SC-016 / SC-017) について:
+各テスト (T1 / 11 シナリオ / SC-015 / SC-016 / SC-017 / SC-018) について:
 - [ ] 期待通り動作したか (OK / NG)
 - [ ] NG なら: 実際の出力と推定原因
 - [ ] 所要時間 (NFR-008 で REAL モード合計 60 分以内が目標)

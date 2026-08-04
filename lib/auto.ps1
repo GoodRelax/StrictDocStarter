@@ -45,7 +45,10 @@ function Format-PlanRow {
     # max name length once and align every row to it.
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)] [ValidateSet("INSTALL","SKIP")] [string]$Action,
+        # BLOCKED (FR-341): the step cannot run and the reason is something the
+        # user has to clear first. Distinct from SKIP, which means "nothing to
+        # do", and from INSTALL, which means "this will happen if you say yes".
+        [Parameter(Mandatory)] [ValidateSet("INSTALL","SKIP","BLOCKED")] [string]$Action,
         [Parameter(Mandatory)] [string]$Name,
         [Parameter(Mandatory)] [string]$Reason
     )
@@ -155,8 +158,9 @@ function Build-AutoPlan {
     # on the not-installed branch would hide the typo from exactly the people
     # most likely to have set it: those with a working install who edited the
     # config to pin a version.
+    $sdRow = $null
     if (-not $sdTarget) {
-        $plan.PhaseC.Steps += Format-PlanRow -Action SKIP -Name "strictdoc" `
+        $sdRow = Format-PlanRow -Action SKIP -Name "strictdoc" `
             -Reason "INVALID strictdoc.version '$sdSpec' in setup.config.json - Phase C will stop"
     } elseif (Test-StrictDocInstalled) {
         # FR-335: Phase C reconciles the installed version with the config, so
@@ -172,18 +176,40 @@ function Build-AutoPlan {
         elseif ($sdSpec -match '^\d')     { $sdPin = $sdSpec }
 
         if ($sdPin -and $sdVer -eq $sdPin) {
-            $plan.PhaseC.Steps += Format-PlanRow -Action SKIP -Name "strictdoc" `
+            $sdRow = Format-PlanRow -Action SKIP -Name "strictdoc" `
                 -Reason "already installed: $sdVer (matches strictdoc.version='$sdSpec')"
+        } elseif (-not $sdVer) {
+            # FR-341: strictdoc.exe on PATH with no package behind it. An
+            # upgrade that died on a locked file leaves exactly this, and the
+            # row used to read "installed:  - ..." with an empty version.
+            $sdRow = Format-PlanRow -Action INSTALL -Name "strictdoc" `
+                -Reason "on PATH but not runnable (interrupted upgrade?) - will reinstall (pip install $sdTarget)"
         } elseif ($sdSpec -eq "latest") {
-            $plan.PhaseC.Steps += Format-PlanRow -Action INSTALL -Name "strictdoc" `
+            $sdRow = Format-PlanRow -Action INSTALL -Name "strictdoc" `
                 -Reason "installed: $sdVer - strictdoc.version='latest', will upgrade if a newer release exists"
         } else {
-            $plan.PhaseC.Steps += Format-PlanRow -Action INSTALL -Name "strictdoc" `
+            $sdRow = Format-PlanRow -Action INSTALL -Name "strictdoc" `
                 -Reason "installed: $sdVer - applying strictdoc.version='$sdSpec' (pip install $sdTarget)"
         }
     } else {
-        $plan.PhaseC.Steps += Format-PlanRow -Action INSTALL -Name "strictdoc" -Reason "required (pip install $sdTarget)"
+        $sdRow = Format-PlanRow -Action INSTALL -Name "strictdoc" -Reason "required (pip install $sdTarget)"
     }
+
+    # FR-341: a running strictdoc server holds <python>\Scripts\strictdoc.exe
+    # open, and pip fails on it only AFTER deleting the old package. Say so in
+    # the plan, where the user can still act on it, rather than letting them
+    # type 'yes' into a broken install. Only rows that would call pip are
+    # affected -- a SKIP touches no files.
+    if ($sdRow.Action -eq "INSTALL") {
+        # @(...) at the call site -- see Confirm-StrictDocNotRunning.
+        $sdRunning = @(Get-StrictDocServerProcess)
+        if ($sdRunning.Count -gt 0) {
+            $pids = ($sdRunning | ForEach-Object { $_.Id }) -join ", "
+            $sdRow = Format-PlanRow -Action BLOCKED -Name "strictdoc" `
+                -Reason "$($sdRunning.Count) strictdoc process(es) running (PID $pids) - close the StrictDoc server window(s) first; pip cannot replace a file that is open"
+        }
+    }
+    $plan.PhaseC.Steps += $sdRow
 
     # Phase D: optional (skipped when URL empty / skip_clone=true).
     if ($Config) {

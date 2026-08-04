@@ -106,15 +106,24 @@ first(.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? == "PAT-003"))
 
 ## Q3. 指定のキーワードを含む要求 — `queries/q3-keyword.jq`
 
+**キーワードは `--arg` で渡す。** 同梱ファイルはこの形にしてある（フィルタ本体に検索語を埋め込まないので、どの言語のプロジェクトにも使える）。
+
 ```jq
-.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")
-| select(((.TITLE//"") + (.STATEMENT//"")) | contains("上書き"))
+($ARGS.named.kw // "") as $kw
+| .DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")
+| select(((.TITLE//"") + (.STATEMENT//"")) | contains($kw))
 | .UID + "  " + .TITLE
+```
+
+```powershell
+jq -r --arg kw "上書き" -f samples\sdoc-patterns\queries\q3-keyword.jq out\json\index.json
 ```
 
 ```text
 PAT-003  出力先の上書き禁止
 ```
+
+> 同梱ファイルは `--arg` を付けずに走らせると、エラーではなく使い方の 1 行を返す。
 
 > `RATIONALE` や独自フィールドも見るなら、連結する対象を足す。全フィールドを対象にするなら `[.. | strings] | join(" ")` で潰してもよい。
 

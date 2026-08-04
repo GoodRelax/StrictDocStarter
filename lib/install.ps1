@@ -420,6 +420,65 @@ function Test-StrictDocInstalled {
     return [bool](Get-Command strictdoc -ErrorAction SilentlyContinue)
 }
 
+function Get-StrictDocServerProcess {
+    # FR-341: live 'strictdoc' processes, which are what make a pip upgrade fail.
+    #
+    # launch-strictdoc.bat starts the server by running strictdoc.exe directly
+    # (lib/server-process.ps1 FR-1101), so an open server window holds a handle
+    # on <python>\Scripts\strictdoc.exe. Windows will not let pip replace a file
+    # that is open: pip fails with [WinError 32] -- but only AFTER it has already
+    # removed the old package, leaving strictdoc.exe on PATH with no package
+    # behind it. Checking first is local and instant, and it is the difference
+    # between a clear message and a broken environment.
+    #
+    # Matching on the process name (not the command line) is deliberate: this
+    # must not need WMI/CIM, which setup does not otherwise depend on.
+    return @(Get-Process -Name strictdoc -ErrorAction SilentlyContinue)
+}
+
+function Confirm-StrictDocNotRunning {
+    # FR-341: $true when it is safe to let pip touch the strictdoc files.
+    # Prints what has to be closed when it is not.
+    # @(...) at the call site: `return @($x)` unwraps a one-element array back
+    # to a scalar, and .Count on a scalar is not dependable across object
+    # types. One running server is the common case, so this must not be
+    # left to that shim.
+    $procs = @(Get-StrictDocServerProcess)
+    if ($procs.Count -eq 0) { return $true }
+
+    Write-OnboardError "$($procs.Count) strictdoc process(es) are running. pip cannot replace a file that is open."
+    foreach ($p in $procs) {
+        $started = try { $p.StartTime.ToString('yyyy-MM-dd HH:mm:ss') } catch { 'unknown' }
+        Write-OnboardInfo ("  PID {0}  started {1}" -f $p.Id, $started)
+    }
+    Write-OnboardInfo "Close every StrictDoc server window (the ones launch-strictdoc.bat opened), then run this again."
+    Write-OnboardInfo "Nothing has been changed."
+    return $false
+}
+
+function Show-StrictDocLockedRecovery {
+    # FR-341: what to do after pip has already failed on a locked file. The
+    # plain "pip install strictdoc==<old>" hint is not enough here -- it fails
+    # the same way while the file is still open, and pip leaves a renamed
+    # '~trictdoc' folder that makes every later pip call print
+    # "Ignoring invalid distribution".
+    [CmdletBinding()]
+    param([string]$PreviousVersion)
+
+    Write-OnboardError "pip could not replace strictdoc: a file was in use ([WinError 32])."
+    Write-OnboardWarn  "The installation may now be half-removed. strictdoc.exe can survive while the"
+    Write-OnboardWarn  "  package behind it is gone, so 'strictdoc' then fails with ModuleNotFoundError."
+    Write-OnboardInfo  "To recover:"
+    Write-OnboardInfo  "  1. Close every StrictDoc server window."
+    Write-OnboardInfo  "  2. Delete any leftover '~trictdoc*' folder in site-packages. Find it with:"
+    Write-OnboardInfo  '       python -c "import strictdoc, os" 2>NUL || python -m site --user-site'
+    Write-OnboardInfo  "     (site-packages is also named in the pip error above.)"
+    Write-OnboardInfo  "  3. Re-run setup-strictdoc.bat."
+    if ($PreviousVersion) {
+        Write-OnboardInfo "  To go back to the version that was installed: pip install `"strictdoc==$PreviousVersion`""
+    }
+}
+
 function Get-StrictDocVersionSpec {
     # FR-330: read strictdoc.version from setup.config.json.
     # Returns "latest" for missing/blank so callers never handle $null.
@@ -508,6 +567,13 @@ function Invoke-StrictDocPip {
 
     Write-OnboardInfo ("pip " + (($pipArgs | Select-Object -Skip 2) -join " ") + " ... (may take a few minutes)")
 
+    # FR-341: remember whether pip failed on a locked file, so the caller can
+    # print the recovery steps instead of the generic "reinstall the old
+    # version" hint, which fails the same way while the file is still open.
+    # [WinError 32] is the reliable token: the sentence around it is localised
+    # by Windows and arrives mojibaked in a non-UTF-8 console.
+    $script:StrictDocPipFileLocked = $false
+
     $exit = 1
     $oldEAP = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
@@ -524,6 +590,7 @@ function Invoke-StrictDocPip {
                 [string]$_
             }
             if (-not [string]::IsNullOrWhiteSpace($line)) { Write-Host "  $line" }
+            if ($line -match 'WinError 32') { $script:StrictDocPipFileLocked = $true }
         }
         $exit = $LASTEXITCODE
     } catch {
@@ -576,7 +643,16 @@ function Install-StrictDoc {
             return $true
         }
 
-        if ($spec -eq "latest") {
+        # FR-341: refuse before pip runs, not after. An open server window makes
+        # pip fail halfway through -- old package already deleted, new one not
+        # written -- so the cost of finding out the hard way is a broken
+        # installation, while the check costs one local process enumeration.
+        if (-not (Confirm-StrictDocNotRunning)) { return $false }
+
+        if (-not $ver) {
+            Write-OnboardWarn "strictdoc is on PATH but does not run (an interrupted upgrade leaves it this way)."
+            Write-OnboardInfo "Reinstalling it."
+        } elseif ($spec -eq "latest") {
             Write-OnboardInfo "strictdoc $ver installed; strictdoc.version='latest' - checking for a newer release..."
         } else {
             Write-OnboardInfo "strictdoc $ver installed; strictdoc.version='$spec' - applying it..."
@@ -586,8 +662,12 @@ function Install-StrictDoc {
         $after = if (Test-StrictDocInstalled) { Get-StrictDocVersion } else { $null }
 
         if (-not $ok -or -not $after) {
-            Write-OnboardError "strictdoc is no longer runnable after the attempt (was $ver)."
-            Write-OnboardInfo "Restore with: pip install `"strictdoc==$ver`""
+            if ($script:StrictDocPipFileLocked) {
+                Show-StrictDocLockedRecovery -PreviousVersion $ver
+            } else {
+                Write-OnboardError "strictdoc is no longer runnable after the attempt (was $ver)."
+                if ($ver) { Write-OnboardInfo "Restore with: pip install `"strictdoc==$ver`"" }
+            }
             return $false
         }
         if ($after -eq $ver) {
@@ -623,6 +703,12 @@ function Install-StrictDoc {
     # FR-311 / ADR-011: do NOT return early on non-zero exit -- pip emits
     # "ERROR: ..." text to stderr in many benign cases. Capture the exit
     # code, then use FR-312 / ADR-013 two-stage verification.
+    # FR-341: same guard as the reconcile branch. Reaching here normally means
+    # nothing is installed, so nothing can be locked -- but a strictdoc left
+    # running from another Python would still make pip fail on the shared
+    # console-script name, and refusing early costs one process enumeration.
+    if (-not (Confirm-StrictDocNotRunning)) { return $false }
+
     $pipExit = if (Invoke-StrictDocPip -Python $python -Target $target) { 0 } else { 1 }
 
     Update-PathFromRegistry
@@ -634,6 +720,8 @@ function Install-StrictDoc {
                                 -Version $version
     if ($ok -and $installed) {
         Write-OnboardOk "strictdoc installed: $version"
+    } elseif ($script:StrictDocPipFileLocked) {
+        Show-StrictDocLockedRecovery
     }
     return $ok
 }
@@ -834,6 +922,11 @@ function Invoke-Upgrade {
         return $false
     }
 
+    # FR-341: say so before the summary and the 'yes' prompt, not after pip has
+    # already half-removed the package. This is the interactive path, so the
+    # user is at the keyboard and can close the window and come straight back.
+    if (-not (Confirm-StrictDocNotRunning)) { return $false }
+
     $before = Get-StrictDocVersion
 
     # The spec is optional: 'upgrade' works on a machine that has never had a
@@ -893,6 +986,10 @@ function Invoke-Upgrade {
         }
     }
 
+    # FR-341: check again. The first check ran before the summary, and a server
+    # can be started while the user reads it and answers the prompt.
+    if (-not (Confirm-StrictDocNotRunning)) { return $false }
+
     $pipExit = if (Invoke-StrictDocPip -Python $python -Target $target -Upgrade) { 0 } else { 1 }
 
     # FR-312 / ADR-013: two-stage verification.
@@ -911,6 +1008,10 @@ function Invoke-Upgrade {
                                 -Label "strictdoc" `
                                 -Version $after
     if (-not $ok) {
+        if ($script:StrictDocPipFileLocked) {
+            Show-StrictDocLockedRecovery -PreviousVersion $before
+            return $false
+        }
         Write-OnboardError "Upgrade failed. strictdoc reports: $(if ($after) { $after } else { 'not runnable' })"
         Write-OnboardInfo "To restore the previous version: pip install `"strictdoc==$before`""
         return $false
