@@ -23,25 +23,45 @@ Mermaid は `.. raw:: html` の中に `<pre class="mermaid">` で書く。 `MERM
       CORE --> OUT[output file]
     </pre>
 
-同じ図のソースは `_assets/overview.mmd` にも置いてあり、 `01-requirements.sdoc` の
-PAT-001 が `RELATIONS: TYPE: File` でそれを指している。 Web UI では要求から
-そのファイルのページへリンクが張られる。 PAT-003 も同じ形で
-`_assets/design-note.md` を指している。
+上のように `.sdoc` に直接書く形は、 図が 1 つで小さいうちはこれでよい。
+**図が増えたら 1 枚 1 ファイルで外に出す。** `_assets/flow-convert.md` がその形である。
 
-図 1 枚を `.md` 1 ファイルに外出しする形が、 **実運用では一番使われる。**
-`_assets/flow-convert.md` がその例である。 中身は H1・説明の文・mermaid の
-コードフェンスの 3 つだけで、 **StrictDoc はこれを 1 個の文書として公開する。**
-文書だからこそフェンスが図として描画される。
+::
 
-`.sdoc` 側からは `RELATIONS: TYPE: File` で指す。 PAT-001 がそうしている。
-**リンクは 2 本張られる** — 描画された文書と、 生ソースのページ。 読み手は前者を
-辿れば図に着く。
+    _assets/flow-convert.md
+      # 見出し (H1)              <- 無いと StrictDoc が読めず export 全体が落ちる
+      **UID**: FIG-FLOW-CONVERT  <- リンクされる側の名前
+      説明の文
+      ```mermaid  ...  ```       <- 図
+
+**中身はほぼ普通の Markdown である。** GitHub でも VS Code でもそのまま図が見える。
+足すのは見出し直下の ``**UID**:`` だけで、 これは StrictDoc が節の UID として
+登録し、 **リンクの宛先にするためのものである** (0.27.1 の変更)。
+
+`.sdoc` 側からの指し方は 2 通りあり、 **両方やるとよい。**
+
+**1. 本文の中からリンクタグで飛ばす。** 読み手が文章を追う流れのまま図へ着く。
+`01-requirements.sdoc` の冒頭がこの形である。
+
+::
+
+    [LINK: FIG-FLOW-CONVERT]
+
+**出力先のパスを書かない。** StrictDoc が UID から解決し、 見出しの文言を
+そのままリンク文字列にする。 **`[LINK:]` は `>>>` `<<<` の複数行フィールドの
+中でしか効かない** — 単一行フィールドでは RST もタグも解釈されない。
+
+**2. File 関係で結ぶ。** こちらは要求とファイルの対応が
+トレーサビリティ画面に出る。 PAT-001 がこの形である。
 
 ::
 
     RELATIONS:
     - TYPE: File
       VALUE: _assets/flow-convert.md
+
+**この場合リンクは 2 本張られる** — 描画された文書と、 生ソースのページ。
+読み手は前者を辿れば図に着く。
 
 **代償として、 プロジェクト内の `.md` は全部 StrictDoc が解析する。**
 読めない `.md` が 1 つあると **export 全体が失敗する** (H1 で始まらない、

@@ -95,21 +95,18 @@ first(.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? == "PAT-003"))
   "STATUS": "Revised",
   "TITLE": "出力先の上書き禁止",
   "STATEMENT": "本ツールは、 出力先に既存のファイルがある場合、 上書きせずに終了すること。\n",
-  "REVISION": "v1.0: レビュー指摘 FND-001 を受け、 「上書きしてもよい」から\n「上書きせずに終了する」へ変更した。 判断の根拠は `_assets/design-note.md`。\n",
+  "RATIONALE": "既存ファイルを無警告で潰すと、 利用者は取り返しのつかない操作を\n気づかずに起こせる。 既定は安全側に倒す。 明示的な上書き指定を設けるかは未決。\n",
+  "REVISION": "v1.0: レビュー指摘 FND-001 を受け、 「上書きしてもよい」から\n「上書きせずに終了する」へ変更した。\n",
   "RELATIONS": [
     {
       "TYPE": "Parent",
       "VALUE": "PAT-001"
-    },
-    {
-      "TYPE": "File",
-      "VALUE": "_assets/design-note.md"
     }
   ]
 }
 ```
 
-> `RELATIONS` に `TYPE: File` が並んでいる。**`Parent` と同じ配列に入る**ので、親だけが欲しいなら `select(.TYPE=="Parent")` で絞る（Q4 / Q5 はそうしている）。
+> **`RELATIONS` は `Parent` も `File` も同じ配列に入る。** 親だけが欲しいなら `select(.TYPE=="Parent")` で絞る（Q4 / Q5 はそうしている）。PAT-001 は `File` 関係を持つので、そちらで確かめられる。
 
 > `first(...)` は最初の 1 件で探索を打ち切る。`del(.NODES)` は複合ノードの子を落とすためで、要求ノードには効かないが章にも同じフィルタを使えるようにしてある。
 

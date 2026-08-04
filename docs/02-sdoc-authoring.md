@@ -88,7 +88,7 @@ RELATIONS:
   VALUE: REQ-002
   ROLE: Verifies
 - TYPE: File
-  VALUE: _assets/overview.mmd
+  VALUE: _assets/flow-convert.md
 ```
 
 | 注意 | 内容 |
@@ -218,7 +218,7 @@ IMPORT_FROM_FILE: patterns.sgra
 
 | # | 内容 |
 |:-:|---|
-| 1 | **プロジェクトツリーに素の `.md` を置かない。** すべての `.md` が StrictDoc 文書として解析され、H1 で始まらないファイルが 1 つあると **export 全体が失敗する**。README や図のメモは外に出すか、拡張子を変える |
+| 1 | **文書にならない `.md` をツリーに残さない。** すべての `.md` が StrictDoc 文書として解析され、H1 で始まらないファイルや UTF-8 でないファイルが 1 つあると **export 全体が失敗する**。README や第三者からのコピーは `exclude_doc_paths` で**ファイル名を名指しして**除外する。**フォルダごと除外してはならない** — アセット置き場として認識されなくなり、同じフォルダの画像が黙ってコピーされなくなる（export は成功と報告し、`<img>` だけが 404 になる）。逆に、**図を入れた `.md` は文書にするのが正しい**。文書だからこそ ` ```mermaid ` が描画される（`samples/sdoc-patterns/_assets/flow-convert.md`） |
 | 2 | **フィールドを宣言順と違う順に書かない**（§2） |
 | 3 | **関係で `ROLE` を `VALUE` より先に書かない**（§3） |
 | 4 | **文書レベルのメタデータに、機械で引きたい値を置かない。** `DATE:` と `METADATA:` ブロックは `.sdoc` / `.md` には往復するが **JSON にはまったく出ない**（`json_generator.py` が書くのは `UID` / `VERSION` / `CLASSIFICATION` / `PREFIX` / `ROOT` だけ）。作成日・作成者・承認者を引きたいならノードのフィールドにする |

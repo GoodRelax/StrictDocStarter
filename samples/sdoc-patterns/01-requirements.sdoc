@@ -16,6 +16,8 @@ STATEMENT: >>>
 
 図は本書には置かない。 `03-figures.sdoc` に分けてある。 理由は
 `docs/02-sdoc-authoring.md` に書いた。
+
+本書の要求がどう繋がるかは [LINK: FIG-FLOW-CONVERT] に 1 枚の図でまとめてある。
 <<<
 
 [[SECTION]]
@@ -32,8 +34,6 @@ RATIONALE: >>>
 本ツールの存在理由そのものであり、 これを外すと他の要求が意味を失う。
 <<<
 RELATIONS:
-- TYPE: File
-  VALUE: _assets/overview.mmd
 - TYPE: File
   VALUE: _assets/flow-convert.md
 
@@ -61,14 +61,16 @@ TITLE: 出力先の上書き禁止
 STATEMENT: >>>
 本ツールは、 出力先に既存のファイルがある場合、 上書きせずに終了すること。
 <<<
+RATIONALE: >>>
+既存ファイルを無警告で潰すと、 利用者は取り返しのつかない操作を
+気づかずに起こせる。 既定は安全側に倒す。 明示的な上書き指定を設けるかは未決。
+<<<
 REVISION: >>>
 v1.0: レビュー指摘 FND-001 を受け、 「上書きしてもよい」から
-「上書きせずに終了する」へ変更した。 判断の根拠は `_assets/design-note.md`。
+「上書きせずに終了する」へ変更した。
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: PAT-001
-- TYPE: File
-  VALUE: _assets/design-note.md
 
 [[/SECTION]]
