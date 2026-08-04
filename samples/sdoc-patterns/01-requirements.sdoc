@@ -17,8 +17,13 @@ STATEMENT: >>>
 図は本書には置かない。 `03-figures.sdoc` に分けてある。 理由は
 `docs/02-sdoc-authoring.md` に書いた。
 
-本書の要求がどう繋がるかは [LINK: FIG-FLOW-CONVERT] に 1 枚の図でまとめてある。
+本書の要求がどう繋がるかは、 次に取り込んである図 1 枚にまとめてある。
+図の実体は `_assets/fig-convert-flow.sdoc` で、 **この画面に直接出ると同時に、
+1 個の文書としても開ける。**
 <<<
+
+[DOCUMENT_FROM_FILE]
+FILE: _assets/fig-convert-flow.sdoc
 
 [[SECTION]]
 TITLE: 1. 最上位の要求
@@ -33,9 +38,6 @@ STATEMENT: >>>
 RATIONALE: >>>
 本ツールの存在理由そのものであり、 これを外すと他の要求が意味を失う。
 <<<
-RELATIONS:
-- TYPE: File
-  VALUE: _assets/flow-convert.md
 
 [[/SECTION]]
 

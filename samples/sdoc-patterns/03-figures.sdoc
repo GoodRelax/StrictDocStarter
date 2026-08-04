@@ -10,76 +10,56 @@ STATEMENT: >>>
 Mermaid が占めるのは JSON 全体の 1.6 パーセントであった
 (`docs/02-sdoc-authoring.md` 参照)。
 
-Mermaid は `.. raw:: html` の中に `<pre class="mermaid">` で書く。 `MERMAID` と
-`MATHJAX` は 0.27 以降では既定で有効なので、 `strictdoc_config.py` に書く必要は
-無い。 むしろ列挙すると DEPRECATION 警告が出る。
-
-.. raw:: html
-
-    <pre class="mermaid">
-    flowchart LR
-      USER[user] --> CLI[command line]
-      CLI --> CORE[conversion core]
-      CORE --> OUT[output file]
-    </pre>
-
-上のように `.sdoc` に直接書く形は、 図が 1 つで小さいうちはこれでよい。
-**図が増えたら 1 枚 1 ファイルで外に出す。** `_assets/flow-convert.md` がその形である。
+**図は要求文書に直接書かない。 1 枚 1 ファイルで `_assets/` に置き、 取り込む。**
+本サンプルはこの 1 通りに統一してある。 実体は `_assets/fig-convert-flow.sdoc`。
 
 ::
 
-    _assets/flow-convert.md
-      # 見出し (H1)              <- 無いと StrictDoc が読めず export 全体が落ちる
-      **UID**: FIG-FLOW-CONVERT  <- リンクされる側の名前
-      説明の文
-      ```mermaid  ...  ```       <- 図
+    _assets/fig-convert-flow.sdoc
+      [DOCUMENT]
+      TITLE: 図 - 変換処理の状態遷移
+      UID: FIG-CONVERT-FLOW
+      OPTIONS:
+        MARKUP: Markdown        <- 本文を Markdown として解釈させる
 
-**中身はほぼ普通の Markdown である。** GitHub でも VS Code でもそのまま図が見える。
-足すのは見出し直下の ``**UID**:`` だけで、 これは StrictDoc が節の UID として
-登録し、 **リンクの宛先にするためのものである** (0.27.1 の変更)。
+      [TEXT]
+      STATEMENT: >>>
+      ```mermaid  ...  ```      <- フェンスがそのまま図になる
+      <<<
 
-`.sdoc` 側からの指し方は 2 通りあり、 **両方やるとよい。**
+``OPTIONS: MARKUP: Markdown`` を宣言すると、 その文書の本文は Markdown になる。
+だから mermaid のコードフェンスで書ける。
+**RST の ``.. raw:: html`` に ``<pre class="mermaid">`` を埋める書き方は要らない。**
 
-**1. 本文の中からリンクタグで飛ばす。** 読み手が文章を追う流れのまま図へ着く。
-`01-requirements.sdoc` の冒頭がこの形である。
+**拡張子は `.md` ではなく `.sdoc` にする。** 取り込みを行う `[DOCUMENT_FROM_FILE]` が
+`.sdoc` 以外を拒否するためである (`processor.py` が拡張子を検査して停止する)。
+中身の書き方は Markdown のままなので、 書き手が覚えることは増えない。
 
-::
-
-    [LINK: FIG-FLOW-CONVERT]
-
-**出力先のパスを書かない。** StrictDoc が UID から解決し、 見出しの文言を
-そのままリンク文字列にする。 **`[LINK:]` は `>>>` `<<<` の複数行フィールドの
-中でしか効かない** — 単一行フィールドでは RST もタグも解釈されない。
-
-**2. File 関係で結ぶ。** こちらは要求とファイルの対応が
-トレーサビリティ画面に出る。 PAT-001 がこの形である。
+要求文書側は `[DOCUMENT_FROM_FILE]` で取り込む。 `01-requirements.sdoc` がこの形。
 
 ::
 
-    RELATIONS:
-    - TYPE: File
-      VALUE: _assets/flow-convert.md
+    [DOCUMENT_FROM_FILE]
+    FILE: _assets/fig-convert-flow.sdoc
 
-**この場合リンクは 2 本張られる** — 描画された文書と、 生ソースのページ。
-読み手は前者を辿れば図に着く。
-
-**代償として、 プロジェクト内の `.md` は全部 StrictDoc が解析する。**
-読めない `.md` が 1 つあると **export 全体が失敗する** (H1 で始まらない、
-UTF-8 でない、 等)。 文書にできない `.md` は `exclude_doc_paths` で名指しする。
-本サンプルでは `queries/README.md` がそれにあたる。
-
-**除外はファイル単位で書くこと。 フォルダごと除外してはならない。**
+**これで図は要求の画面に直接表示され、 同時に 1 個の文書としても開ける。**
+`strictdoc server` は取り込まれた文書も個別に公開するためである
+(`launch-strictdoc.bat` はこの経路)。 `export` では既定で個別公開されないので、
+必要なら `--included-documents` を付ける。
 
 ::
 
-    exclude_doc_paths=["_assets/notes.md"]   # OK。 その 1 ファイルだけ文書にしない
-    exclude_doc_paths=["_assets/**"]         # 駄目。 画像も一緒に消える
+    strictdoc export --formats=html --included-documents --output-dir out .
 
-`_assets/**` と書くとフォルダが走査から外れ、 **アセット置き場として認識されなく
-なるため画像がコピーされない。** それでも export は成功と報告し、 出来上がった
-HTML の `<img>` だけが 404 になる。 気づきにくい。
+**ただし JSON を引く目的でこのオプションを付けてはならない。** 取り込んだ文書が
+独立文書としても重複し、 同じ UID が 2 か所に現れる。
 
-数式は `MATHJAX` (`MERMAID` と同じ扱い) で書ける。
+**取り込みは 1 対 1 である。** 同じ図を 2 つの文書へ取り込むことはできない
+(公式ユーザーガイド: "a document can be included to no more than one including
+document")。 2 か所から参照したいなら、 一方は `[LINK: FIG-CONVERT-FLOW]` にする。
+
+数式は `MATHJAX` で書ける。 `MERMAID` と同じく 0.27 以降は既定で有効なので、
+`strictdoc_config.py` に列挙する必要は無い。 むしろ列挙すると DEPRECATION 警告が出る。
 
 .. math::
 
@@ -103,20 +83,4 @@ HTML の `<img>` だけが 404 になる。 気づきにくい。
 
 `.md` から埋め込む形は `04-markdown-form.md` にある (`![alt](_assets/pipeline.png)`)。
 
-図を別ファイルに置いたまま**要求文書の中に出したい**なら、 本書のように隣に並べる
-のではなく `[DOCUMENT_FROM_FILE]` で取り込む。 取り込まれた側は独立した文書として
-公開されない。
-
-::
-
-    [DOCUMENT_FROM_FILE]
-    FILE: 03-figures.sdoc
-
-**取り込めるのは `.sdoc` だけである。** `.md` を渡すと
-``A document file name must have ".sdoc" extension`` で停止する
-(0.23.1 / 0.27.1 の両方で確認)。 `.md` に図を書くこと自体はでき
-(`04-markdown-form.md` を参照)、 その場合は**独立した文書**になる。
-
-**ただし JSON を引く目的なら `--included-documents` を付けてはならない。**
-取り込んだ文書が独立文書としても重複し、 同じ UID が 2 か所に現れる。
 <<<

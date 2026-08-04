@@ -29,25 +29,18 @@
 - **Type**: `Parent` \
   **ID**: `MD-001`
 
-## 図の書き方が .sdoc と違う
+## 画像の埋め込み
 
-**UID**: MD-003 \
-**STATUS**: Approved
+**Type**: SECTION
 
-**Statement**: 本ツールの説明文書は、 図を Markdown 版に置く場合、 コードフェンスで書くこと。
-
-**Rationale**: `.md` では ` ```mermaid ` のフェンスで書く。 `.sdoc` 側の
-`.. raw:: html` + `<pre class="mermaid">` は RST の記法であり、 `.md` に書くと
-そのまま文字として表示される (実測)。 どちらも最終的には `<pre class="mermaid">`
-になる。
-
-```mermaid
-flowchart LR
-  USER[user] --> CLI[command line]
-  CLI --> CORE[conversion core]
-  CORE --> OUT[output file]
-```
+見出し直下の地の文は暗黙の `Statement` として扱われるため、 このままでは要求ノードに
+なり、 文法が要求する `UID` が無いと解析が落ちる。 **要求ではない節は
+`**Type**: SECTION` と明示する。**
 
 画像は `![alt](path)` で埋め込む。 `.sdoc` 側の `.. image::` と同じファイルを指せる。
+
+**図 (Mermaid) はこの文書には置かない。** 本サンプルは図を `_assets/` の断片へ
+外に出し、 `[DOCUMENT_FROM_FILE]` で取り込む 1 通りに統一している。 理由と書き方は
+`03-figures.sdoc` を参照。
 
 ![input file から output file までの流れと停止条件](_assets/pipeline.png)
