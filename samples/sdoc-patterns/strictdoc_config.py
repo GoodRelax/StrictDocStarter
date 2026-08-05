@@ -45,6 +45,16 @@ def create_config() -> ProjectConfig:
             "DEEP_TRACEABILITY_SCREEN",
             "SEARCH",
             "REQUIREMENT_TO_SOURCE_TRACEABILITY",
+            # The three below are what put icons in the left toolbar. The four
+            # above do not: TABLE/TRACEABILITY/DEEP_TRACEABILITY only add tabs
+            # to a document's VIEWS dropdown, and SEARCH does have an icon but
+            # only under `strictdoc server` -- nav.jinja.html and
+            # is_activated_search() both require is_running_on_server, so a
+            # static export never shows it. Same for DIFF, which is why it is
+            # not listed. Matches what strictdoc's own docs site enables.
+            "PROJECT_STATISTICS_SCREEN",
+            "TRACEABILITY_MATRIX_SCREEN",
+            "TREE_MAP_SCREEN",
         ],
         include_source_paths=["_assets/**"],
         exclude_doc_paths=["queries/**"],
