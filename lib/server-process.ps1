@@ -133,6 +133,74 @@ function Test-StrictDocServerAliveOnPort {
     return (($alive | Measure-Object).Count -gt 0)
 }
 
+function Remove-OrphanedOutput {
+    # FR-1164: drop generated .html whose source document is gone.
+    #
+    # StrictDoc rewrites the JSON wholesale but never deletes stale HTML: measured
+    # on 0.27.1, exporting A/B/C and then deleting docC.sdoc leaves docC.html and
+    # its three view variants behind for good. The server itself answers 404 for
+    # them, so this only bites when the output folder is published as a static site
+    # or opened file-by-file -- but the leftovers accumulate.
+    #
+    # Deliberately narrow. Wiping the whole folder would cost the cache (measured
+    # on sovd-automotive-ja: 12.6 s cold against 7.4 s warm) and, since FR-1160
+    # puts our output next to whatever else the user keeps under output\, could
+    # take their files with it.
+    param(
+        [Parameter(Mandatory)] [string]$ProjectPath,
+        [Parameter(Mandatory)] [string]$OutputPath
+    )
+
+    $projectName = Split-Path -Leaf $ProjectPath.TrimEnd('\', '/')
+    if ([string]::IsNullOrWhiteSpace($projectName)) { return }
+    $htmlRoot = Join-Path (Join-Path $OutputPath 'html') $projectName
+    if (-not (Test-Path -LiteralPath $htmlRoot -PathType Container)) { return }   # first run
+
+    # Names strictdoc is expected to produce, as relative paths without extension.
+    $expected = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    try {
+        Get-ChildItem -LiteralPath $ProjectPath -Include *.sdoc, *.md -File -Recurse -ErrorAction Stop |
+            Where-Object { $_.FullName -notmatch '(?i)\\output\\' } |
+            ForEach-Object {
+                $rel = $_.FullName.Substring($ProjectPath.TrimEnd('\', '/').Length).TrimStart('\', '/')
+                $null = $expected.Add([System.IO.Path]::ChangeExtension($rel, $null).TrimEnd('.'))
+            }
+    } catch {
+        return   # cannot enumerate the sources: never guess, never delete
+    }
+    if ($expected.Count -eq 0) { return }
+
+    # Per-document view pages share the document's stem.
+    $variants = @('-DEEP-TRACE', '-TRACE', '-TABLE')
+    $removed = 0
+    try {
+        $pages = @(Get-ChildItem -LiteralPath $htmlRoot -Filter *.html -File -Recurse -ErrorAction Stop |
+            Where-Object { $_.FullName -notmatch '(?i)\\_static\\' })
+    } catch {
+        return
+    }
+
+    foreach ($page in $pages) {
+        $rel  = $page.FullName.Substring($htmlRoot.Length).TrimStart('\', '/')
+        $stem = [System.IO.Path]::ChangeExtension($rel, $null).TrimEnd('.')
+        foreach ($suffix in $variants) {
+            if ($stem.EndsWith($suffix, [StringComparison]::OrdinalIgnoreCase)) {
+                $stem = $stem.Substring(0, $stem.Length - $suffix.Length)
+                break
+            }
+        }
+        if ($expected.Contains($stem)) { continue }
+        try {
+            Remove-Item -LiteralPath $page.FullName -Force -ErrorAction Stop
+            $removed++
+        } catch { }
+    }
+
+    if ($removed -gt 0) {
+        Write-Host "[INFO]  Removed $removed generated page(s) whose document no longer exists."
+    }
+}
+
 function Get-FreePort {
     # FR-1156 / FR-1156b: first free port from $Start up to ceiling = min($Start+20, 64999).
     # Returns the free port, or 0 if none (caller emits FR-1156b error).

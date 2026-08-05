@@ -130,6 +130,11 @@ Initialize-StrictDocProjectConfig -ProjectPath $projectPath -ServerConfigPath $C
 # ---- the config step above, which is what puts custom_css_path in the project ----
 Update-ProjectTheme -ProjectPath $projectPath -StarterRoot $ScriptDir -Mode (Get-ColorMode -ConfigPath $ConfigPath)
 
+# ---- FR-1164: drop generated pages whose source document has been deleted. The cache
+# ---- is left alone; only .html with no corresponding .sdoc/.md goes ----
+$effectiveOutput = if ([string]::IsNullOrWhiteSpace($outputPath)) { Join-Path $projectPath 'output\strictdoc' } else { $outputPath }
+Remove-OrphanedOutput -ProjectPath $projectPath -OutputPath $effectiveOutput
+
 # ---- FR-1161: say how to keep the generated output out of Git; never edit .gitignore ----
 Show-GitignoreAdvice -ProjectPath $projectPath
 
