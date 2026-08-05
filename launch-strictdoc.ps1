@@ -135,6 +135,13 @@ Update-ProjectTheme -ProjectPath $projectPath -StarterRoot $ScriptDir -Mode (Get
 $effectiveOutput = if ([string]::IsNullOrWhiteSpace($outputPath)) { Join-Path $projectPath 'output\strictdoc' } else { $outputPath }
 Remove-OrphanedOutput -ProjectPath $projectPath -OutputPath $effectiveOutput
 
+# ---- FR-1165: OneDrive and friends mark synced folders ReadOnly, and strictdoc clears
+# ---- its template cache with a call that cannot delete ReadOnly directories ----
+$clearedRo = Repair-OutputTreeAttributes -OutputPath $effectiveOutput
+if ($clearedRo -gt 0) {
+    Write-Host "[INFO]  Cleared the read-only flag on $clearedRo item(s) under the output folder (file sync sets it)."
+}
+
 # ---- FR-1161: say how to keep the generated output out of Git; never edit .gitignore ----
 Show-GitignoreAdvice -ProjectPath $projectPath
 
@@ -183,7 +190,7 @@ while ($attempt -lt $maxRetries) {
 
 # ---- FR-1157c: startup failure (e.g. .sdoc parse error) -- surface the cause, no browser ----
 if ($startupFailed) {
-    Show-StartupErrorDiagnostic -StrictDocExe $strictdocExe -ProjectPath $projectPath -Port $candidate
+    Show-StartupErrorDiagnostic -StrictDocExe $strictdocExe -ProjectPath $projectPath -Port $candidate -OutputPath $effectiveOutput
     Complete-AndExit -Code 1 -Pause $true
 }
 if ($adoptedPort -le 0) {

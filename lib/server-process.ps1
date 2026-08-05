@@ -126,11 +126,80 @@ function Find-ServerPortForPath {
     return ([int](($hits | Sort-Object Port | Select-Object -First 1).Port))
 }
 
-function Test-StrictDocServerAliveOnPort {
-    # FR-1157 (c/d): is a strictdoc server process (launched with --port $Port) still alive?
+function Get-StrictDocServerLiveness {
+    # FR-1157 (c/d): is a strictdoc server process (launched with --port $Port) alive?
+    #
+    # Returns 'alive', 'absent' or 'unknown'. The third value is the point of this
+    # function. Get-RunningStrictDocServers returns an empty list both when nothing
+    # is running AND when the CIM query fails, and the caller used to read that as
+    # "the server died" -- so one hiccup in a per-second WMI enumeration of every
+    # process on the machine was enough to declare a healthy server dead. Reported
+    # in the field as an intermittent "it exited before binding" while the very
+    # same command run by hand stayed up.
     param([int]$Port)
-    $alive = Get-RunningStrictDocServers | Where-Object { $_.Port -eq $Port }
-    return (($alive | Measure-Object).Count -gt 0)
+    try {
+        $procs = @(Get-CimInstance -ClassName Win32_Process -ErrorAction Stop |
+            Where-Object {
+                $_.CommandLine -and
+                ($_.CommandLine -match '(?i)strictdoc') -and
+                ($_.CommandLine -match '(?i)(^|\s)server(\s|$)') -and
+                ($_.CommandLine -match ('(?i)--port[\s=]+"?' + $Port + '"?(\s|$)'))
+            })
+    } catch {
+        return 'unknown'
+    }
+    if ($procs.Count -gt 0) { return 'alive' }
+    return 'absent'
+}
+
+function Repair-OutputTreeAttributes {
+    # FR-1165: clear ReadOnly under the output folder before strictdoc runs.
+    #
+    # FR-1160 puts the output inside the project, and a project commonly lives in a
+    # OneDrive (or Dropbox) folder. Those clients mark synced content ReadOnly and
+    # turn it into a reparse point. strictdoc clears its Jinja cache on startup with
+    # shutil.rmtree, which cannot delete a ReadOnly directory, so it exits with
+    # "[WinError 5]" before binding -- and, worse, leaves the cache half deleted, so
+    # every later run dies in reset_jinja_environment_if_outdated() with
+    # "list index out of range" until someone removes the folder by hand.
+    #
+    # Measured on this machine: 27 of 27 directories under output\strictdoc had
+    # ReadOnly set, and starting the server failed 4 times out of 4. With a clean
+    # output tree the same command bound 3 times out of 3.
+    param([Parameter(Mandatory)] [string]$OutputPath)
+
+    if (-not (Test-Path -LiteralPath $OutputPath)) { return 0 }
+    $cleared = 0
+    try {
+        Get-ChildItem -LiteralPath $OutputPath -Recurse -Force -ErrorAction Stop | ForEach-Object {
+            if ($_.Attributes -band [System.IO.FileAttributes]::ReadOnly) {
+                try {
+                    $_.Attributes = $_.Attributes -bxor [System.IO.FileAttributes]::ReadOnly
+                    $cleared++
+                } catch { }
+            }
+        }
+    } catch {
+        return $cleared
+    }
+    return $cleared
+}
+
+function Reset-OutputCache {
+    # FR-1165: drop the generated-template cache so the next start rebuilds it.
+    # Used to recover from a cache strictdoc left half deleted. Only the cache goes:
+    # the HTML beside it is regenerated anyway, and never the project's own files.
+    param([Parameter(Mandatory)] [string]$OutputPath)
+
+    $cache = Join-Path $OutputPath '_cache'
+    if (-not (Test-Path -LiteralPath $cache)) { return $false }
+    $null = Repair-OutputTreeAttributes -OutputPath $cache
+    try {
+        Remove-Item -LiteralPath $cache -Recurse -Force -ErrorAction Stop
+        return $true
+    } catch {
+        return $false
+    }
 }
 
 function Remove-OrphanedOutput {
@@ -298,9 +367,14 @@ function Confirm-PortAdoption {
     #   safety cap reached                            -> @{ Result='timeout' }
     # SpawnGraceSec: how long to allow for the process to FIRST appear (strictdoc.exe ->
     # python cold start can take several seconds before it is queryable via CIM).
-    param([int]$Port, [int]$SpawnGraceSec = 12, [int]$MaxWaitSec = 60)
+    # ConfirmMisses: how many CONSECUTIVE readings must agree the process is gone
+    # before (c) is declared. A single reading is not evidence -- the probe walks
+    # every process on the machine once a second, and one unlucky sample used to
+    # kill a server that was merely still starting.
+    param([int]$Port, [int]$SpawnGraceSec = 12, [int]$MaxWaitSec = 60, [int]$ConfirmMisses = 3)
     $startTime = Get-Date
     $everSeenAlive = $false
+    $missStreak = 0
     while ($true) {
         $elapsed = [int]((Get-Date) - $startTime).TotalSeconds
         $ownerPid = Get-PortListenerPid -Port $Port
@@ -315,18 +389,28 @@ function Confirm-PortAdoption {
             return [pscustomobject]@{ Result = 'race'; OwnerPid = 0 }
         }
         # Not listening yet. Classify by whether our server process is alive.
-        if (Test-StrictDocServerAliveOnPort -Port $Port) {
-            $everSeenAlive = $true            # (d) alive but unbound -> keep waiting (big projects)
-        } else {
-            if ($everSeenAlive) {
-                # appeared then vanished without binding -> startup failure (e.g. parse error).
-                return [pscustomobject]@{ Result = 'failed'; OwnerPid = 0 }               # (c)
+        switch (Get-StrictDocServerLiveness -Port $Port) {
+            'alive' {
+                $everSeenAlive = $true        # (d) alive but unbound -> keep waiting (big projects)
+                $missStreak = 0
             }
-            if ($elapsed -ge $SpawnGraceSec) {
-                # never appeared within the spawn grace -> launch failed.
-                return [pscustomobject]@{ Result = 'failed'; OwnerPid = 0 }               # (c)
+            'unknown' {
+                # The process query failed. That says nothing about the server, so
+                # do not let it count towards a failure verdict.
+                break
             }
-            # still within spawn grace and not seen yet -> wait
+            default {
+                $missStreak++
+                if ($everSeenAlive -and $missStreak -ge $ConfirmMisses) {
+                    # gone for several readings in a row without binding -> startup failure.
+                    return [pscustomobject]@{ Result = 'failed'; OwnerPid = 0 }           # (c)
+                }
+                if (-not $everSeenAlive -and $elapsed -ge $SpawnGraceSec) {
+                    # never appeared within the spawn grace -> launch failed.
+                    return [pscustomobject]@{ Result = 'failed'; OwnerPid = 0 }           # (c)
+                }
+                # otherwise: keep waiting
+            }
         }
         if ($elapsed -ge $MaxWaitSec) {
             return [pscustomobject]@{ Result = 'timeout'; OwnerPid = 0 }
@@ -344,7 +428,8 @@ function Show-StartupErrorDiagnostic {
     param(
         [Parameter(Mandatory)] [string]$StrictDocExe,
         [Parameter(Mandatory)] [string]$ProjectPath,
-        [Parameter(Mandatory)] [int]$Port
+        [Parameter(Mandatory)] [int]$Port,
+        [string]$OutputPath = ''
     )
     Write-Host ""
     Write-Host "[ERROR] StrictDoc server failed to start on port $Port (it exited before binding)." -ForegroundColor Red
@@ -376,7 +461,18 @@ function Show-StartupErrorDiagnostic {
             # exactly what happened once. Name the causes that are still open.
             Write-Host "        Your documents are fine: exporting them succeeded." -ForegroundColor Yellow
             Write-Host "        So the failure is in starting the server, not in the .sdoc/.md files." -ForegroundColor Yellow
-            Write-Host "        Things worth checking, in order:" -ForegroundColor Yellow
+
+            # The known cause of exactly this shape: a file-sync client marked the
+            # output folder ReadOnly, strictdoc could not clear its template cache,
+            # and what is left of that cache breaks every later start. Clearing it
+            # here makes the next attempt work instead of leaving the user stuck.
+            if (-not [string]::IsNullOrWhiteSpace($OutputPath) -and (Reset-OutputCache -OutputPath $OutputPath)) {
+                Write-Host "        Cleared the generated-template cache under the output folder," -ForegroundColor Yellow
+                Write-Host "        which is the usual cause when a folder is synced by OneDrive." -ForegroundColor Yellow
+                Write-Host "        Re-drop the folder: the next start rebuilds it and normally works." -ForegroundColor Yellow
+            }
+
+            Write-Host "        If it still fails, check in this order:" -ForegroundColor Yellow
             Write-Host "          1. Try again. A first run on a large project can be slow, and the" -ForegroundColor Yellow
             Write-Host "             port may still have been closing from an earlier server." -ForegroundColor Yellow
             Write-Host "          2. Run it yourself to see the real error in the window:" -ForegroundColor Yellow
