@@ -374,11 +374,26 @@ StrictDocStarter/
 ├── server.config.template.json          # (新規、 commit、 default project_path = <starter_root>\samples\sovd-automotive-ja)
 ├── server.config.json                   # (新規、 gitignore)
 ├── samples/                             # (新規、 commit) 同梱サンプル
+│   ├── sd-basic-ja/                     # (D-9h) .sdoc の基本。 丸ごと写して始める用
+│   │   ├── 00-guide.sdoc                # 目的 (UID なしの地の文) + 基本/添付/表/出力の入れ子セクション
+│   │   ├── 01-upper.sdoc                # 上位要求 SYS-001..003
+│   │   ├── 02-lower.sdoc                # 下位要求 SW-001..004 (Parent → SYS-)
+│   │   ├── 03-tests.sdoc                # TEST_CASE TC-001..004 (Parent + ROLE Verifies → SW-)
+│   │   ├── 04-review.sdoc               # FINDING RV-001..002 (Parent + ROLE Reviews)。 .sgra の存在理由
+│   │   ├── 05-markdown.sdoc             # OPTIONS: MARKUP: Markdown を宣言した唯一の文書 (パイプ表)
+│   │   ├── basic.sgra                   # 共有文法。 全文書が IMPORT_FROM_FILE で参照
+│   │   ├── _assets/                     # fig-flow.sdoc (Mermaid 断片) / note.md (LINK 先) / flow.svg
+│   │   └── strictdoc_config.py          # (D-8) project_path 直下 (D-1/FR-1141)。 左ツールバー 3 画面 (FR-1146)
+│   ├── md-basic-ja/                     # (D-9h) 同内容を全部 .md で。 sd-basic-ja と UID 共通
+│   │   ├── 00-guide.md 〜 04-review.md  # sd-basic-ja と同じ章立て (05 は .md では不要)
+│   │   ├── basic.sgra                   # sd-basic-ja と同一内容
+│   │   ├── _assets/                     # note.md (LINK 先) / flow.svg。 Mermaid は本文へ直書き
+│   │   └── strictdoc_config.py          # sd-basic-ja と project_title 以外同一
 │   ├── sdoc-patterns/                   # 書き方の型。 00-hello.sdoc が編集用テンプレ (D-9 改)
 │   │   ├── 00-hello.sdoc                # 要求 3 件、 カスタム文法なし。 写して始める用
 │   │   ├── 01-requirements.sdoc 〜 05-outputs.sdoc
 │   │   ├── patterns.sgra / _assets/ / queries/
-│   │   └── strictdoc_config.py          # (D-8) project_path 直下 (D-1/FR-1141)。 MERMAID/MATHJAX は列挙しない (0.27 既定)
+│   │   └── strictdoc_config.py          # (D-8) project_path 直下 (D-1/FR-1141)。 MERMAID/MATHJAX は列挙しない (0.27 既定)、 左ツールバー 3 画面 + Source coverage (FR-1146)
 │   ├── sovd-automotive-en/             # 英語版 (sovd-automotive-ja と同構成)
 │   └── sovd-automotive-ja/              # 初期 default、 ASIL/CAL/Layer/Type custom fields、 SOVD 教材
 │       ├── sovd-grammar.sgra            # (D-9b) 共有要求文法。 全 .sdoc が IMPORT_FROM_FILE で参照
@@ -396,7 +411,7 @@ StrictDocStarter/
 │       ├── 11-test-results.sdoc         # (D-9d) テスト結果: 実行記録 (仕様と分離、 ResultOf)
 │       ├── 90-appendix-notation.sdoc    # (D-9b) 付録: 表記・記法リファレンス (旧 05/06 を統合)
 │       ├── _assets/                     # 図素材: sovd-architecture.drawio (編集ソース) + .svg + .png
-│       └── strictdoc_config.py          # (D-8) MERMAID/MATHJAX 有効、 project_path 直下 (D-1/FR-1141)
+│       └── strictdoc_config.py          # (D-8) project_path 直下 (D-1/FR-1141)。 左ツールバー 3 画面を有効化 (FR-1146)
 ├── setup.log                            # (既存、 gitignore)
 ├── launch.log                           # (新規、 gitignore)
 ├── env-report.json                      # (既存、 gitignore)
@@ -914,6 +929,8 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | FR-1143 | Ubiquitous | scaffold の元は **公式 `strictdoc new` の出力に準拠**すること (自前テンプレをゼロから作らない。 D-3)。 bundled samples 用には `MERMAID`/`MATHJAX` を有効化した config を用意 (`strictdoc new` の生成物は MERMAID を含まないため追記)。 新規プロジェクト作成は公式 `strictdoc new <path>` を案内 |
 | FR-1144 | If | scaffold のコピーに失敗 (権限/読み取り専用/外部パス) した場合は **非致命**とし、 `[WARN]` 表示のうえ server 起動を継続すること |
 | FR-1145 | If | `project_path` に legacy `strictdoc.toml` が既存の場合、 `.py` を置くと StrictDoc が `.py` を優先する旨を `[WARN]` で通知し、 scaffold を skip すること (上書き衝突回避) |
+| FR-1146 | Ubiquitous | scaffold する `strictdoc_config.py` の `project_features` には、 **左ツールバーのアイコンを生む 3 画面** `PROJECT_STATISTICS_SCREEN` / `TRACEABILITY_MATRIX_SCREEN` / `TREE_MAP_SCREEN` を含めること。 アイコン列を組み立てるのは `export/html/templates/_shared/nav.jinja.html` の 1 ファイルのみで、 そこに現れるのは index (常時) / 上記 3 つ / `REQUIREMENT_TO_SOURCE_TRACEABILITY` / **server 実行時のみ**の `SEARCH`・`DIFF` である。 `TABLE_SCREEN` / `TRACEABILITY_SCREEN` / `DEEP_TRACEABILITY_SCREEN` は文書上部の VIEWS ドロップダウンにしか出ないため、 既定の 4 つだけでは左のアイコンは 1 つも増えない (strictdoc 0.27.1 実測: scaffold 生成 config で static export が 1 → 4 個、 `strictdoc server` が 2 → 5 個 〔`search` を含む〕)。 `MATHJAX` / `MERMAID` は列挙しないこと (0.27 で既定有効、 列挙すると DEPRECATION 警告)。 **本項は FR-1143 の「bundled samples 用には `MERMAID`/`MATHJAX` を有効化した config を用意」を supersede する** (0.23.x 前提時の記述) |
+| FR-1147 | Ubiquitous | scaffold には `DIFF` と `REQUIREMENT_TO_SOURCE_TRACEABILITY` を **含めない**こと。 (a) `DIFF` はランチャ経由なら (常に `strictdoc server` のため) アイコンが出るが、 revision の解決も比較用リポジトリの複製も **server プロセスの CWD** を起点にする (`server/routers/other_router.py` が `GitClient(".")` を生成し、 `features/diff_and_changelog/git_client.py` の `create_repo_from_local_copy` は `os.getcwd()` 直下の `.git` を assert する)。 一方ランチャは CWD を StrictDocStarter ルートへ正規化する (`_lib\elevate.bat` の CWD normalize) ため、 押すとエラーになるか **別リポジトリの差分**を見せる。 **0.27.1 実測: 非 Git ディレクトリから起動した server では全 revision が HTTP 422、 StrictDocStarter (Git 管理下) から起動した server では StrictDocStarter 側の revision が解決してしまう** (配信対象は無関係の scratch プロジェクト)。 (b) `REQUIREMENT_TO_SOURCE_TRACEABILITY` は `include_source_paths` と対でなければ空の Source coverage 画面を足すだけであり、 scaffold 対象の新規プロジェクトには通常ソースが無い |
 
 ### 6.7 supersession 一覧
 
@@ -961,6 +978,23 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 > DEPRECATION 警告が出る (FR-332)。 **上の「Mermaid 記法は版依存」の記述は 0.23.x を既定と
 > していた当時のものであり、 前提が 0.27+ に移った現在は `strictdoc_config.py` 側の指定が
 > 不要になっている。** RST raw html と Markdown フェンスの双方が使える点は変わらない。
+>
+> **【左ツールバー (2026-08-05)】全サンプルと scaffold に `PROJECT_STATISTICS_SCREEN` /
+> `TRACEABILITY_MATRIX_SCREEN` / `TREE_MAP_SCREEN` を追加した (FR-1146)。 これで static export の
+> アイコンは `sdoc-patterns` が 5 個 (index / project_information / traceability-matrix /
+> source_coverage / tree_map)、 `sovd-automotive-{ja,en}` が 4 個 (source_coverage を除く) となる。
+> **`sovd-automotive-*` に `REQUIREMENT_TO_SOURCE_TRACEABILITY` は足さない** — ソースファイルも
+> `include_source_paths` も無く、 空の Source coverage 画面が増えるだけだからである。 `DIFF` は
+> 全体で不採用 (FR-1147)。 **ランチャ経由 (= `strictdoc server`) では上記に `search` が加わる**ため、
+> scaffold した新規プロジェクトと `sovd-automotive-*` が 5 個、 `sdoc-patterns` が 6 個となる。
+> (strictdoc 0.27.1 実測、 2026-08-05。)**
+- **D-9h basic サンプル 2 種 (2026-08-06)**: `samples/sd-basic-ja/` と `samples/md-basic-ja/` を新設した。 **「写して始める最小の例」の役目を `sdoc-patterns/00-hello.sdoc` から引き取るものである** (D-9 改の切り分けを更新)。 `00-hello.sdoc` は要求 3 件の単一文書であり、 **要求仕様書として成り立つ形 — 上位要求 → 下位要求 → テストケース → レビュー指摘が別ファイルに分かれて繋がっている形 — を示せていなかった**。 basic 2 種はそこを埋める。
+  - **文書構成 (両者共通)**: `00-guide` (目的を UID なしの地の文で書き、 基本/添付/表/出力の 4 章を入れ子セクションで持つ) + `01-upper` (SYS-001..003) + `02-lower` (SW-001..004、 Parent → SYS-) + `03-tests` (TEST_CASE TC-001..004、 ROLE `Verifies`) + `04-review` (FINDING RV-001..002、 ROLE `Reviews`)。 **UID は 2 サンプルで共通**にし、 同じ仕様書の 2 表記として直接見比べられるようにした。
+  - **共有文法 `basic.sgra`**: `SECTION` / `REQUIREMENT` / `TEST_CASE` / `FINDING` の 4 型。 レビュー指摘の `SEVERITY` / `RESOLUTION` を `SingleChoice` で固定することが、 **文法ファイルを置く動機そのもの**として `04-review` に書いてある。 **個別文書へのフィールド追加は行わない** (文書ごとに形が変わり管理できないため)。
+  - **`.md` 側で実測確認した事項 (0.27.1)**: 文書をまたぐ `Parent` 解決、 `**Type**: TEST_CASE` によるカスタムノード型、 `**Role**: Verifies`、 カスタムフィールド `**EXPECTED**:`、 上位→下位→テストの連鎖が DEEP-TRACE 1 画面に出ること、 `[LINK:]` が `_assets/*.md` へ解決すること、 Mermaid フェンス / パイプ表 / `![](_assets/flow.svg)`。 **すべて `.sdoc` と同一の結果**になる。
+  - **文法に `TYPE` という名前のフィールドを作らないこと**: `.md` では `**Type**:` がノード型の指定子として先に解釈される (`backend/markdown/reader.py` の `_parse_markdown_node`)。 `sovd-grammar.sgra` は `TYPE` フィールドを持つため `.md` から書けない — basic の文法はこれを避けている。
+  - **フィールド名の大文字小文字は非対称**: `Statement` / `Title` / `Status` / `Rationale` / `Comment` / `Level` / `Tags` / `Prefix` の 8 語のみ別名変換され (`reader.py` の `default_grammar_field_aliases`、 **カスタム文法でも無条件に適用される**)、 それ以外は文法どおりの綴りが必要。
+  - **`project_features` は 7 つ**。 公式サイトが有効にしているもののうち 4 つを外した: `DIFF` (FR-1147)、 `REQUIREMENT_TO_SOURCE_TRACEABILITY` (ソースファイルが無く空画面になる)、 `HTML2PDF` (export 毎に約 +3 秒、 かつ実 PDF 生成に chromedriver が要る)、 `NESTOR` (0.27.1 では `ProjectFeature.NESTOR` の参照が 0 件で休眠)。 **除外理由は各 `strictdoc_config.py` のコメントに実測値付きで残してある。**
 - **D-9b サンプル品質リライト (S-1 の後継、 2026-06-06)**: 上記 Phase 1 の `05/06` 記法デモ文書は「仕様書として不自然」 (ツール解説と要求が混在) のため**廃止**し、 ANMS テンプレート準拠の自然な仕様書へ全面リライトした。 (a) 遠隔診断の背景ストーリーを起点に前付け `00-overview.sdoc` (目的/範囲/用語/参照規格/表記規約/構成図/改訂履歴) を新設、 (b) 要求文を **EARS 化**・単一要求化・受入基準 (VERIFICATION 欄) 付与、 (c) **ASIL (安全) と CAL (セキュリティ) を分離** (00-overview §6.3)、 (d) 図/数式を本来の要求文書へ統合 (認証シーケンス→01、 SOVD↔UDS→02、 DTC ガード→03、 OTA 状態機械→04、 構成図→00)、 (e) 旧 05/06 の記法カバレッジは付録 `90-appendix-notation.sdoc` (Markdown マークアップで RST/Markdown 両記法を実演) に集約、 (f) 共有文法を `sovd-grammar.sgra` に切り出し全 .sdoc が `IMPORT_FROM_FILE` で参照 (ボイラープレート削減・整合保証)。 セクションは 0.23.1 で廃止された `[SECTION]` の後継 `[[SECTION]]` (`IS_COMPOSITE: True`) を使用。 strictdoc 0.23.1 で export クリーン・全図/数式/表/トレース描画確認済。 **その後、 同一構成のまま日本語版 `samples/sovd-automotive-ja/` と英語版 `samples/sovd-automotive-en/` の 2 言語へ分離。 既定は `-ja` (server.config.template.json / §3.3 / §6.10.4 と整合)。**
 - **S-3 / S-4 / O-1 / O-5**: setup 側の責務。 [`setup-spec.md`](setup-spec.md) の改訂 (strictdoc.version, uninstall, chromedriver, install phase 完成) を参照
 - **O-2**: `.gitignore` に `__pycache__/` `*.pyc` を追加 (strictdoc_config.py 読込の副生成物)

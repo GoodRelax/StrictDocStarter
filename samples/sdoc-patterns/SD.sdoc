@@ -1,0 +1,13 @@
+[DOCUMENT]
+TITLE: SDとらい
+
+[REQUIREMENT]
+UID: REQ-6
+TITLE: ひょう
+STATEMENT: >>>
++------+------+
+| 列A  | 列B  |
++======+======+
+| 1    | 2    |
++------+------+
+<<<

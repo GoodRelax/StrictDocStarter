@@ -50,8 +50,15 @@ def create_config() -> ProjectConfig:
             # to a document's VIEWS dropdown, and SEARCH does have an icon but
             # only under `strictdoc server` -- nav.jinja.html and
             # is_activated_search() both require is_running_on_server, so a
-            # static export never shows it. Same for DIFF, which is why it is
-            # not listed. Matches what strictdoc's own docs site enables.
+            # static export never shows it. With these three, a static export
+            # shows the same five icons as strictdoc's own docs site.
+            #
+            # DIFF is server-only as well, and it is left out for a second
+            # reason: its screen compares Git revisions of the server process's
+            # working directory, not of the served folder. Under
+            # launch-strictdoc.bat that directory is the StrictDocStarter root,
+            # so the icon would diff the wrong repository (measured: a
+            # StrictDocStarter revision resolves, everything else gets a 422).
             "PROJECT_STATISTICS_SCREEN",
             "TRACEABILITY_MATRIX_SCREEN",
             "TREE_MAP_SCREEN",

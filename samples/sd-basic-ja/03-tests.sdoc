@@ -1,0 +1,78 @@
+[DOCUMENT]
+TITLE: 基本 - テストケース
+UID: DOC-TESTS
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+テストケースは **StrictDoc の標準概念ではない。** `basic.sgra` で
+`TEST_CASE` というノード型を自分で足してある。 足したので `EXPECTED`
+という独自のフィールドも持てる。
+
+**関係の種類は `Parent` のまま、 `ROLE` で意味を変える。** ここでは
+`ROLE: Verifies` を付けた。 これで画面と JSON の両方に「検証する」という
+向きが出る。 `ROLE` は使う前に文法側で宣言しておく必要がある。
+
+この 4 件で `02-lower.sdoc` の下位要求 4 件を 1 対 1 で覆っている。
+覆えているかどうかは、 左のツールバーの
+**トレーサビリティマトリクス** の画面で一目で分かる。
+<<<
+
+[TEST_CASE]
+UID: TC-001
+TITLE: 変換が成功する
+STATEMENT: >>>
+想定した形式の入力ファイルを与え、 出力先に同名のファイルが無い状態で実行する。
+<<<
+EXPECTED: >>>
+正常終了し、 出力ファイルが指定した形式で生成されている。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-001
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-002
+TITLE: 想定外の形式を拒否する
+STATEMENT: >>>
+指定した形式ではない入力ファイルを与えて実行する。
+<<<
+EXPECTED: >>>
+異常終了し、 出力ファイルが生成されていない。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-002
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-003
+TITLE: 既存ファイルを上書きしない
+STATEMENT: >>>
+出力先に同名のファイルを置いた状態で実行し、 実行の前後でその中身を比べる。
+<<<
+EXPECTED: >>>
+異常終了し、 既存ファイルの中身が変わっていない。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-003
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-004
+TITLE: 中断しても不完全なファイルを残さない
+STATEMENT: >>>
+書き出しの途中で処理を強制終了させ、 出力先の状態を確認する。
+<<<
+EXPECTED: >>>
+出力先に不完全なファイルが残っていない。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-004
+  ROLE: Verifies

@@ -27,14 +27,31 @@ def create_config() -> ProjectConfig:
     return ProjectConfig(
         project_title="SOVD Automotive (StrictDocStarter sample)",
         project_features=[
-            # Stable features (these four are strictdoc's defaults).
+            # Stable features (these four are strictdoc's defaults). None of them
+            # puts an icon in the left toolbar: the first three only add entries
+            # to a document's VIEWS dropdown, and SEARCH's icon requires a
+            # running server (nav.jinja.html and is_activated_search() both
+            # check is_running_on_server), so `strictdoc export` never shows it.
             "TABLE_SCREEN",
             "TRACEABILITY_SCREEN",
             "DEEP_TRACEABILITY_SCREEN",
             "SEARCH",
-            # Experimental. Requirement x design/test coverage matrix screen.
-            # Surfaces which requirements are implemented/verified and their test
-            # results across the V-model (Implements/Satisfies/Verifies/ResultOf).
+            # Experimental screens. These three ARE the left toolbar.
+            # Requirement x design/test coverage matrix screen. Surfaces which
+            # requirements are implemented/verified and their test results
+            # across the V-model (Implements/Satisfies/Verifies/ResultOf).
             "TRACEABILITY_MATRIX_SCREEN",
+            # Document / requirement / relation counts for the whole project.
+            "PROJECT_STATISTICS_SCREEN",
+            # Plotly tree map of the document tree, coloured by coverage
+            # (red = uncovered, green = covered). It bundles plotly.js, which is
+            # what makes the output folder grow by a few MB.
+            "TREE_MAP_SCREEN",
+            # Two features that also have toolbar icons but are left out on
+            # purpose. REQUIREMENT_TO_SOURCE_TRACEABILITY: this sample ships no
+            # source files and sets no include_source_paths, so its Source
+            # coverage screen would be empty. DIFF: server-only, and it compares
+            # Git revisions of the server process's working directory rather
+            # than of the served folder.
         ],
     )

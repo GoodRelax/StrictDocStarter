@@ -363,6 +363,29 @@ def create_config() -> ProjectConfig:
             "TRACEABILITY_SCREEN",
             "DEEP_TRACEABILITY_SCREEN",
             "SEARCH",
+            # The three below are what put icons in the left toolbar; the four
+            # above do not. TABLE / TRACEABILITY / DEEP_TRACEABILITY only add
+            # entries to a document's VIEWS dropdown, and SEARCH's icon needs a
+            # running server (nav.jinja.html and is_activated_search() both
+            # require is_running_on_server) -- which is exactly how this
+            # launcher runs, so SEARCH does show here even though a static
+            # export never shows it.
+            #
+            # DIFF is deliberately NOT listed even though it, too, would get an
+            # icon under the server. Its screen resolves the two Git revisions
+            # in the server process's CURRENT WORKING DIRECTORY, not in the
+            # served project folder, and this launcher starts strictdoc from the
+            # StrictDocStarter folder. Measured on 0.27.1: from a non-Git
+            # directory every revision comes back HTTP 422, and from a Git one
+            # the screen quietly diffs THAT repository. If you want it, run
+            # `strictdoc server .` yourself from inside your Git project.
+            #
+            # Cost of the three screens is small: about +0.5 s of export time.
+            # TREE_MAP_SCREEN is the one that grows the output folder (it
+            # bundles plotly.js -- a few MB on a large project).
+            "PROJECT_STATISTICS_SCREEN",
+            "TRACEABILITY_MATRIX_SCREEN",
+            "TREE_MAP_SCREEN",
         ],
     )
 '@

@@ -1,0 +1,48 @@
+[DOCUMENT]
+TITLE: 基本 - 上位要求
+UID: DOC-UPPER
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+本書に書くのは **何を作るか** だけである。 どう作るかは `02-lower.sdoc` に
+分けてある。
+
+この段落は `[TEXT]` であり UID を持たない。 **地の文には UID を付けない。**
+付けるかどうかの基準は 1 つだけである — **後から名前で引きたいなら付ける。**
+説明や前置きは引かないので付けない。
+<<<
+
+[REQUIREMENT]
+UID: SYS-001
+STATUS: Approved
+TITLE: ファイルの変換
+STATEMENT: >>>
+本ツールは、 利用者が指定した入力ファイルを、 指定された出力形式へ変換すること。
+<<<
+RATIONALE: >>>
+本ツールの存在理由そのものである。 これを外すと他の要求が意味を失う。
+<<<
+
+[REQUIREMENT]
+UID: SYS-002
+STATUS: Approved
+TITLE: 想定外の入力の拒否
+STATEMENT: >>>
+本ツールは、 入力ファイルが指定された形式でない場合、 変換を行わないこと。
+<<<
+
+[REQUIREMENT]
+UID: SYS-003
+STATUS: Reviewed
+TITLE: 既存ファイルの保護
+STATEMENT: >>>
+本ツールは、 出力先に同名のファイルが既にある場合、 これを上書きしないこと。
+<<<
+RATIONALE: >>>
+無警告で既存ファイルを潰すと、 利用者は取り返しのつかない操作に気づけない。
+既定は安全側に倒す。
+<<<

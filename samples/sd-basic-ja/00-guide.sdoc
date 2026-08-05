@@ -1,0 +1,353 @@
+[DOCUMENT]
+TITLE: 基本 - まずこれを読む
+UID: DOC-GUIDE
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+**本書の目的は、 `.sdoc` を初心者と AI がすぐ使えるようにすることである。**
+
+この一式は、 要求仕様書として最低限成り立つものを一通り並べてある。
+上位要求から下位要求、 テストケース、 レビュー指摘までが **別のファイルに分かれ、
+その間が繋がっている。** 自分の仕様書は **この一式を丸ごと写して、 中身を
+差し替えるところから始める。**
+
+**この段落には UID が無い。** `[TEXT]` という地の文であり、 要求ではない。
+StrictDoc は要求と地の文を別のものとして扱う。 混ぜてよい。
+
+同じ内容を `.md` で書いた一式が `samples/md-basic-ja/` にある。 **どちらで
+書いてもトレーサビリティと JSON の中身は同じになる。** 違うのは本文の
+書き方だけである。
+
+ファイルの並びは次のとおり。
+
+- `00-guide.sdoc` — 本書。 読む順と書き方
+- `01-upper.sdoc` — 上位要求 3 件。 何を作るか
+- `02-lower.sdoc` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
+- `03-tests.sdoc` — テストケース 4 件。 下位へ結ぶ
+- `04-review.sdoc` — レビュー指摘 2 件。 対象の要求へ結ぶ
+- `05-markdown.sdoc` — 本文を Markdown 記法で書く文書
+- `basic.sgra` — 全文書が共有する文法定義
+- `strictdoc_config.py` — プロジェクト設定。 **このフォルダ直下に無いと読まれない**
+- `_assets/` — 図・画像・リンク先の `.md`
+<<<
+
+[[SECTION]]
+TITLE: 基本
+
+[[SECTION]]
+TITLE: 文とタグ
+
+[TEXT]
+STATEMENT: >>>
+`.sdoc` の外形は 3 つしかない。
+
+- `[DOCUMENT]` — 1 ファイルに 1 つ。 先頭に置く。 `TITLE:` だけが必須
+- `[GRAMMAR]` — 使うフィールドの宣言。 外部ファイルに出せる
+- ノード — `[TEXT]` / `[[SECTION]]` / `[REQUIREMENT]` と、 文法で足した型
+
+最小の形はこれだけである。
+
+::
+
+    [DOCUMENT]
+    TITLE: 何かの仕様書
+
+    [REQUIREMENT]
+    UID: REQ-001
+    TITLE: 何かをすること
+    STATEMENT: >>>
+    本システムは、 何かをすること。
+    <<<
+
+**複数行の値は `>>>` と `<<<` で囲む。** 1 行で済む値は `UID: REQ-001` の形で
+そのまま書く。 どちらになるかは文法の宣言ではなく、 書き方で決まる。
+
+**`UID:` は必ず付ける。** 無くても解析は通るが、 **他から参照できず JSON からも
+引けない。** 逆に、 引く必要が無いもの — 説明・前置き・章の導入 — は
+`[TEXT]` にして UID を付けない。 本書はほぼ全部が `[TEXT]` である。
+
+**`[GRAMMAR]` を外部ファイルに出す理由は、 文書をまたいで揃えるためである。**
+この一式では 5 つの文書が同じ `basic.sgra` を読む。
+
+::
+
+    [GRAMMAR]
+    IMPORT_FROM_FILE: basic.sgra
+
+`basic.sgra` が宣言しているのは 4 つのノード型である。
+
+- `SECTION` — 章。 入れ子にできる
+- `REQUIREMENT` — 要求。 `UID` / `STATUS` / `TITLE` / `STATEMENT` / `RATIONALE`
+- `TEST_CASE` — テストケース。 `EXPECTED` を持つ
+- `FINDING` — レビュー指摘。 `SEVERITY` と `RESOLUTION` を持つ
+
+後ろの 2 つは **StrictDoc の標準概念ではない。** 文法で足したものである。
+**個別の文書にフィールドを足してはならない。** 文書ごとに違う形になり、
+どこに何があるか誰も分からなくなる。 足すときは `basic.sgra` に足す。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 上位要求と下位要求
+
+[TEXT]
+STATEMENT: >>>
+**繋がりは下位の側に書く。** 下位のノードに `RELATIONS:` を置き、 親の UID を
+指す。 上位の側には何も書かない。
+
+::
+
+    RELATIONS:
+    - TYPE: Parent
+      VALUE: SYS-001
+
+**親は別のファイルにいてよい。** StrictDoc はプロジェクト全体の UID を 1 つの
+表に集めてから関係を解決するので、 ファイルの境目は関係しない。
+この一式が実際にそうなっている。
+
+::
+
+    01-upper.sdoc   SYS-001   SYS-002   SYS-003
+                       |         |         |
+    02-lower.sdoc   SW-001    SW-002    SW-003 / SW-004
+                       |         |         |
+    03-tests.sdoc   TC-001    TC-002    TC-003 / TC-004
+
+**`ROLE:` を足すと関係に意味が付く。** 種類は `Parent` のままでよい。
+
+::
+
+    RELATIONS:
+    - TYPE: Parent
+      VALUE: SW-001
+      ROLE: Verifies
+
+`03-tests.sdoc` は `Verifies`、 `04-review.sdoc` は `Reviews` を使っている。
+**`ROLE` は使う前に文法側で宣言しておく。** 宣言していない値を書くと落ちる。
+
+繋がりの確認は画面で行う。 文書の上の **VIEWS** から
+`TRACEABILITY` / `DEEP TRACEABILITY` を開くと親子が並び、 左のツールバーの
+**トレーサビリティマトリクス** を開くと、 どの要求がテストで覆えていないかが
+一覧で出る。
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 添付
+
+[[SECTION]]
+TITLE: リンク
+
+[TEXT]
+STATEMENT: >>>
+`.md` のファイルへリンクを張れる。 宛先は `_assets/note.md` である
+→ [LINK: DOC-NOTE]
+
+**必要なのは、 宛先の側が見出しの直下で UID を宣言していることだけである。**
+
+::
+
+    # 用語の対応表
+
+    **UID**: DOC-NOTE
+
+**出力先のパスは書かない。** StrictDoc が UID から解決する。 リンクに出る文字は
+宛先のタイトルから自動で作られ、 **自分では指定できない。**
+
+`[LINK:]` の宛先は要求でもよい。 同じ書き方で `[LINK: SW-001]` と書ける。
+
+**プロジェクト内の `.md` は、 置き場所に関係なく全部が文書として解析される。**
+`_assets/` の中も例外ではない。 そのため `.md` は必ず `#` の見出しで始める。
+**見出しの無い `.md` が 1 つあると export 全体が止まる。** どうしても文書に
+できないものは `strictdoc_config.py` の `exclude_doc_paths` で名指しして外す。
+
+**除外はファイル単位で書く。 フォルダごと除外してはならない。**
+
+::
+
+    exclude_doc_paths=["_assets/notes.md"]   # OK。 その 1 ファイルだけ外れる
+    exclude_doc_paths=["_assets/**"]         # 駄目。 画像も一緒に消える
+
+後者はフォルダを走査から外すため、 **アセット置き場としても認識されず画像が
+コピーされない。** それでも export は成功と報告し、 出来上がった HTML の
+画像だけが 404 になる。 気づきにくい。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 図
+
+[TEXT]
+STATEMENT: >>>
+図は 2 通りで入る。
+
+**1 つめ — 画像ファイルを埋め込む。** `_assets/` に置いて `.. image::` で指す。
+このフォルダは StrictDoc が自動でコピーするので、 設定に何も足さなくてよい。
+**拡大しても崩れないので SVG を既定にする。**
+
+.. image:: _assets/flow.svg
+   :alt: 入力ファイルから出力ファイルまでの流れと、 2 つの停止条件
+   :width: 700px
+
+**2 つめ — Mermaid の図を外部ファイルに出して取り込む。** 実体は
+`_assets/fig-flow.sdoc` で、 次の直後に展開されている。
+
+::
+
+    [DOCUMENT_FROM_FILE]
+    FILE: _assets/fig-flow.sdoc
+
+**取り込む側の拡張子は `.md` ではなく `.sdoc` にする。** `[DOCUMENT_FROM_FILE]`
+が `.sdoc` 以外を拒否するためである。 中身は Markdown のまま書ける —
+断片の側で `MARKUP: Markdown` を宣言しておけばよい。
+
+::
+
+    [DOCUMENT]
+    TITLE: 図 - 変換の流れ
+    UID: FIG-FLOW
+    OPTIONS:
+      MARKUP: Markdown
+
+    [TEXT]
+    STATEMENT: >>>
+    (ここに Mermaid のコードフェンスをそのまま書く)
+    <<<
+
+**この宣言は `STATEMENT:` の中には書けない。** 文書または章の本体に置く。
+だから下の図は、 この段落の外に出してある。
+
+取り込んだ図は **この画面に直接出ると同時に、 1 個の文書としても開ける。**
+`strictdoc server` は取り込まれた文書も個別に公開する。 `export` では既定で
+公開されないので、 必要なら ``--included-documents`` を付ける。
+**ただし JSON を引く目的で付けてはならない。** 同じ UID が 2 か所に現れる。
+
+**取り込みは 1 対 1 である。** 同じ断片を 2 つの文書へ取り込むことはできない。
+2 か所から見せたいなら、 一方は `[LINK: FIG-FLOW]` にする。
+<<<
+
+[DOCUMENT_FROM_FILE]
+FILE: _assets/fig-flow.sdoc
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 表
+
+[TEXT]
+STATEMENT: >>>
+`.sdoc` の本文は既定で RST として解析される。 表の書き方は 2 つある。
+
+**1 つめ — grid 形式。**
+
++------------+----------------+------------------------+
+| 形式       | 桁がずれたとき | 備考                   |
++============+================+========================+
+| grid       | export が停止  | 等幅で見た目を揃える   |
++------------+----------------+------------------------+
+| simple     | 耐える         | 末尾の罫線は全列分書く |
++------------+----------------+------------------------+
+
+**2 つめ — simple 形式。**
+
+==========  ================  ========================
+形式        桁がずれたとき    備考
+==========  ================  ========================
+grid        export が停止     等幅で見た目を揃える
+simple      耐える            末尾の罫線は全列分書く
+==========  ================  ========================
+
+**日本語はどちらでも使える。** 桁を数えるときは **文字数ではなく表示幅** で
+数える。 全角 1 文字が 2 桁である。 **等幅フォントで見た目が揃っていれば通る。**
+
+**grid 形式は 1 桁ずれると export 全体が止まる。** simple 形式は右にずれても
+正しい表になるので、 手で書くならこちらが安全である。 ただし
+**末尾の罫線を全列分書かないと止まる。**
+
+**パイプ表は既定では使えない。** `MARKUP: Markdown` を宣言した文書でだけ
+使える。 例は `05-markdown.sdoc` にある。 **こちらは桁を揃えなくても通る。**
+
+列が多い表は `.. csv-table::` も使える。 こちらは列数が合わなくても通る。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 出力と JSON クエリ
+
+[TEXT]
+STATEMENT: >>>
+**HTML は人が読むため、 JSON は機械が引くため、 Markdown は他所へ渡すための
+ものである。**
+
+::
+
+    strictdoc export --formats=html     --output-dir out .
+    strictdoc export --formats=json     --output-dir out .
+    strictdoc export --formats=markdown --output-dir out .
+
+HTML を読むだけなら export は要らない。 **このフォルダを
+`launch-strictdoc.bat` にドラッグすればサーバが立ち上がる。** 編集して保存
+すれば約 0.6 秒で画面に反映される。
+
+JSON は `out/json/index.json` に出る。 **要求を直したら毎回出し直す。**
+問い合わせは `jq` で行う。
+
+::
+
+    strictdoc export --formats=json --output-dir out .
+    jq -r -f q-open-findings.jq out/json/index.json
+
+`q-open-findings.jq` の中身は、 例えば未対処の指摘を出すならこうなる。
+
+::
+
+    .DOCUMENTS[] | recurse(.NODES[]?)
+    | select(._NODE_TYPE == "FINDING" and .RESOLUTION == "Open")
+    | .UID + "  " + .SEVERITY + "  " + .TITLE
+
+**ノード型を引くキーは `_NODE_TYPE` である。** 文法に書いた `FINDING` という
+名前がそこに入る。 先頭に下線が付くので **書き間違えやすい。**
+この一式に当てた実際の出力はこうなる。
+
+::
+
+    RV-001  Major  SW-002 の検査方法が決まっていない
+    RV-002  Question  SYS-003 に上書きを許す手段が無い
+
+**同じフィルタを `samples/md-basic-ja/` の JSON に当てても出力は 1 文字も
+変わらない。** これが「どちらで書いても JSON は同じ」の実物である。
+
+**フィルタを文字列で渡さずファイルに書くのは PowerShell のためである。**
+PowerShell はクォートの中の二重引用符を落とすので、 フィルタを直接引数に
+書く形が壊れる。 ``-f`` ならどの shell でも同じに動く。
+
+クエリの実例は `docs/03-sdoc-json-queries.md` に 7 本ある。
+
+**JSON を「軽いから」と説明してはならない。** StrictDoc の JSON は元の
+`.sdoc` より **大きい。** 4 スペースで整形され、 かつ非 ASCII が
+``\uXXXX`` に展開されるためである。 値打ちは小ささではなく、
+**全文を読まずに答えだけを引けること** の側にある。
+
+`.md` との相互変換は両方向できる。
+
+::
+
+    strictdoc export --formats=sdoc     --output-dir out .   # .md -> .sdoc
+    strictdoc export --formats=markdown --output-dir out .   # .sdoc -> .md
+
+**`strictdoc convert` は Excel と ReqIF 専用であり、 これには使えない。**
+<<<
+
+[[/SECTION]]
