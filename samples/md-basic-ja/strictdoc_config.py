@@ -48,6 +48,13 @@ from strictdoc.core.project_config import ProjectConfig
 def create_config() -> ProjectConfig:
     return ProjectConfig(
         project_title="Markdown basics, Japanese (StrictDocStarter sample)",
+        # Appearance. StrictDoc has no dark mode of its own, so StrictDocStarter
+        # supplies one as an extra stylesheet. strictdoc-theme.css next to this file
+        # is regenerated every time the project is opened, following the color_mode
+        # setting in server.config.json -- use change-color-mode.bat to change it.
+        # The committed copy is the "auto" variant, so a plain `strictdoc export`
+        # works too. The path must stay relative: strictdoc asserts on absolute ones.
+        custom_css_path="strictdoc-theme.css",
         project_features=[
             "TABLE_SCREEN",
             "TRACEABILITY_SCREEN",
