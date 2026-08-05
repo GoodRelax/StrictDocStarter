@@ -57,18 +57,48 @@ function Get-PortListenerPid {
     }
 }
 
-function Test-PidIsStrictdoc {
-    # FR-1157a: the listening process is a strictdoc server (CommandLine contains "strictdoc").
-    # WMI failure / empty CommandLine -> NOT strictdoc (safe side).
-    param([int]$ProcessId)
+function Test-PidIsOurStrictDocServer {
+    # FR-1157a / FR-1166: is the process holding the port the server WE just started
+    # for THIS project?
+    #
+    # The old test asked only whether the command line contained the word
+    # "strictdoc". Every path in a StrictDocStarter installation contains it, so
+    # anything launched from that folder -- a PowerShell script, an editor with a
+    # file open, a Python process -- passed. Whatever happened to be listening on
+    # the chosen port was then adopted, and the browser was pointed at a page some
+    # other program was serving.
+    #
+    # Four things must line up instead, and any doubt means "no", which sends the
+    # caller down the TOCTOU path and it retries on the next free port.
+    param(
+        [int]$ProcessId,
+        [int]$Port,
+        [string]$ProjectPath
+    )
     if ($ProcessId -le 0) { return $false }
     try {
         $p = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId=$ProcessId" -ErrorAction Stop
-        if ($null -eq $p -or [string]::IsNullOrEmpty($p.CommandLine)) { return $false }
-        return ($p.CommandLine -match '(?i)strictdoc')
     } catch {
         return $false
     }
+    if ($null -eq $p -or [string]::IsNullOrEmpty($p.CommandLine)) { return $false }
+    $commandLine = $p.CommandLine
+
+    # 1. the strictdoc executable itself, not a folder that happens to be named
+    #    after it. The listening process is python.exe running strictdoc.exe, so
+    #    the exe name is present either way.
+    if ($commandLine -notmatch '(?i)strictdoc\.exe') { return $false }
+    # 2. the server subcommand: an export or a manage run is not ours to adopt.
+    if ($commandLine -notmatch '(?i)\bserver\b') { return $false }
+    # 3. the port we asked for.
+    if ($commandLine -notmatch ('(?i)--port[\s=]+"?' + $Port + '"?(\s|$)')) { return $false }
+    # 4. the folder we asked it to serve. Without this, a strictdoc server that
+    #    grabbed the port for a DIFFERENT project would still be adopted, and the
+    #    browser would open someone else's documents.
+    $served = Get-ServedPathFromCommandLine -CommandLine $commandLine
+    $target = ConvertTo-NormalizedPath -Path $ProjectPath
+    if ($null -eq $served -or $null -eq $target) { return $false }
+    return ($served -eq $target)
 }
 
 function ConvertTo-NormalizedPath {
@@ -83,6 +113,19 @@ function ConvertTo-NormalizedPath {
     }
     $full = $full.TrimEnd('\', '/')
     return $full.ToLowerInvariant()
+}
+
+function Get-ServedPathFromCommandLine {
+    # The folder argument of 'strictdoc server <folder> ...', normalised.
+    # Returns $null when it cannot be read, so callers treat it as "no match"
+    # rather than guessing (FR-1158a).
+    param([string]$CommandLine)
+    if ([string]::IsNullOrWhiteSpace($CommandLine)) { return $null }
+    if ($CommandLine -match '(?i)\bserver\b\s+(?:"([^"]+)"|([^\s"-][^\s"]*))') {
+        $raw = if ($matches[1]) { $matches[1] } else { $matches[2] }
+        return ConvertTo-NormalizedPath -Path $raw
+    }
+    return $null
 }
 
 function Get-RunningStrictDocServers {
@@ -102,13 +145,7 @@ function Get-RunningStrictDocServers {
         $cl = $p.CommandLine
         $port = 0
         if ($cl -match '(?i)--port[\s=]+"?(\d{1,5})"?') { $port = [int]$matches[1] }
-        # served path = first token after the 'server' subcommand (quoted or bare),
-        # excluding option flags. Best-effort.
-        $normPath = $null
-        if ($cl -match '(?i)\bserver\b\s+(?:"([^"]+)"|([^\s"-][^\s"]*))') {
-            $rawPath = if ($matches[1]) { $matches[1] } else { $matches[2] }
-            $normPath = ConvertTo-NormalizedPath -Path $rawPath
-        }
+        $normPath = Get-ServedPathFromCommandLine -CommandLine $cl
         $servers += [pscustomobject]@{ Pid = [int]$p.ProcessId; Port = $port; NormPath = $normPath }
     }
     return $servers
@@ -371,7 +408,13 @@ function Confirm-PortAdoption {
     # before (c) is declared. A single reading is not evidence -- the probe walks
     # every process on the machine once a second, and one unlucky sample used to
     # kill a server that was merely still starting.
-    param([int]$Port, [int]$SpawnGraceSec = 12, [int]$MaxWaitSec = 60, [int]$ConfirmMisses = 3)
+    param(
+        [int]$Port,
+        [Parameter(Mandatory)] [string]$ProjectPath,
+        [int]$SpawnGraceSec = 12,
+        [int]$MaxWaitSec = 60,
+        [int]$ConfirmMisses = 3
+    )
     $startTime = Get-Date
     $everSeenAlive = $false
     $missStreak = 0
@@ -379,7 +422,7 @@ function Confirm-PortAdoption {
         $elapsed = [int]((Get-Date) - $startTime).TotalSeconds
         $ownerPid = Get-PortListenerPid -Port $Port
         if ($ownerPid -gt 0) {
-            if (Test-PidIsStrictdoc -ProcessId $ownerPid) {
+            if (Test-PidIsOurStrictDocServer -ProcessId $ownerPid -Port $Port -ProjectPath $ProjectPath) {
                 return [pscustomobject]@{ Result = 'adopted'; OwnerPid = $ownerPid }     # (a)
             }
             return [pscustomobject]@{ Result = 'race'; OwnerPid = $ownerPid }            # (b)

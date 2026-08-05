@@ -165,7 +165,7 @@ while ($attempt -lt $maxRetries) {
         Complete-AndExit -Code 1 -Pause $true
     }
 
-    $adopt = Confirm-PortAdoption -Port $candidate
+    $adopt = Confirm-PortAdoption -Port $candidate -ProjectPath $projectPath
     $r = $adopt.Result
     if ($r -eq 'adopted' -or $r -eq 'timeout') {
         if ($r -eq 'timeout') {
