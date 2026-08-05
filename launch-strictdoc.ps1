@@ -12,6 +12,12 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# strictdoc writes UTF-8. Without this, PowerShell decodes its output using the
+# console code page (cp932 on a Japanese Windows), and any non-ASCII document
+# title comes back as mojibake -- which is exactly what the diagnostic dump after
+# a failed start used to show. Match gather-logs.ps1, which already does this.
+try { [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false) } catch {}
+
 # ---- locate self + libraries ----
 $ScriptDir     = Split-Path -Parent $MyInvocation.MyCommand.Path
 $StarterRoot   = $ScriptDir

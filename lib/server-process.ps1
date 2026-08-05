@@ -280,21 +280,43 @@ function Show-StartupErrorDiagnostic {
     )
     Write-Host ""
     Write-Host "[ERROR] StrictDoc server failed to start on port $Port (it exited before binding)." -ForegroundColor Red
-    Write-Host "        Most likely a .sdoc parse error. Details from 'strictdoc export':" -ForegroundColor Red
+    Write-Host "        Checking whether the documents themselves are the problem..." -ForegroundColor Red
     $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("sds-diag-" + [Guid]::NewGuid().ToString('N'))
     $eap = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
+    # Decode the child's output as UTF-8 regardless of the console code page, and
+    # tell Python to emit UTF-8 regardless of the locale. Either half alone still
+    # produces mojibake for non-ASCII document titles on a cp932 console.
+    $prevOut = [Console]::OutputEncoding
+    $prevPy  = $env:PYTHONIOENCODING
+    try { [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false) } catch {}
+    $env:PYTHONIOENCODING = 'utf-8'
     try {
         $out = & $StrictDocExe export $ProjectPath --output-dir $tmp 2>&1
         $ErrorActionPreference = $eap
+        $env:PYTHONIOENCODING = $prevPy
+        try { [Console]::OutputEncoding = $prevOut } catch {}
         $text = ($out | Out-String)
         $lines = $text -split "`r?`n" | Where-Object { $_ -match '(?i)(error|could not parse|TextXSyntaxError|traceback|exception|line\s+\d+)' }
         if (($lines | Measure-Object).Count -gt 0) {
             foreach ($ln in ($lines | Select-Object -First 15)) {
                 Write-Host ("        " + $ln.Trim()) -ForegroundColor Yellow
             }
+        } elseif ($LASTEXITCODE -eq 0) {
+            # The documents are fine -- exporting them worked. Saying "most likely a
+            # parse error" here sends people to look at the wrong thing, which is
+            # exactly what happened once. Name the causes that are still open.
+            Write-Host "        Your documents are fine: exporting them succeeded." -ForegroundColor Yellow
+            Write-Host "        So the failure is in starting the server, not in the .sdoc/.md files." -ForegroundColor Yellow
+            Write-Host "        Things worth checking, in order:" -ForegroundColor Yellow
+            Write-Host "          1. Try again. A first run on a large project can be slow, and the" -ForegroundColor Yellow
+            Write-Host "             port may still have been closing from an earlier server." -ForegroundColor Yellow
+            Write-Host "          2. Run it yourself to see the real error in the window:" -ForegroundColor Yellow
+            Write-Host ("             strictdoc server `"{0}`" --port {1}" -f $ProjectPath, $Port) -ForegroundColor Yellow
+            Write-Host "          3. If that works, this launcher lost sight of the server process" -ForegroundColor Yellow
+            Write-Host "             rather than the server failing. Please report it with the above." -ForegroundColor Yellow
         } else {
-            # No recognizable error lines: echo the tail so the user sees something useful.
+            # Export failed but printed nothing we recognise: show the tail verbatim.
             $tail = $text.Trim()
             if ($tail.Length -gt 600) { $tail = $tail.Substring($tail.Length - 600) }
             if ($tail.Length -gt 0) { Write-Host ("        " + $tail) -ForegroundColor Yellow }
@@ -306,5 +328,5 @@ function Show-StartupErrorDiagnostic {
     } finally {
         if (Test-Path $tmp) { Remove-Item -Path $tmp -Recurse -Force -ErrorAction SilentlyContinue }
     }
-    Write-Host "        Fix the .sdoc and re-drop the folder." -ForegroundColor Red
+    Write-Host "        Then re-drop the folder onto launch-strictdoc.bat." -ForegroundColor Red
 }

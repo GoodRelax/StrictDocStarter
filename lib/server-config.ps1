@@ -290,10 +290,18 @@ function Resolve-ProjectPathFromInput {
             continue
         }
 
-        # FR-1154b: warn (non-fatal) if no .sdoc files.
-        $sdoc = @(Get-ChildItem -LiteralPath $resolved -Filter *.sdoc -File -ErrorAction SilentlyContinue)
-        if ($sdoc.Count -eq 0) {
-            Write-Host "[WARN]  No .sdoc files found under $resolved. Starting as an empty project." -ForegroundColor Yellow
+        # FR-1154b: warn (non-fatal) when the folder holds no documents at all.
+        # Count .md as well as .sdoc -- StrictDoc reads both, and the bundled
+        # md-basic-ja sample has no .sdoc whatsoever, so a .sdoc-only test called
+        # a perfectly good project empty. Search recursively for the same reason:
+        # documents commonly sit in a docs\ subfolder. The output folder is skipped
+        # so a previous run's copies never count as content.
+        $docs = @(
+            Get-ChildItem -LiteralPath $resolved -Include *.sdoc, *.md -File -Recurse -ErrorAction SilentlyContinue |
+                Where-Object { $_.FullName -notmatch '(?i)\\output\\' }
+        )
+        if ($docs.Count -eq 0) {
+            Write-Host "[WARN]  No .sdoc or .md files found under $resolved. Starting as an empty project." -ForegroundColor Yellow
         }
 
         return $resolved
