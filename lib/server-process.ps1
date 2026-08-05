@@ -183,9 +183,30 @@ function Start-StrictDocCliWindow {
     # already refreshes on its own, which made the difference easy to miss.
     # Neither case needs the server stopped -- the window stays up either way.
     $argList = @('server', (Quote-ArgIfNeeded $ProjectPath), '--host', $BindHost, '--port', $Port.ToString(), '--watch')
-    if (-not [string]::IsNullOrWhiteSpace($OutputPath)) {
-        $argList += @('--output-path', (Quote-ArgIfNeeded $OutputPath))
+
+    # FR-1160: always pass --output-path, defaulting it under the served folder.
+    #
+    # StrictDoc's own default for `server` is the RELATIVE string "./output/server"
+    # (core/project_config.py), which it resolves against the server process's
+    # current working directory -- not against the served folder. This launcher
+    # normalises the CWD to the StrictDocStarter root, so every project used to
+    # write into <starter_root>\output\server and SHARE html\index.html plus the
+    # statistics / traceability-matrix / tree-map screens. Measured on 0.27.1:
+    # serving md-basic-ja on 5111 and sd-basic-ja on 5112 at the same time made
+    # 5111 answer "/" with sd-basic-ja's project title and document list, because
+    # the second server overwrote the shared index.html.
+    #
+    # The first level MUST stay named "output": StrictDoc unconditionally skips a
+    # directory of that name directly under the served folder when scanning for
+    # documents. Any other name is scanned, and the second run then re-reads the
+    # _assets\*.sdoc copies it wrote itself and dies with
+    # "OneToOneDictionary: Cannot create a link because lhs_node already exists".
+    # The second level is "strictdoc" rather than "server" so it cannot collide
+    # with an output\server folder the user already owns.
+    if ([string]::IsNullOrWhiteSpace($OutputPath)) {
+        $OutputPath = Join-Path $ProjectPath 'output\strictdoc'
     }
+    $argList += @('--output-path', (Quote-ArgIfNeeded $OutputPath))
     $eap = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {

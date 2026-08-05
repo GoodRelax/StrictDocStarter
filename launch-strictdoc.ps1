@@ -116,8 +116,12 @@ if ($existingPort -gt 0) {
     Complete-AndExit -Code 0 -Pause $false
 }
 
-# ---- FR-1142..1145: ensure the project has a strictdoc_config.py (MERMAID / MATHJAX) ----
-Initialize-StrictDocProjectConfig -ProjectPath $projectPath
+# ---- FR-1142..1145 / FR-1163: ensure the project has a strictdoc_config.py, and offer to
+# ---- refresh one this launcher wrote itself when an older generation is found ----
+Initialize-StrictDocProjectConfig -ProjectPath $projectPath -ServerConfigPath $ConfigPath
+
+# ---- FR-1161: say how to keep the generated output out of Git; never edit .gitignore ----
+Show-GitignoreAdvice -ProjectPath $projectPath
 
 # ---- FR-1156 / FR-1156b: pick a free port from the start port ----
 $ceiling   = Get-PortCeiling -Start $startPort

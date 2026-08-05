@@ -327,21 +327,112 @@ function Save-LastUsedProjectPath {
     }
 }
 
-function Initialize-StrictDocProjectConfig {
-    # FR-1142..1145: ensure <ProjectPath>\strictdoc_config.py exists so MERMAID / MATHJAX
-    # render. An existing strictdoc_config.py is left untouched (FR-1142). If a legacy
-    # strictdoc.toml exists, skip with a WARN (FR-1145). Write failure is non-fatal (FR-1144).
-    # Shape follows official `strictdoc new` (create_config -> ProjectConfig) plus MERMAID/MATHJAX.
-    param([Parameter(Mandatory)] [string]$ProjectPath)
-    $cfgPy   = Join-Path $ProjectPath 'strictdoc_config.py'
-    $cfgToml = Join-Path $ProjectPath 'strictdoc.toml'
-    if (Test-Path -LiteralPath $cfgPy) { return }                                         # FR-1142
-    if (Test-Path -LiteralPath $cfgToml) {                                                # FR-1145
-        Write-Host "[WARN]  Found strictdoc.toml in the project; not scaffolding strictdoc_config.py. On strictdoc 0.27+ diagrams and math need no toggle there." -ForegroundColor Yellow
-        return
+# ---------------------------------------------------------------------------
+# Project config: scaffolding (FR-1142..1145) and generation upgrade (FR-1163).
+# ---------------------------------------------------------------------------
+
+# Bump this whenever the scaffolded body changes in a way the user would see,
+# and add the previous body's normalised SHA-256 to $script:LegacyScaffoldHashes
+# in the same commit. A body whose only difference is this stamp does NOT need a
+# bump: nothing user-visible changes, so there is nothing to ask about.
+$script:ScaffoldVersion = 2
+
+# Normalised SHA-256 of every scaffold body this launcher has written that is
+# now out of date. A file matching one of these was written by us and has not
+# been edited since, so replacing it cannot lose anyone's work. Anything else is
+# hand-written or edited and is never overwritten (FR-1142).
+$script:LegacyScaffoldHashes = @{
+    '01d9ebb363d36441a237fd6b13a48036b11c178c2a54b553d1a8be5afb80b0b8' = $true
+    '0376451f9f270939c35433871aa3393511565ae24a39a627cec45295245182e8' = $true
+    '33ae2fbab597fb3c96bf9aa6d3ae05a809db16a63a57111290176b5d189ecf94' = $true
+}
+
+# Features that put an icon in the left toolbar under `strictdoc server`, which
+# is how this launcher always runs. The project index icon is always present and
+# is counted on top of these.
+$script:ToolbarIconFeatures = @(
+    'PROJECT_STATISTICS_SCREEN',
+    'TRACEABILITY_MATRIX_SCREEN',
+    'TREE_MAP_SCREEN',
+    'REQUIREMENT_TO_SOURCE_TRACEABILITY',
+    'SEARCH',
+    'DIFF'
+)
+
+# Plain-language names so the confirmation prompt can talk about screens rather
+# than about Python identifiers. The audience for that prompt does not read
+# Python (FR-1163).
+$script:FeatureDisplayNames = @{
+    'PROJECT_STATISTICS_SCREEN'  = 'Project statistics screen (left toolbar)'
+    'TRACEABILITY_MATRIX_SCREEN' = 'Traceability matrix screen (left toolbar)'
+    'TREE_MAP_SCREEN'            = 'Tree map screen (left toolbar)'
+    'REQUIREMENT_TO_SOURCE_TRACEABILITY' = 'Source coverage screen (left toolbar)'
+    'TABLE_SCREEN'               = 'Table view (per document)'
+    'TRACEABILITY_SCREEN'        = 'Traceability view (per document)'
+    'DEEP_TRACEABILITY_SCREEN'   = 'Deep traceability view (per document)'
+    'SEARCH'                     = 'Search'
+    'MATHJAX'                    = 'MathJax setting (on by default since strictdoc 0.27; listing it prints a deprecation warning)'
+    'MERMAID'                    = 'Mermaid setting (on by default since strictdoc 0.27; listing it prints a deprecation warning)'
+}
+
+function Get-NormalizedConfigHash {
+    # The scaffold body travels inside a here-string, so the bytes written follow
+    # the line endings of this .ps1 in whatever checkout produced it. Normalise
+    # first (strip BOM, CRLF -> LF, trim trailing whitespace per line, exactly one
+    # trailing newline) so the digest depends on content alone.
+    param([Parameter(Mandatory)] [AllowEmptyString()] [string]$Text)
+
+    $t = $Text.TrimStart([char]0xFEFF)
+    $t = $t -replace "`r`n", "`n"
+    $t = $t -replace "`r", "`n"
+    $lines = @($t -split "`n" | ForEach-Object { $_.TrimEnd() })
+    $last = $lines.Count - 1
+    while ($last -ge 0 -and $lines[$last] -eq '') { $last-- }
+    if ($last -lt 0) { $normalised = "`n" } else { $normalised = (($lines[0..$last]) -join "`n") + "`n" }
+
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($normalised)
+        return (-join ($sha.ComputeHash($bytes) | ForEach-Object { $_.ToString('x2') }))
+    } finally {
+        $sha.Dispose()
     }
-    $content = @'
+}
+
+function Get-ProjectFeatureList {
+    # Pull the project_features entries out of a strictdoc_config.py. Commented
+    # out entries do not count: they are not active.
+    param([Parameter(Mandatory)] [AllowEmptyString()] [string]$Text)
+
+    $features = New-Object System.Collections.Generic.List[string]
+    $inBlock = $false
+    foreach ($line in ($Text -split "`r?`n")) {
+        if (-not $inBlock) {
+            if ($line -match 'project_features\s*=\s*\[') { $inBlock = $true }
+            continue
+        }
+        if ($line -match '^\s*\]') { break }
+        if ($line -match '^\s*#') { continue }
+        if ($line -match '"([A-Z0-9_]+)"') { $features.Add($Matches[1]) }
+    }
+    return $features.ToArray()
+}
+
+function Get-ToolbarIconCount {
+    # Icons visible in the left toolbar under `strictdoc server`.
+    param([string[]]$Features)
+
+    $count = 1  # project index: always shown
+    foreach ($feature in $script:ToolbarIconFeatures) {
+        if ($Features -contains $feature) { $count++ }
+    }
+    return $count
+}
+
+function Get-ScaffoldBody {
+    $body = @'
 # StrictDoc project configuration scaffolded by StrictDocStarter (launch-strictdoc).
+# StrictDocStarter scaffold version: __SCAFFOLD_VERSION__
 #
 # Placed in this project folder so `strictdoc server <this folder>` enables the features
 # below. StrictDoc reads the config from the input folder itself, not parent folders
@@ -349,7 +440,10 @@ function Initialize-StrictDocProjectConfig {
 # (create_config() returning a ProjectConfig). MATHJAX and MERMAID are deliberately NOT
 # listed: strictdoc 0.27 and newer enable both by default and print a DEPRECATION warning
 # if they are listed. Diagrams and math work without them.
-# Edit freely -- StrictDocStarter never overwrites an existing strictdoc_config.py.
+#
+# StrictDocStarter never overwrites a config you wrote yourself. It offers to update this
+# one only while it is still byte-for-byte what the launcher generated; edit anything here
+# and it becomes yours, and the launcher will only ever print suggestions from then on.
 #
 # Docs: https://strictdoc.readthedocs.io/
 from strictdoc.core.project_config import ProjectConfig
@@ -389,10 +483,258 @@ def create_config() -> ProjectConfig:
         ],
     )
 '@
+    return $body.Replace('__SCAFFOLD_VERSION__', $script:ScaffoldVersion.ToString())
+}
+
+function Get-DeclineKey {
+    param([Parameter(Mandatory)] [string]$ProjectPath)
     try {
-        Write-FileUtf8NoBom -Path $cfgPy -Content $content
-        Write-Host "[INFO]  Scaffolded strictdoc_config.py in the project folder (diagrams and math are on by default on strictdoc 0.27+)."
+        return ([System.IO.Path]::GetFullPath($ProjectPath)).TrimEnd('\', '/').ToLowerInvariant()
     } catch {
-        Write-Host "[WARN]  Could not scaffold strictdoc_config.py: $($_.Exception.Message)" -ForegroundColor Yellow
+        return $ProjectPath.ToLowerInvariant()
     }
+}
+
+function Test-ConfigUpgradeDeclined {
+    # FR-1163: a project that said no is not asked again for the same version.
+    param(
+        [Parameter(Mandatory)] [string]$ConfigPath,
+        [Parameter(Mandatory)] [string]$ProjectPath
+    )
+    try {
+        if (-not (Test-Path -LiteralPath $ConfigPath)) { return $false }
+        $obj = (Read-FileNoBom -Path $ConfigPath) | ConvertFrom-Json -ErrorAction Stop
+        $map = $obj.PSObject.Properties['config_upgrade_declined']
+        if (-not $map -or $null -eq $map.Value) { return $false }
+        $key = Get-DeclineKey -ProjectPath $ProjectPath
+        $entry = $map.Value.PSObject.Properties | Where-Object { $_.Name.ToLowerInvariant() -eq $key }
+        if (-not $entry) { return $false }
+        return ([int]$entry.Value -ge $script:ScaffoldVersion)
+    } catch {
+        return $false
+    }
+}
+
+function Save-ConfigUpgradeDecline {
+    param(
+        [Parameter(Mandatory)] [string]$ConfigPath,
+        [Parameter(Mandatory)] [string]$ProjectPath
+    )
+    try {
+        $obj = (Read-FileNoBom -Path $ConfigPath) | ConvertFrom-Json -ErrorAction Stop
+        if (-not $obj.PSObject.Properties['config_upgrade_declined'] -or $null -eq $obj.config_upgrade_declined) {
+            $obj | Add-Member -NotePropertyName config_upgrade_declined -NotePropertyValue (New-Object PSObject) -Force
+        }
+        $key = Get-DeclineKey -ProjectPath $ProjectPath
+        $obj.config_upgrade_declined | Add-Member -NotePropertyName $key -NotePropertyValue $script:ScaffoldVersion -Force
+        $json = $obj | ConvertTo-Json -Depth 10
+        $json = $json -replace '\\u003e', '>' -replace '\\u003c', '<' -replace '\\u0027', "'" -replace '\\u0026', '&'
+        Write-FileUtf8NoBom -Path $ConfigPath -Content $json
+    } catch {
+        Write-Host "[WARN]  Could not remember your answer: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
+function Show-ProjectConfigSuggestion {
+    # For configs we must not touch: hand-written, or one of ours that has been
+    # edited. Whoever wrote a config by hand can read Python, so lines are the
+    # right level of detail here (FR-1163).
+    param(
+        [Parameter(Mandatory)] [string]$ConfigPath,
+        [Parameter(Mandatory)] [string[]]$Missing
+    )
+    Write-Host "[INFO]  This project uses its own strictdoc_config.py, so it is left untouched."
+    Write-Host "        To enable the screens this launcher expects, add these to project_features:"
+    foreach ($feature in $Missing) {
+        Write-Host ('            "{0}",' -f $feature)
+    }
+    Write-Host "        File: $ConfigPath"
+}
+
+function Invoke-ScaffoldUpgradePrompt {
+    # FR-1163: the file is ours and untouched, and it is out of date. Explain the
+    # outcome in plain language, keep the literal diff one line away for the few
+    # who want it, and default to yes -- declining by default would leave most
+    # users on the old settings forever, which is the problem this solves.
+    param(
+        [Parameter(Mandatory)] [string]$ProjectConfigPath,
+        [Parameter(Mandatory)] [string]$ServerConfigPath,
+        [Parameter(Mandatory)] [string]$ProjectPath,
+        [Parameter(Mandatory)] [AllowEmptyString()] [string]$CurrentText,
+        [Parameter(Mandatory)] [AllowEmptyString()] [string]$NewText
+    )
+
+    $before = Get-ProjectFeatureList -Text $CurrentText
+    $after  = Get-ProjectFeatureList -Text $NewText
+    $added   = @($after  | Where-Object { $before -notcontains $_ })
+    $removed = @($before | Where-Object { $after  -notcontains $_ })
+    $iconsBefore = Get-ToolbarIconCount -Features $before
+    $iconsAfter  = Get-ToolbarIconCount -Features $after
+
+    $proposedDir = Join-Path $env:TEMP 'StrictDocStarter'
+    $proposedPath = Join-Path $proposedDir 'strictdoc_config.py.proposed'
+    try {
+        if (-not (Test-Path -LiteralPath $proposedDir)) {
+            $null = New-Item -ItemType Directory -Path $proposedDir -Force -ErrorAction Stop
+        }
+        Write-FileUtf8NoBom -Path $proposedPath -Content $NewText
+    } catch {
+        $proposedPath = $null
+    }
+
+    Write-Host ""
+    Write-Host "[INFO]  This project's settings file was created by an older version of"
+    Write-Host "        StrictDocStarter. It can be updated to match the version you are"
+    Write-Host "        running now."
+    Write-Host ""
+    Write-Host ("        What changes:  {0} settings enabled  ->  {1} settings enabled" -f $before.Count, $after.Count)
+    Write-Host ("                       {0} icons in the left toolbar  ->  {1} icons" -f $iconsBefore, $iconsAfter)
+    Write-Host ""
+    if ($added.Count -gt 0) {
+        Write-Host "        Turned on:"
+        foreach ($feature in $added) {
+            $label = $script:FeatureDisplayNames[$feature]
+            if (-not $label) { $label = $feature }
+            Write-Host ("          + {0}" -f $label)
+        }
+    }
+    if ($removed.Count -gt 0) {
+        Write-Host "        Removed:"
+        foreach ($feature in $removed) {
+            $label = $script:FeatureDisplayNames[$feature]
+            if (-not $label) { $label = $feature }
+            Write-Host ("          - {0}" -f $label)
+        }
+    }
+    Write-Host ""
+    Write-Host "        Your documents are NOT touched. Only this one settings file changes:"
+    Write-Host "          $ProjectConfigPath"
+    Write-Host "        A backup is written first, in the same folder."
+    if ($proposedPath) {
+        Write-Host "        Want to compare first? The exact new file is here:"
+        Write-Host "          $proposedPath"
+    }
+    Write-Host ""
+
+    if (-not [Environment]::UserInteractive) {
+        Write-Host "[INFO]  Not an interactive session; leaving the settings file as it is."
+        return
+    }
+
+    $reply = Read-Host "Update the settings file now? [Y/n]"
+    if ($reply -and $reply.Trim() -notmatch '^(y|yes)$') {
+        Write-Host "[INFO]  Nothing was changed. You will be asked again when a newer"
+        Write-Host "        version of StrictDocStarter is released."
+        Save-ConfigUpgradeDecline -ConfigPath $ServerConfigPath -ProjectPath $ProjectPath
+        return
+    }
+
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $backupPath = "$ProjectConfigPath.bak-$stamp"
+    try {
+        Copy-Item -LiteralPath $ProjectConfigPath -Destination $backupPath -ErrorAction Stop
+        Write-FileUtf8NoBom -Path $ProjectConfigPath -Content $NewText
+        Write-Host "[INFO]  Updated. Backup saved as $(Split-Path -Leaf $backupPath)."
+    } catch {
+        Write-Host "[WARN]  Could not update the settings file: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
+function Show-GitignoreAdvice {
+    # FR-1161: tell the user how to keep the generated output out of Git, but never
+    # touch .gitignore. Detection is delegated to git so that nested .gitignore
+    # files, "!" negations, .git/info/exclude and core.excludesFile all behave the
+    # way git itself behaves. If anything is unclear, say nothing: a wrong hint is
+    # worse than no hint. git is already a required tool (lib\auto.ps1 phase B).
+    param([Parameter(Mandatory)] [string]$ProjectPath)
+
+    $target = Join-Path $ProjectPath 'output\strictdoc'
+    # Ask about the path WITH a trailing slash. On the first launch the folder does
+    # not exist yet, and without the slash git treats the path as a file, so a
+    # directory-only pattern such as "/docs/spec/output/strictdoc/" does not match
+    # and we would nag a user who had already done the right thing. With the slash
+    # git treats it as a directory and every pattern style matches (measured).
+    $query = ($target -replace '\\', '/') + '/'
+    try {
+        $root = & git -C $ProjectPath rev-parse --show-toplevel 2>$null
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($root)) { return }
+        $root = $root.Trim() -replace '/', '\'
+
+        & git -C $ProjectPath check-ignore -q -- $query 2>$null
+        if ($LASTEXITCODE -ne 1) { return }   # 0 = already ignored, other = cannot tell
+    } catch {
+        return
+    }
+
+    $full = [System.IO.Path]::GetFullPath($target)
+    if ($full.Length -le $root.Length) { return }
+    $relative = '/' + (($full.Substring($root.Length).TrimStart('\')) -replace '\\', '/') + '/'
+
+    Write-Host ""
+    Write-Host "[WARN]  Generated HTML will be written to a folder Git is not ignoring:" -ForegroundColor Yellow
+    Write-Host "          $full"
+    Write-Host "        Add this one line to $root\.gitignore yourself:"
+    Write-Host "          $relative" -ForegroundColor Yellow
+    Write-Host "        (This launcher does not edit .gitignore.)"
+    Write-Host ""
+}
+
+function Initialize-StrictDocProjectConfig {
+    # FR-1142..1145 and FR-1163. Three outcomes:
+    #   no config          -> scaffold it
+    #   our config, stale  -> offer an update (backup first), see FR-1163
+    #   anything else      -> never write; print what to add instead
+    param(
+        [Parameter(Mandatory)] [string]$ProjectPath,
+        [string]$ServerConfigPath = ''
+    )
+    $cfgPy   = Join-Path $ProjectPath 'strictdoc_config.py'
+    $cfgToml = Join-Path $ProjectPath 'strictdoc.toml'
+
+    if (Test-Path -LiteralPath $cfgToml) {                                                # FR-1145
+        Write-Host "[WARN]  Found strictdoc.toml in the project; not scaffolding strictdoc_config.py. On strictdoc 0.27+ diagrams and math need no toggle there." -ForegroundColor Yellow
+        return
+    }
+
+    $newText = Get-ScaffoldBody
+
+    if (-not (Test-Path -LiteralPath $cfgPy)) {
+        try {
+            Write-FileUtf8NoBom -Path $cfgPy -Content $newText
+            Write-Host "[INFO]  Scaffolded strictdoc_config.py in the project folder (diagrams and math are on by default on strictdoc 0.27+)."
+        } catch {
+            Write-Host "[WARN]  Could not scaffold strictdoc_config.py: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+        return
+    }
+
+    # A config already exists. Decide who owns it before touching anything.
+    try {
+        $currentText = Read-FileNoBom -Path $cfgPy
+    } catch {
+        return
+    }
+
+    $currentHash = Get-NormalizedConfigHash -Text $currentText
+    if ($currentHash -eq (Get-NormalizedConfigHash -Text $newText)) { return }   # already current
+
+    $missing = @(Get-ProjectFeatureList -Text $newText | Where-Object {
+        (Get-ProjectFeatureList -Text $currentText) -notcontains $_
+    })
+
+    if (-not $script:LegacyScaffoldHashes.ContainsKey($currentHash)) {
+        # Hand-written, or one of ours that has since been edited (FR-1142).
+        if ($missing.Count -gt 0) {
+            Show-ProjectConfigSuggestion -ConfigPath $cfgPy -Missing $missing
+        }
+        return
+    }
+
+    if ([string]::IsNullOrWhiteSpace($ServerConfigPath) -or -not (Test-Path -LiteralPath $ServerConfigPath)) {
+        return
+    }
+    if (Test-ConfigUpgradeDeclined -ConfigPath $ServerConfigPath -ProjectPath $ProjectPath) { return }
+
+    Invoke-ScaffoldUpgradePrompt -ProjectConfigPath $cfgPy -ServerConfigPath $ServerConfigPath `
+        -ProjectPath $ProjectPath -CurrentText $currentText -NewText $newText
 }
