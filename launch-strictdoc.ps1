@@ -120,6 +120,10 @@ if ($existingPort -gt 0) {
 # ---- refresh one this launcher wrote itself when an older generation is found ----
 Initialize-StrictDocProjectConfig -ProjectPath $projectPath -ServerConfigPath $ConfigPath
 
+# ---- FR-1162: keep the project's stylesheet in step with color_mode. Must run after
+# ---- the config step above, which is what puts custom_css_path in the project ----
+Update-ProjectTheme -ProjectPath $projectPath -StarterRoot $ScriptDir -Mode (Get-ColorMode -ConfigPath $ConfigPath)
+
 # ---- FR-1161: say how to keep the generated output out of Git; never edit .gitignore ----
 Show-GitignoreAdvice -ProjectPath $projectPath
 

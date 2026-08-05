@@ -28,6 +28,7 @@ tree in your browser — no manual Python or command-line setup.
 |---|---|---|
 | `setup-strictdoc.bat` | One-time setup (admin): installs the StrictDoc toolchain + developer tools, and can optionally clone a repo. Shows a plan, then asks once. Fully configurable via `setup.config.json` — see [What setup installs](#what-setup-installs). | Double-click → UAC → type `yes` |
 | `launch-strictdoc.bat` | Daily use: **drag a folder (or a `.sdoc` file) onto it** to open it in your browser — or double-click to be prompted. One window per document. | Drag-and-drop or double-click |
+| `change-color-mode.bat` | Switches the generated pages between **auto / light / dark**. Default is `auto`, which follows the Windows light/dark setting. | Double-click |
 | `gather-logs.bat` | Collects logs + a diagnostics report into a ZIP for troubleshooting | Double-click |
 
 ## Quick start
@@ -98,10 +99,44 @@ StrictDoc website in your browser. There is no menu — **one window per documen
 - **Re-open the browser** for a document that's already running by dragging the same folder
   again — it just reopens the tab (no duplicate server).
 - **Settings** live in `server.config.json`: `host`, `port` (the start port for
-  auto-assignment), `open_browser`, and `output_path` (strictdoc `--output-path`; empty =
-  default). `project_path` is only the prompt default and auto-updates to your last-used folder.
+  auto-assignment), `open_browser`, `output_path`, and `color_mode`. `project_path` is only the
+  prompt default and auto-updates to your last-used folder.
 - On a `.sdoc` **parse error** the server window may close instantly, so the launcher prints
   the actual error in its own window.
+
+### Where the generated pages go
+
+Each project gets **its own** output folder, `<your folder>\output\strictdoc\`. Before, every
+project shared one folder inside StrictDocStarter, and opening two projects at once made the
+project index of the first one show the second one's documents.
+
+That folder sits inside your project, so the launcher checks whether Git is ignoring it and, if
+not, prints the one line to add. **It never edits `.gitignore` itself** — you do that. If the
+folder is not in a Git working tree, or is already ignored, it says nothing.
+
+Set `output_path` in `server.config.json` if you want it somewhere else.
+
+### Light and dark
+
+`change-color-mode.bat` sets `color_mode` to `auto` (default), `light`, or `dark`. A project
+picks up the new value the next time you open it; servers already running keep the old one.
+
+StrictDoc has no dark mode of its own, so this works by adding a stylesheet on top of it. The
+text you read goes dark and the Mermaid diagrams follow, but a few small controls are only
+partly covered and source code highlighting is unchanged. See
+[Path to custom CSS](https://strictdoc.readthedocs.io/) for the mechanism.
+
+### If the launcher offers to update a project setting
+
+Projects opened with an older StrictDocStarter carry an older `strictdoc_config.py`, and that
+file decides which screens the left toolbar shows. When the launcher finds one it wrote itself
+and has not been edited since, it explains what would change, backs the file up, and asks. Say
+no and it will not ask again until a newer version ships.
+
+**A config you wrote yourself is never modified** — the launcher only prints what to add.
+
+> Already using an older StrictDocStarter? None of this reaches you until you replace
+> `launch-strictdoc.bat` and the `lib\` folder with a current copy.
 
 ## Bundled samples
 
@@ -233,6 +268,7 @@ ZIP を展開してダブルクリックするだけで、クリーンな Window
 |---|---|---|
 | `setup-strictdoc.bat` | 初回セットアップ (管理者): StrictDoc ツールチェイン + 開発ツールを導入し、任意でリポジトリを clone。プランを表示し一度だけ確認。`setup.config.json` で全設定可 (下記「setup が導入するもの」参照)。 | ダブルクリック → UAC → `yes` |
 | `launch-strictdoc.bat` | 日常利用: **フォルダ (または `.sdoc` ファイル) をドラッグ&ドロップ**して開く — もしくはダブルクリックで入力を促す。1 文書 = 1 ウィンドウ。 | D&D / ダブルクリック |
+| `change-color-mode.bat` | 生成ページの見た目を **auto / light / dark** で切り替え。既定は `auto` (Windows の設定に追従)。 | ダブルクリック |
 | `gather-logs.bat` | 障害時のログ + 診断レポートを ZIP に回収 | ダブルクリック |
 
 ## クイックスタート
@@ -299,10 +335,59 @@ Web サイトとしてブラウザで開きます。メニューはありませ�
 - **ブラウザ再表示**: 既に起動中の文書は、同じフォルダをもう一度ドロップするとタブを
   開き直すだけです (サーバは二重起動しません)。
 - **設定**: `server.config.json` の `host` / `port` (自動割当の開始ポート) / `open_browser` /
-  `output_path` (strictdoc `--output-path`、空 = 既定)。`project_path` はプロンプトの既定値で、
-  最終使用フォルダに自動更新されます。
+  `output_path` / `color_mode`。`project_path` はプロンプトの既定値で、最終使用フォルダに
+  自動更新されます。
 - `.sdoc` の**文法エラー**時はサーバウィンドウが即閉じることがあるため、ランチャが自分の
   窓に実際のエラーを表示します。
+
+### 生成物の出力先
+
+各プロジェクトが**それぞれ専用の**出力先 `<指定フォルダ>\output\strictdoc\` を持ちます。
+以前は全プロジェクトが StrictDocStarter 内の 1 か所を共有しており、**2 つ同時に開くと
+先に開いた方のプロジェクトインデックスに後から開いた方の文書一覧が表示されていました。**
+
+出力先がプロジェクト内になるため、ランチャは Git がそこを無視しているかを確認し、
+していなければ**追記すべき 1 行を表示します。`.gitignore` は書き換えません** — 追記は
+ご自身で行ってください。Git 管理外の場合、および既に無視されている場合は何も表示しません。
+
+別の場所にしたい場合は `server.config.json` の `output_path` を設定してください。
+
+### ライトとダーク
+
+`change-color-mode.bat` で `color_mode` を `auto` (既定) / `light` / `dark` に設定します。
+**次にそのプロジェクトを開いたときから反映**され、起動中のサーバは元のままです。
+
+StrictDoc 自身はダークモードを持たないため、これは**スタイルシートを上から重ねる**方式です。
+本文と Mermaid 図は暗くなりますが、小さな操作部品は一部が対象外で、ソースコードの
+シンタックスハイライトは変わりません。仕組みは
+[Path to custom CSS](https://strictdoc.readthedocs.io/) を参照してください。
+
+### 設定ファイルの更新を尋ねられたら
+
+古い StrictDocStarter で開いたプロジェクトには古い `strictdoc_config.py` が残っており、
+このファイルが**左ツールバーに出る画面**を決めています。ランチャは「自分が書いた、かつ
+未編集の」設定ファイルを見つけた場合に限り、**何がどう変わるかを示し、バックアップを
+取ってから**確認します。断れば、次の新版が出るまで再度尋ねません。
+
+**ご自身で書いた設定ファイルは絶対に変更しません** — 追記すべき行を表示するだけです。
+
+画面は英語表示です。訳は次のとおりです。
+
+| 英語表示 | 意味 |
+|---|---|
+| `What changes: 4 settings enabled -> 7 settings enabled` | 有効な設定が 4 個から 7 個に増えます |
+| `2 icons in the left toolbar -> 5 icons` | 左ツールバーのアイコンが 2 個から 5 個になります |
+| `Turned on: + Project statistics screen` | 統計画面が有効になります |
+| `+ Traceability matrix screen` | トレーサビリティマトリクス画面が有効になります |
+| `+ Tree map screen` | ツリーマップ画面が有効になります |
+| `Your documents are NOT touched.` | **文書ファイルには一切触れません** |
+| `A backup is written first` | 先にバックアップを取ります (`.bak-<日時>`) |
+| `Want to compare first?` | 変更後のファイルを事前に見たい場合の置き場所 |
+| `Update the settings file now? [Y/n]` | 更新しますか。**Enter で「はい」** |
+| `Nothing was changed.` | 何も変更していません (断った場合) |
+
+> 古い StrictDocStarter を使い続けている場合、ここまでの機能はいずれも届きません。
+> `launch-strictdoc.bat` と `lib\` フォルダを新しいものに差し替えてください。
 
 ## 同梱サンプル
 
