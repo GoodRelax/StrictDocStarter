@@ -60,7 +60,7 @@
 **STATUS**: Approved \
 **REVIEW_STATUS**: Fixed
 
-**Statement**: 本ツールは、 入力ファイルが利用者の指定した形式でない場合、 変換を行わないこと。
+**Statement**: もし入力ファイルが利用者の指定した形式でないならば、 本ツールは、 変換を行わないこと。
 
 **REVIEW_COMMENT**: 壊れたファイルを渡されたときの扱いが決まっていなかった。
 
@@ -154,5 +154,7 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS == "NotReviewed
 | `SW-004` | `WontFix` | 検討して直さないと決めた |
 
 **テストケースには `REVIEW_STATUS` が無い。** `basic.sgra` は `REQUIREMENT` に
-だけ宣言している。 テストもレビューの対象にするなら `TEST_CASE` にも同じ 3 項目を
-足す。 **足すのは文法ファイルであり、 個別の文書ではない。**
+だけ宣言している。 テストケースは代わりに `TEST_RESULT` / `ISSUE_KEY` /
+`TEST_REMARK` を持つ — 書き方は `05-tests.md` にある。 テストの文面そのものも
+レビューの対象にするなら、 `TEST_CASE` にも同じ 3 項目を足す。
+**足すのは文法ファイルであり、 個別の文書ではない。**

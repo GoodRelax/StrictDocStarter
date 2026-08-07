@@ -115,6 +115,45 @@ jq -r '.DOCUMENTS[] | (.UID // .TITLE) as $doc
   "$JSON" > "$TMP/review"
 report "review comment missing" "$TMP/review"
 
+# 6. Wording candidates in Japanese specification prose.
+#
+#    These are CANDIDATES, not violations. A shell script cannot tell an
+#    intended passive from an accidental one, and it cannot tell a transitive
+#    verb missing its object from an intransitive one - that needs the verb's
+#    valency, which is not in the text. What it can decide is which strings are
+#    present. Everything reported here still needs a reader, or the AI prompt in
+#    the skill, to judge intent.
+#
+#    Applies to any node carrying a STATEMENT, so it covers requirements at
+#    every level - needs, requirements, design - not just top-level ones.
+#
+#    ears-shape     the sentence does not end in the shall-form 「こと。」
+#    ears-order     a condition marker sits after the subject; EARS puts the
+#                   condition first
+#    passive        される / された / られる appears
+#    no-subject     no は before the first comma
+#    negative       ない / ません appears. The EARS unwanted-behaviour pattern
+#                   uses this legitimately, so expect rows here.
+jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
+| .DOCUMENTS[] | select((.UID // "") | IN($s[]) | not) | (.UID // .TITLE) as $doc
+| recurse(.NODES[]?)
+| select(._NODE_TYPE == "REQUIREMENT" and .UID? and (.STATEMENT? // "") != "")
+| . as $n | ($n.STATEMENT | gsub("\r"; "")) as $t
+# Every pattern below is a Japanese one. Without this gate the check fires on
+# every requirement in an English project - no 「こと。」, no 「は」 - and since
+# the script exits with the number of failing checks, gating a build on it would
+# fail forever. Measured on a plain English project: 2 of 2 requirements flagged.
+| select($t | test("[぀-ヿ一-鿿]"))
+| [ (if ($t | test("こと。\\s*$") | not) then "ears-shape" else empty end),
+    (if ($t | test("は、?[^。]*(もし|場合|とき|時|の間)")) then "ears-order" else empty end),
+    (if ($t | test("される|された|されて|られる|られた")) then "passive" else empty end),
+    (if ($t | test("^[^。]*は")     | not) then "no-subject" else empty end),
+    (if ($t | test("ない|ません")) then "negative" else empty end) ] as $why
+| select(($why | length) > 0)
+| $doc + "  " + $n.UID + "  " + ($why | join(","))' \
+  "$JSON" > "$TMP/wording"
+report "wording candidates" "$TMP/wording"
+
 # StrictDoc itself refuses to export a duplicate UID or a relation that points
 # at a UID nobody defines, in the same document or across documents (measured).
 # Checking for either here would be dead code, so this script does not.

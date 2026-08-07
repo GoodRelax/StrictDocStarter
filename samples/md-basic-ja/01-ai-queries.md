@@ -64,7 +64,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":11,"REQUIREMENT":7,"SECTION":121,"TEST_CASE":4,"TEXT":120}
+{"DOCUMENT":11,"REQUIREMENT":7,"SECTION":135,"TEST_CASE":4,"TEXT":134}
 ```
 
 ### A3. 目次
@@ -91,7 +91,8 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
 ```json
 {"REQUIREMENT":["RATIONALE","RELATIONS","REVIEW_ACTION","REVIEW_COMMENT","REVIEW_STATUS",
                  "STATEMENT","STATUS","TITLE","UID","_NODE_TYPE","_TOC"],
- "TEST_CASE":["EXPECTED","RELATIONS","STATEMENT","TITLE","UID","_NODE_TYPE","_TOC"]}
+ "TEST_CASE":["GIVEN","ISSUE_KEY","RELATIONS","TEST_REMARK","TEST_RESULT","THEN",
+              "TITLE","UID","WHEN","_NODE_TYPE","_TOC"]}
 ```
 
 ---

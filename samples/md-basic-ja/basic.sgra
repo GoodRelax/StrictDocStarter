@@ -44,12 +44,24 @@ ELEMENTS:
   - TITLE: TITLE
     TYPE: String
     REQUIRED: True
-  - TITLE: STATEMENT
+  - TITLE: TEST_RESULT
+    TYPE: SingleChoice(NotRun, Passed, Failed, Blocked)
+    REQUIRED: True
+  - TITLE: ISSUE_KEY
+    TYPE: String
+    REQUIRED: False
+  - TITLE: GIVEN
     TYPE: String
     REQUIRED: True
-  - TITLE: EXPECTED
+  - TITLE: WHEN
     TYPE: String
     REQUIRED: True
+  - TITLE: THEN
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TEST_REMARK
+    TYPE: String
+    REQUIRED: False
   RELATIONS:
   - TYPE: Parent
     ROLE: Verifies

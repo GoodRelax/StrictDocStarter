@@ -196,11 +196,14 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 ## テストケースの名前
 
 **Type**: TEST_CASE \
-**UID**: TC-001
+**UID**: TC-001 \
+**TEST_RESULT**: NotRun
 
-**Statement**: 〜の条件で実行する。
+**GIVEN**: 〜の状態である。
 
-**EXPECTED**: 〜になっている。
+**WHEN**: 〜を実行する。
+
+**THEN**: 〜になっている。
 
 **Relations**:
 - **Type**: `Parent` \
@@ -272,7 +275,7 @@ Location: C:\...\00-ai-guide.md:54:1
   「`UID` が無い」という理由で停止する。**ただし H1 の直下だけは例外**で、常に地の文になる
 - **フィールド名の大文字小文字**: `Statement` `Title` `Status` `Rationale` `Comment` `Level`
   `Tags` `Prefix` の 8 語だけは大文字小文字を問わない。それ以外は文法どおりに書く
-  (`EXPECTED` は通るが `Expected` は停止する)。**判断できないときは全部大文字で書く**
+  (`GIVEN` は通るが `Given` は停止する)。**判断できないときは全部大文字で書く**
 - **繋がりは下位の側に書く。** 下位のノードに `**Relations**:` を置き、親の UID を指す。
   上位の側には何も書かない。親が別のファイルにあってもよい (StrictDoc はプロジェクト全体で
   UID を解決するため)
@@ -363,12 +366,24 @@ ELEMENTS:
   - TITLE: TITLE
     TYPE: String
     REQUIRED: True
-  - TITLE: STATEMENT
+  - TITLE: TEST_RESULT
+    TYPE: SingleChoice(NotRun, Passed, Failed, Blocked)
+    REQUIRED: True
+  - TITLE: ISSUE_KEY
+    TYPE: String
+    REQUIRED: False
+  - TITLE: GIVEN
     TYPE: String
     REQUIRED: True
-  - TITLE: EXPECTED
+  - TITLE: WHEN
     TYPE: String
     REQUIRED: True
+  - TITLE: THEN
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TEST_REMARK
+    TYPE: String
+    REQUIRED: False
   RELATIONS:
   - TYPE: Parent
     ROLE: Verifies
@@ -390,13 +405,17 @@ ELEMENTS:
 **規則:**
 
 - **`SECTION` は宣言が要る。`TEXT` は要らない** (組み込み)
-- **`TAG` と `TITLE` の名前は、`.md` 側の綴りとそのまま一致させる。** `EXPECTED` と
-  宣言したら `.md` にも `**EXPECTED**:` と書く。`**Expected**:` は停止する
+- **`TAG` と `TITLE` の名前は、`.md` 側の綴りとそのまま一致させる。** `GIVEN` と
+  宣言したら `.md` にも `**GIVEN**:` と書く。`**Given**:` は停止する
 - **`TYPE` という名前のフィールドを宣言してはならない。** ノード型の指定に使う予約語である
 - **フィールドの宣言順が `.md` 側の制約になる。** `UID → STATUS → TITLE →
   カスタムの単一行フィールド → STATEMENT → RATIONALE などの複数行フィールド` の順に宣言する。
-  この順でないと `--formats=sdoc` で読み戻すとき `Wrong field order` で停止する
-- **順が正しいかは `--formats=sdoc` を通せば分かる。何も言わずに終われば正しい**
+  この順でないと **json / html / sdoc のすべてが即座に停止する** (実測)。
+  エラーは `Semantic error: Wrong field order for requirement: [...]` で、
+  `Hint:` が宣言済みの順まで教えるので直し方はその場で分かる
+- **順が正しいかは `--formats=json` を通せば分かる。** 「json は通るが sdoc で落ちる」
+  ということは起きない。 **`--formats=sdoc` は往復の確認には使えない** —
+  `[LINK:]` が保たれず、 読み戻しは宣言順と無関係の理由で落ちる (実測)
 
 ```bash
 strictdoc export <仕様書のフォルダ> --formats=sdoc --output-dir <出力先>
@@ -955,6 +974,7 @@ jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW,DOC-BROWSER,D
 ````
 
 ```text
+DOC-UPPER  2.1  表
 DOC-LOWER  6.1  図,数式,コード,表
 DOC-TESTS  1  コード
 DOC-FIG-STATE  1  図
@@ -967,8 +987,8 @@ DOC-NOTE  1  表
 まず用例 1 で文書を一覧し、記法の解説を兼ねた文書を見つけて渡す** (探し方は 3 章の
 「集計するときは解説文書を除くこと」)。
 
-**渡さないと 109 行返り、そのうち 105 行が解説文書になる** (実測)。解説書は説明のために
-記法を大量に抱えるためで、壊れてはいない。**渡せば 4 行になる。**
+**渡さないと 120 行返り、そのうち 115 行が解説文書になる** (実測)。解説書は説明のために
+記法を大量に抱えるためで、壊れてはいない。**渡せば 5 行になる。**
 
 **言語名はフェンス 1 個ずつ見ること。** ` ``` ` で切ると奇数番目が必ずフェンスの中身に
 なるので、その 1 行目が言語名である。**ノード全体に対して「`mermaid` を含むか」で
@@ -1056,8 +1076,8 @@ grep -rlF '**UID**: DOC-FIG-STATE' <仕様書のフォルダ> --include=*.md
 **`**UID**:` まで含めて探すこと。** UID だけで探すと `[LINK:]` で参照しているだけの
 ファイルも一緒に出る (実測で 5 件出た)。`-F` は `**` を正規表現と解釈させないために要る。
 
-**それでも複数出ることがある。** このフォルダで実行すると 4 件出る — 本当の定義は
-`_assets/fig-state.md` だけで、残る 3 件は本書と `01-ai-queries.md` と`02-guide-for-human.md` が**この書き方を
+**それでも複数出ることがある。** このフォルダで実行すると 3 件出る — 本当の定義は
+`_assets/fig-state.md` だけで、残る 2 件は本書と `01-ai-queries.md` が**この書き方を
 例として載せているから**である。**解説文書は自分が説明している文字列を含む。**
 返ってきたファイルが仕様書なのか手引きなのかは、冒頭の対応表で見分ける。
 
@@ -1204,7 +1224,7 @@ jq -r -f <クエリを書いたファイル>.jq <json>
 図・数式・コード・表を説明のために抱えているので、「この一式に図はいくつか」のような
 集計が必ず狂う。**この実例では解説文書が 6 つある** (`DOC-AI-GUIDE` = 本書、
 `DOC-AI-QUERIES`、`DOC-GUIDE`、`DOC-REVIEW`、`DOC-BROWSER`、`DOC-COWORK`)。
-**用例 13 の出力 109 行のうち 105 行をこの 6 つが占める** (実測)。
+**用例 13 の出力 120 行のうち 115 行をこの 6 つが占める** (実測)。
 
 **該当する文書は「UID を持つノードが 1 つも無い文書」として機械で見つかる。**
 地の文と章しか入っていない文書、という意味である。

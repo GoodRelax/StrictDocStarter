@@ -146,12 +146,27 @@ strictdoc export <specification folder> --formats=html --output-dir <output dir>
 scripts/audit.sh <specification folder> <output dir> [skip-uids] [figure-prefix]
 ```
 
-It checks the five things StrictDoc does not: the `$` trap, broken table rows,
-attachments that never reached the output, figures that outgrew the body, and a
-review that says something is wrong without saying what. The last one only finds
-anything in a project whose grammar declares `REVIEW_STATUS`; elsewhere it stays
-quiet. It exits with the number of checks that found something, so you can gate
-on it.
+It checks the six things StrictDoc does not: the `$` trap, broken table rows,
+attachments that never reached the output, figures that outgrew the body, a
+review that says something is wrong without saying what, and requirement wording.
+
+The last two stay quiet where they do not apply. `review comment missing` needs
+a grammar that declares `REVIEW_STATUS`. `wording candidates` reads Japanese
+patterns only, so it skips any statement with no Japanese character in it -
+without that gate it flagged every requirement in an English project (measured),
+and since this script exits with the number of failing checks, gating a build on
+it would then fail forever.
+
+**`wording candidates` reports candidates, not violations.** A shell script can
+decide which strings are present. It cannot decide intent, so an intended
+passive and an accidental one look identical to it, and it cannot find a
+transitive verb missing its object because valency is not in the text. Expect
+`negative` rows on any requirement written in the EARS unwanted-behaviour
+pattern - those are correct. Only `ears-order`, a condition placed after the
+subject, is a defect on its own. Hand the rest to a reader, or to the prompt in
+section 3.
+
+It exits with the number of checks that found something, so you can gate on it.
 
 **It deliberately does not check duplicate UIDs or dangling relations.**
 StrictDoc refuses to export either one - within a document and across documents

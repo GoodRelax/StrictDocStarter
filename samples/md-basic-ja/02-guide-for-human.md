@@ -116,7 +116,8 @@
 - `SECTION` — 章。 入れ子にできる
 - `REQUIREMENT` — 要求。 `UID` / `STATUS` / `TITLE` / `REVIEW_STATUS` /
   `STATEMENT` / `RATIONALE` / `REVIEW_COMMENT` / `REVIEW_ACTION`
-- `TEST_CASE` — テストケース。 `EXPECTED` を持つ
+- `TEST_CASE` — テストケース。 Gherkin の `GIVEN` / `WHEN` / `THEN` と、
+  `TEST_RESULT` / `ISSUE_KEY` / `TEST_REMARK` を持つ。 **`STATEMENT` は持たない**
 
 **`TEST_CASE` は StrictDoc の標準概念ではない。** 文法で足したものである。
 `REVIEW_*` の 3 項目も同じで、 標準の `REQUIREMENT` には無い。 使い方は
@@ -135,7 +136,7 @@
 
 3 つめには**非対称がある。** `Statement` `Title` `Status` `Rationale` `Comment`
 `Level` `Tags` `Prefix` の 8 語だけは大文字小文字を問わない。 それ以外は
-**文法に書いたとおりの綴りで書く。** `EXPECTED` は通るが `Expected` は落ちる。
+**文法に書いたとおりの綴りで書く。** `GIVEN` は通るが `Given` は落ちる。
 **覚えるしかない。** 迷ったらカスタムフィールドは全部大文字で書けばよい。
 
 ### 上位要求と下位要求
@@ -619,6 +620,11 @@ UID → STATUS → TITLE → カスタムの単一行フィールド → STATEME
     → RATIONALE などの残りの複数行フィールド
 ```
 
-**`basic.sgra` はこの順に宣言してある。** だからこの一式は往復できる —
-`--formats=sdoc` で変換した 5 文書をそのまま export し直せることを 0.27.1 で
-確認済みである。 自分の文法を作るときは、 この順序を崩さないこと。
+**`basic.sgra` はこの順に宣言してある。** 崩すと export が即座に止まる。
+自分の文法を作るときは、 この順序を崩さないこと。
+
+**★ ただし、 この一式は `.sdoc` へ往復できない** (0.27.1 で実測)。
+`--formats=sdoc` は 11 文書とも書き出すが、 その出力を読み戻すと
+`the inline link references an object with an UID that does not exist: UID` で
+止まる。 `[LINK:]` の書き方が変換で保たれないためであり、 **宣言順とは関係が無い。**
+往復が要る用途では、 `.md` を正本として保つこと。
