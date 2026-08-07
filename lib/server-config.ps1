@@ -343,25 +343,51 @@ function Save-LastUsedProjectPath {
 # and add the previous body's normalised SHA-256 to $script:LegacyScaffoldHashes
 # in the same commit. A body whose only difference is this stamp does NOT need a
 # bump: nothing user-visible changes, so there is nothing to ask about.
-$script:ScaffoldVersion = 3
+$script:ScaffoldVersion = 4
 
 # Normalised SHA-256 of every scaffold body this launcher has written that is
 # now out of date. A file matching one of these was written by us and has not
 # been edited since, so replacing it cannot lose anyone's work. Anything else is
 # hand-written or edited and is never overwritten (FR-1142).
+#
+# Two kinds of digest live in here, and Test-ScaffoldBodyIsOurs looks both up.
+# Generations 1..3 wrote a fixed project_title, so their digest is of the body
+# exactly as written. From generation 4 on the title is the project folder's
+# name (FR-1167), which would give a different digest in every folder, so those
+# digests are taken with the title value masked out (Get-ScaffoldIdentityHash).
 $script:LegacyScaffoldHashes = @{
     '01d9ebb363d36441a237fd6b13a48036b11c178c2a54b553d1a8be5afb80b0b8' = $true
     '0376451f9f270939c35433871aa3393511565ae24a39a627cec45295245182e8' = $true
     '33ae2fbab597fb3c96bf9aa6d3ae05a809db16a63a57111290176b5d189ecf94' = $true
     '5abdb31a259a16e27dba24cd189cb55c4fcd9b24fc693fc01e05e6ac6a9636ae' = $true
+    # Generation 3, title masked. Covers both the file as we wrote it and one
+    # whose title was later changed from the browser (strictdoc 0.21.1+ rewrites
+    # exactly this one value), so a renamed project can still be offered an
+    # update instead of being written off as hand-edited.
+    'de86969d83e7772a554a6add37a209e67ba87a81ebb0241a80acaa631ad6dc5a' = $true
 }
 
 # Some generations add something that is not a project_features entry. Listing it
 # here keeps the confirmation prompt from rendering an empty change list when the
 # feature set happens to be unchanged.
 $script:ScaffoldChangeNotes = @(
-    'Colour mode: change-color-mode.bat can switch this project between light and dark'
+    'Colour mode: change-color-mode.bat can switch this project between light and dark',
+    'Project title: new projects are named after their own folder, so several projects open at once stay apart'
 )
+
+# Titles nobody chose: the fixed string generations 1..3 wrote, and the one
+# strictdoc falls back to on its own. A generation update replaces these with the
+# project folder's name; any other title was picked by a person and is kept
+# (FR-1167).
+$script:PlaceholderProjectTitles = @(
+    'StrictDoc Project',
+    'Untitled Project'
+)
+
+# Used when no folder name can be derived (a drive or share root). FR-1151c
+# rejects those before we get here, but a scaffold must never be written with an
+# empty title.
+$script:FallbackProjectTitle = 'StrictDoc Project'
 
 # Name of the per-project stylesheet referenced by custom_css_path in the
 # scaffold. Kept constant on purpose: the path has to be relative to the project
@@ -422,6 +448,110 @@ function Get-NormalizedConfigHash {
     }
 }
 
+# One place that knows what a project_title assignment looks like. The value may
+# be quoted either way, which is why the quote is captured and back-referenced.
+$script:ProjectTitlePattern = 'project_title\s*=\s*(["''])(.*?)\1'
+
+function Get-TitleMaskedConfigText {
+    # Replace the project_title VALUE with a fixed placeholder. Used only for
+    # hashing, never written to disk.
+    param([Parameter(Mandatory)] [AllowEmptyString()] [string]$Text)
+    return ($Text -replace $script:ProjectTitlePattern, 'project_title="__PROJECT_TITLE__"')
+}
+
+function Get-ScaffoldIdentityHash {
+    # Digest that identifies one GENERATION of the scaffold rather than one file.
+    #
+    # Since FR-1167 the scaffolded project_title is the project folder's name, so
+    # hashing the file as written would give a different digest in every folder
+    # and "is this still the body we wrote?" could never be answered again.
+    # Masking that one value fixes that, and has a second wanted effect: strictdoc
+    # itself rewrites exactly this value when the project title is edited from the
+    # Project Index screen (0.21.1+), so a renamed project is still recognisably
+    # ours.
+    param([Parameter(Mandatory)] [AllowEmptyString()] [string]$Text)
+    return Get-NormalizedConfigHash -Text (Get-TitleMaskedConfigText -Text $Text)
+}
+
+function Test-ScaffoldBodyIsOurs {
+    # True when this text is a scaffold body some generation of this launcher
+    # wrote and nobody has edited since. See $script:LegacyScaffoldHashes for why
+    # two digests are consulted.
+    param([Parameter(Mandatory)] [AllowEmptyString()] [string]$Text)
+    if ($script:LegacyScaffoldHashes.ContainsKey((Get-NormalizedConfigHash -Text $Text))) { return $true }
+    return $script:LegacyScaffoldHashes.ContainsKey((Get-ScaffoldIdentityHash -Text $Text))
+}
+
+function Get-ProjectTitleFromText {
+    # The configured title, or '' when the file does not set one at all.
+    param([Parameter(Mandatory)] [AllowEmptyString()] [string]$Text)
+    if ($Text -match $script:ProjectTitlePattern) { return $Matches[2] }
+    return ''
+}
+
+function Test-ConfigDeclaresProjectTitle {
+    # FR-1167: the mere presence of the words settles it. What the title says is
+    # not our business -- someone who typed project_title="Untitled Project" on
+    # purpose gets to keep it. A plain substring test cannot misfire the way a
+    # value test could.
+    param([Parameter(Mandatory)] [AllowEmptyString()] [string]$Text)
+    return ($Text -match 'project_title')
+}
+
+function ConvertTo-PythonStringLiteral {
+    # Escape text for the inside of a Python "..." literal.
+    #
+    # Measured: Windows will not create a folder whose name contains " or \ --
+    # New-Item raises ArgumentException -- so a real folder name never needs this.
+    # It stays because an unescaped quote would write a strictdoc_config.py that
+    # Python cannot parse, and that stops the server before it starts; a caller
+    # can also pass a title that came from somewhere other than a folder name.
+    param([Parameter(Mandatory)] [AllowEmptyString()] [string]$Text)
+    $escaped = $Text.Replace('\', '\\').Replace('"', '\"')
+    # Control characters cannot occur in a Windows path, but never emit one:
+    # it would end the literal mid-line.
+    return ($escaped -replace '[\x00-\x1f]', '')
+}
+
+function Get-ProjectTitleFromPath {
+    # FR-1167: name the project after its own folder.
+    #
+    # strictdoc already treats that name as this project's identifier -- its HTML
+    # goes to <output>\html\<folder name>\ -- so the launcher is not inventing a
+    # naming rule of its own. The fixed string used through generation 3 put the
+    # same title on every tab, which made several projects open at once
+    # indistinguishable, and left nothing behind if the config was deleted.
+    param([Parameter(Mandatory)] [AllowEmptyString()] [string]$ProjectPath)
+
+    if ([string]::IsNullOrWhiteSpace($ProjectPath)) { return $script:FallbackProjectTitle }
+
+    # Raw form first, before GetFullPath: it turns a bare 'C:' into the CURRENT
+    # directory on that drive, and we would name the project after a folder the
+    # user never pointed at. Same order, same reason, as Test-IsDriveOrShareRoot.
+    if ($ProjectPath.TrimEnd('\', '/') -match '^[A-Za-z]:$') { return $script:FallbackProjectTitle }
+
+    # GetFullPath settles '..' and a trailing separator. It throws on characters
+    # Windows does not allow in a path at all, and rather than lose the name over
+    # that, fall back to the text as given.
+    $full = $ProjectPath
+    try { $full = [System.IO.Path]::GetFullPath($ProjectPath) } catch { $full = $ProjectPath }
+    $trimmed = $full.TrimEnd('\', '/')
+
+    # And again after resolving, since GetFullPath can produce a drive root from
+    # something that did not look like one ('C:\proj\..').
+    if ([string]::IsNullOrWhiteSpace($trimmed) -or $trimmed -match '^[A-Za-z]:$') {
+        return $script:FallbackProjectTitle
+    }
+
+    # Cut the last segment textually rather than with Split-Path, which resolves a
+    # bare 'C:' against the CURRENT directory on that drive. Measured:
+    # Split-Path -Leaf 'C:' returned 'StrictDocStarter' with the working directory
+    # set to the repo -- a folder the user never pointed at.
+    $leaf = $trimmed.Substring($trimmed.LastIndexOfAny(@([char]'\', [char]'/')) + 1)
+    if ([string]::IsNullOrWhiteSpace($leaf)) { return $script:FallbackProjectTitle }
+    return $leaf
+}
+
 function Get-ProjectFeatureList {
     # Pull the project_features entries out of a strictdoc_config.py. Commented
     # out entries do not count: they are not active.
@@ -453,6 +583,12 @@ function Get-ToolbarIconCount {
 }
 
 function Get-ScaffoldBody {
+    # -ProjectPath supplies the project title (FR-1167). -Title overrides it, which
+    # is how a generation update keeps a title someone chose for themselves.
+    param(
+        [string]$ProjectPath = '',
+        [string]$Title = ''
+    )
     $body = @'
 # StrictDoc project configuration scaffolded by StrictDocStarter (launch-strictdoc).
 # StrictDocStarter scaffold version: __SCAFFOLD_VERSION__
@@ -474,7 +610,11 @@ from strictdoc.core.project_config import ProjectConfig
 
 def create_config() -> ProjectConfig:
     return ProjectConfig(
-        project_title="StrictDoc Project",
+        # The name of this folder. Change it to whatever you want the project to
+        # be called; it is the heading on the project index and the browser tab
+        # title. StrictDoc can also change it for you: open the project index and
+        # use the title's edit button.
+        project_title="__PROJECT_TITLE__",
         # Appearance. StrictDoc has no dark mode of its own, so StrictDocStarter
         # supplies one as an extra stylesheet. The file next to this one is
         # rewritten every time the project is opened, following the color_mode
@@ -512,7 +652,12 @@ def create_config() -> ProjectConfig:
         ],
     )
 '@
-    return $body.Replace('__SCAFFOLD_VERSION__', $script:ScaffoldVersion.ToString())
+    $resolvedTitle = $Title
+    if ([string]::IsNullOrWhiteSpace($resolvedTitle)) {
+        $resolvedTitle = Get-ProjectTitleFromPath -ProjectPath $ProjectPath
+    }
+    return $body.Replace('__SCAFFOLD_VERSION__', $script:ScaffoldVersion.ToString()).
+                 Replace('__PROJECT_TITLE__', (ConvertTo-PythonStringLiteral -Text $resolvedTitle))
 }
 
 function Get-ColorMode {
@@ -662,6 +807,173 @@ function Save-ConfigUpgradeDecline {
     }
 }
 
+function Test-ProjectTitleDeclined {
+    # FR-1168: a project that said no is never asked again. Unlike the generation
+    # update this question does not change from release to release, so the answer
+    # is recorded once and for good; deleting the entry by hand asks again. That
+    # is also why it is kept apart from config_upgrade_declined, which is keyed by
+    # scaffold version.
+    param(
+        [Parameter(Mandatory)] [string]$ConfigPath,
+        [Parameter(Mandatory)] [string]$ProjectPath
+    )
+    try {
+        if (-not (Test-Path -LiteralPath $ConfigPath)) { return $false }
+        $obj = (Read-FileNoBom -Path $ConfigPath) | ConvertFrom-Json -ErrorAction Stop
+        $map = $obj.PSObject.Properties['project_title_declined']
+        if (-not $map -or $null -eq $map.Value) { return $false }
+        $key = Get-DeclineKey -ProjectPath $ProjectPath
+        $entry = $map.Value.PSObject.Properties | Where-Object { $_.Name.ToLowerInvariant() -eq $key }
+        if (-not $entry) { return $false }
+        return [bool]$entry.Value
+    } catch {
+        return $false
+    }
+}
+
+function Save-ProjectTitleDecline {
+    param(
+        [Parameter(Mandatory)] [string]$ConfigPath,
+        [Parameter(Mandatory)] [string]$ProjectPath
+    )
+    try {
+        $obj = (Read-FileNoBom -Path $ConfigPath) | ConvertFrom-Json -ErrorAction Stop
+        if (-not $obj.PSObject.Properties['project_title_declined'] -or $null -eq $obj.project_title_declined) {
+            $obj | Add-Member -NotePropertyName project_title_declined -NotePropertyValue (New-Object PSObject) -Force
+        }
+        $key = Get-DeclineKey -ProjectPath $ProjectPath
+        $obj.project_title_declined | Add-Member -NotePropertyName $key -NotePropertyValue $true -Force
+        $json = $obj | ConvertTo-Json -Depth 10
+        $json = $json -replace '\\u003e', '>' -replace '\\u003c', '<' -replace '\\u0027', "'" -replace '\\u0026', '&'
+        Write-FileUtf8NoBom -Path $ConfigPath -Content $json
+    } catch {
+        Write-Host "[WARN]  Could not remember your answer: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
+function Add-ProjectTitleLine {
+    # Return $Text with one project_title line added inside the ProjectConfig(...)
+    # call, or $null when there is no place to put it that is certainly safe.
+    #
+    # Only a ProjectConfig( that ends its line is accepted. Written on one line
+    # -- ProjectConfig(project_title=..., ...) -- an inserted line would land
+    # outside the call and break the file, and a config this launcher must not
+    # own is the last place to guess.
+    param(
+        [Parameter(Mandatory)] [AllowEmptyString()] [string]$Text,
+        [Parameter(Mandatory)] [string]$Title
+    )
+
+    # PowerShell variable names are case-insensitive, so this must not be called
+    # anything a nearby name differs from only in case.
+    $lineEnding = if ($Text -match "`r`n") { "`r`n" } else { "`n" }
+    $lines = @($Text -split "`r?`n")
+
+    $openIndex = -1
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -match '^\s*(?:return\s+)?ProjectConfig\(\s*$') { $openIndex = $i; break }
+    }
+    if ($openIndex -lt 0) { return $null }
+
+    # Copy the indentation of the first argument already in the call, so the new
+    # line matches whatever style the file uses (spaces, tabs, width). With no
+    # argument to copy, indent one step past the opening line.
+    $indent = $null
+    for ($i = $openIndex + 1; $i -lt $lines.Count; $i++) {
+        if ([string]::IsNullOrWhiteSpace($lines[$i])) { continue }
+        if ($lines[$i] -match '^(\s*)\S') { $indent = $Matches[1] }
+        break
+    }
+    if ($null -eq $indent) {
+        $openIndent = ''
+        if ($lines[$openIndex] -match '^(\s*)') { $openIndent = $Matches[1] }
+        $indent = $openIndent + '    '
+    }
+
+    $titleLine = '{0}project_title="{1}",' -f $indent, (ConvertTo-PythonStringLiteral -Text $Title)
+    $head = @($lines[0..$openIndex])
+    # PowerShell ranges count backwards when the start exceeds the end, so an
+    # opening line with nothing after it needs the empty case spelled out.
+    $tail = if ($openIndex -ge ($lines.Count - 1)) { @() } else { @($lines[($openIndex + 1)..($lines.Count - 1)]) }
+    return (($head + @($titleLine) + $tail) -join $lineEnding)
+}
+
+function Invoke-ProjectTitlePrompt {
+    # FR-1168: a config we must not own that sets no project_title at all. Adding
+    # the line silently would break FR-1163's promise never to touch someone
+    # else's file, so show the exact change and ask.
+    #
+    # This is worth asking about twice over. Without the line strictdoc titles the
+    # project "Untitled Project" without a word of warning, AND its own rename
+    # button refuses to work: save_project_title rewrites an existing value with a
+    # regex and answers HTTP 400 when there is none to rewrite.
+    param(
+        [Parameter(Mandatory)] [string]$ProjectConfigPath,
+        [Parameter(Mandatory)] [AllowEmptyString()] [string]$ServerConfigPath,
+        [Parameter(Mandatory)] [string]$ProjectPath,
+        [Parameter(Mandatory)] [AllowEmptyString()] [string]$CurrentText
+    )
+
+    if (Test-ConfigDeclaresProjectTitle -Text $CurrentText) { return }
+    # Without a server config there is nowhere to record a "no", and asking every
+    # single launch would be worse than never asking.
+    if ([string]::IsNullOrWhiteSpace($ServerConfigPath) -or -not (Test-Path -LiteralPath $ServerConfigPath)) { return }
+    if (Test-ProjectTitleDeclined -ConfigPath $ServerConfigPath -ProjectPath $ProjectPath) { return }
+
+    $title = Get-ProjectTitleFromPath -ProjectPath $ProjectPath
+    $newText = Add-ProjectTitleLine -Text $CurrentText -Title $title
+    if ($null -eq $newText) {
+        Write-Host ""
+        Write-Host "[INFO]  This project's settings file does not set a project title, so every"
+        Write-Host "        screen will say 'Untitled Project'. Add this line inside ProjectConfig(...):"
+        Write-Host ('            project_title="{0}",' -f (ConvertTo-PythonStringLiteral -Text $title))
+        Write-Host "        File: $ProjectConfigPath"
+        Write-Host ""
+        return
+    }
+
+    Write-Host ""
+    Write-Host "[INFO]  This project's settings file does not say what the project is called."
+    Write-Host "        StrictDoc then titles every screen 'Untitled Project', and its own"
+    Write-Host "        rename button will not work because it has no title to rewrite."
+    Write-Host ""
+    Write-Host ("        Suggested title:  {0}   (this folder's name)" -f $title)
+    Write-Host ""
+    Write-Host "        Before:"
+    Write-Host "            return ProjectConfig("
+    Write-Host "        After:"
+    Write-Host "            return ProjectConfig("
+    Write-Host ('          +     project_title="{0}",' -f (ConvertTo-PythonStringLiteral -Text $title)) -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "        One line is added. Nothing else in the file changes, and your documents"
+    Write-Host "        are not touched:"
+    Write-Host "          $ProjectConfigPath"
+    Write-Host "        A backup is written first, in the same folder."
+    Write-Host ""
+
+    if (-not [Environment]::UserInteractive) {
+        Write-Host "[INFO]  Not an interactive session; leaving the settings file as it is."
+        return
+    }
+
+    $reply = Read-Host "Add that line now? [y/N]"
+    if (-not $reply -or $reply.Trim() -notmatch '^(y|yes)$') {
+        Write-Host "[INFO]  Nothing was changed. This will not be asked again for this project."
+        Save-ProjectTitleDecline -ConfigPath $ServerConfigPath -ProjectPath $ProjectPath
+        return
+    }
+
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $backupPath = "$ProjectConfigPath.bak-$stamp"
+    try {
+        Copy-Item -LiteralPath $ProjectConfigPath -Destination $backupPath -ErrorAction Stop
+        Write-FileUtf8NoBom -Path $ProjectConfigPath -Content $newText
+        Write-Host "[INFO]  Added. Backup saved as $(Split-Path -Leaf $backupPath)."
+    } catch {
+        Write-Host "[WARN]  Could not update the settings file: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
 function Show-ProjectConfigSuggestion {
     # For configs we must not touch: hand-written, or one of ours that has been
     # edited. Whoever wrote a config by hand can read Python, so lines are the
@@ -697,6 +1009,8 @@ function Invoke-ScaffoldUpgradePrompt {
     $removed = @($before | Where-Object { $after  -notcontains $_ })
     $iconsBefore = Get-ToolbarIconCount -Features $before
     $iconsAfter  = Get-ToolbarIconCount -Features $after
+    $titleBefore = Get-ProjectTitleFromText -Text $CurrentText
+    $titleAfter  = Get-ProjectTitleFromText -Text $NewText
 
     $proposedDir = Join-Path $env:TEMP 'StrictDocStarter'
     $proposedPath = Join-Path $proposedDir 'strictdoc_config.py.proposed'
@@ -716,6 +1030,9 @@ function Invoke-ScaffoldUpgradePrompt {
     Write-Host ""
     Write-Host ("        What changes:  {0} settings enabled  ->  {1} settings enabled" -f $before.Count, $after.Count)
     Write-Host ("                       {0} icons in the left toolbar  ->  {1} icons" -f $iconsBefore, $iconsAfter)
+    if ($titleBefore -ne $titleAfter) {
+        Write-Host ("                       project title '{0}'  ->  '{1}'" -f $titleBefore, $titleAfter)
+    }
     Write-Host ""
     if ($added.Count -gt 0) {
         Write-Host "        Turned on:"
@@ -829,12 +1146,12 @@ function Initialize-StrictDocProjectConfig {
         return
     }
 
-    $newText = Get-ScaffoldBody
-
     if (-not (Test-Path -LiteralPath $cfgPy)) {
+        # Nothing to consent to: the file does not exist yet, so nobody's work is
+        # at stake. FR-1167 names it after this folder.
         try {
-            Write-FileUtf8NoBom -Path $cfgPy -Content $newText
-            Write-Host "[INFO]  Scaffolded strictdoc_config.py in the project folder (diagrams and math are on by default on strictdoc 0.27+)."
+            Write-FileUtf8NoBom -Path $cfgPy -Content (Get-ScaffoldBody -ProjectPath $ProjectPath)
+            Write-Host ("[INFO]  Scaffolded strictdoc_config.py in the project folder, titled '{0}' after the folder (diagrams and math are on by default on strictdoc 0.27+)." -f (Get-ProjectTitleFromPath -ProjectPath $ProjectPath))
         } catch {
             Write-Host "[WARN]  Could not scaffold strictdoc_config.py: $($_.Exception.Message)" -ForegroundColor Yellow
         }
@@ -848,18 +1165,31 @@ function Initialize-StrictDocProjectConfig {
         return
     }
 
-    $currentHash = Get-NormalizedConfigHash -Text $currentText
-    if ($currentHash -eq (Get-NormalizedConfigHash -Text $newText)) { return }   # already current
+    # A title someone chose is theirs to keep, even across a generation update.
+    # Only the placeholders generations 1..3 wrote, and strictdoc's own fallback,
+    # give way to the folder name (FR-1167).
+    $keepTitle = Get-ProjectTitleFromText -Text $currentText
+    if ($script:PlaceholderProjectTitles -contains $keepTitle) { $keepTitle = '' }
+    $newText = Get-ScaffoldBody -ProjectPath $ProjectPath -Title $keepTitle
+
+    # Compared with the title masked out, so a project renamed from the browser
+    # still counts as up to date rather than as an edit we must keep away from.
+    if ((Get-ScaffoldIdentityHash -Text $currentText) -eq (Get-ScaffoldIdentityHash -Text $newText)) { return }
 
     $missing = @(Get-ProjectFeatureList -Text $newText | Where-Object {
         (Get-ProjectFeatureList -Text $currentText) -notcontains $_
     })
 
-    if (-not $script:LegacyScaffoldHashes.ContainsKey($currentHash)) {
+    if (-not (Test-ScaffoldBodyIsOurs -Text $currentText)) {
         # Hand-written, or one of ours that has since been edited (FR-1142).
         if ($missing.Count -gt 0) {
             Show-ProjectConfigSuggestion -ConfigPath $cfgPy -Missing $missing
         }
+        # FR-1168: still offer to name the project, since a file with no
+        # project_title at all is titled 'Untitled Project' by strictdoc and
+        # cannot be renamed from the browser either.
+        Invoke-ProjectTitlePrompt -ProjectConfigPath $cfgPy -ServerConfigPath $ServerConfigPath `
+            -ProjectPath $ProjectPath -CurrentText $currentText
         return
     }
 
