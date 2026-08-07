@@ -35,5 +35,5 @@ cmd.exe の既定 (cp932) では**エラーも出ずに 0 件**になります�
 プロジェクトに `01` や `03` を当てると、エラーではなく**結果が 0 件**になります。
 
 さらに 7 本の実例が [`docs/03-sdoc-json-queries.md`](../docs/03-sdoc-json-queries.md)
-にあります。解説は [`samples/md-basic-ja/00-guide.md`](../samples/md-basic-ja/00-guide.md)
+にあります。解説は [`samples/md-basic-ja/01-guide-for-human.md`](../samples/md-basic-ja/01-guide-for-human.md)
 の第 4 章です。

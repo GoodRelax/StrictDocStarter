@@ -8,7 +8,7 @@ IMPORT_FROM_FILE: basic.sgra
 
 [TEXT]
 STATEMENT: >>>
-本書に書くのは **何を作るか** だけである。 どう作るかは `02-lower.sdoc` に
+本書に書くのは **何を作るか** だけである。 どう作るかは `03-lower.sdoc` に
 分けてある。
 
 この段落は `[TEXT]` であり UID を持たない。 **地の文には UID を付けない。**

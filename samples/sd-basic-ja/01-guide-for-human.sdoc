@@ -24,12 +24,12 @@ StrictDoc は要求と地の文を別のものとして扱う。 混ぜてよい
 
 ファイルの並びは次のとおり。
 
-- `00-guide.sdoc` — 本書。 読む順と書き方
-- `01-upper.sdoc` — 上位要求 3 件。 何を作るか
-- `02-lower.sdoc` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
-- `03-tests.sdoc` — テストケース 4 件。 下位へ結ぶ
-- `04-review.sdoc` — レビュー指摘 2 件。 対象の要求へ結ぶ
-- `05-markdown.sdoc` — 本文を Markdown 記法で書く文書
+- `01-guide-for-human.sdoc` — 本書。 読む順と書き方
+- `02-upper.sdoc` — 上位要求 3 件。 何を作るか
+- `03-lower.sdoc` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
+- `04-tests.sdoc` — テストケース 4 件。 下位へ結ぶ
+- `05-review.sdoc` — レビュー指摘 2 件。 対象の要求へ結ぶ
+- `06-markdown.sdoc` — 本文を Markdown 記法で書く文書
 - `basic.sgra` — 全文書が共有する文法定義
 - `strictdoc_config.py` — プロジェクト設定。 **このフォルダ直下に無いと読まれない**
 - `_assets/` — 図・画像・リンク先の `.md`
@@ -112,11 +112,11 @@ STATEMENT: >>>
 
 ::
 
-    01-upper.sdoc   SYS-001   SYS-002   SYS-003
+    02-upper.sdoc   SYS-001   SYS-002   SYS-003
                        |         |         |
-    02-lower.sdoc   SW-001    SW-002    SW-003 / SW-004
+    03-lower.sdoc   SW-001    SW-002    SW-003 / SW-004
                        |         |         |
-    03-tests.sdoc   TC-001    TC-002    TC-003 / TC-004
+    04-tests.sdoc   TC-001    TC-002    TC-003 / TC-004
 
 **`ROLE:` を足すと関係に意味が付く。** 種類は `Parent` のままでよい。
 
@@ -127,7 +127,7 @@ STATEMENT: >>>
       VALUE: SW-001
       ROLE: Verifies
 
-`03-tests.sdoc` は `Verifies`、 `04-review.sdoc` は `Reviews` を使っている。
+`04-tests.sdoc` は `Verifies`、 `05-review.sdoc` は `Reviews` を使っている。
 **`ROLE` は使う前に文法側で宣言しておく。** 宣言していない値を書くと落ちる。
 
 繋がりの確認は画面で行う。 文書の上の **VIEWS** から
@@ -276,7 +276,7 @@ simple      耐える            末尾の罫線は全列分書く
 **末尾の罫線を全列分書かないと止まる。**
 
 **パイプ表は既定では使えない。** `MARKUP: Markdown` を宣言した文書でだけ
-使える。 例は `05-markdown.sdoc` にある。 **こちらは桁を揃えなくても通る。**
+使える。 例は `06-markdown.sdoc` にある。 **こちらは桁を揃えなくても通る。**
 
 列が多い表は `.. csv-table::` も使える。 こちらは列数が合わなくても通る。
 <<<
@@ -481,7 +481,7 @@ STATEMENT: >>>
 **`.md` で新規作成すれば、 ブラウザの編集画面だけで Markdown 記法が使える。**
 `.sdoc` で作った文書をブラウザから Markdown に切り替える手段は無いので、
 これは `.md` を選ぶ実際的な理由の 1 つである。 `.md` 側の一式と、 変換のときに
-気をつけることは `samples/md-basic-ja/00-guide.md` に書いてある。
+気をつけることは `samples/md-basic-ja/01-guide-for-human.md` に書いてある。
 <<<
 
 [[/SECTION]]

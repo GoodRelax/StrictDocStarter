@@ -8,7 +8,7 @@ IMPORT_FROM_FILE: basic.sgra
 
 [TEXT]
 STATEMENT: >>>
-本書は `01-upper.sdoc` の各要求について **どう実現するか** を書く。
+本書は `02-upper.sdoc` の各要求について **どう実現するか** を書く。
 
 **上下の関係は下位の側に書く。** 下位要求に `RELATIONS: TYPE: Parent` を置き、
 親の UID を指す。 上位要求の側には何も書かない。 **上位側に子を並べては

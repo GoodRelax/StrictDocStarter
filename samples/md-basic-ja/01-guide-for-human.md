@@ -31,11 +31,14 @@
 
 ファイルの並びは次のとおり。
 
-- `00-guide.md` — 本書。 読む順と書き方
-- `01-upper.md` — 上位要求 3 件。 何を作るか
-- `02-lower.md` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
-- `03-tests.md` — テストケース 4 件。 下位へ結ぶ
-- `04-review.md` — レビュー指摘 2 件。 対象の要求へ結ぶ
+- `00-guide-for-AI.md` — **AI に渡す手引き。** 本書の内容を、書き方の規則と JSON の
+  引き方だけに絞って圧縮したもの。人間が読む必要は無い (`strictdoc_config.py` の
+  `exclude_doc_paths` で文書としては除外してある)
+- `01-guide-for-human.md` — 本書。 読む順と書き方
+- `02-upper.md` — 上位要求 3 件。 何を作るか
+- `03-lower.md` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
+- `04-tests.md` — テストケース 4 件。 下位へ結ぶ
+- `05-review.md` — レビュー指摘 2 件。 対象の要求へ結ぶ
 - `basic.sgra` — 全文書が共有する文法定義
 - `strictdoc_config.py` — プロジェクト設定。 **このフォルダ直下に無いと読まれない**
 - `_assets/` — 画像とリンク先の `.md`
@@ -138,11 +141,11 @@
 混ざっていても同じである。** この一式が実際にファイルをまたいでいる。
 
 ```text
-01-upper.md   SYS-001   SYS-002   SYS-003
+02-upper.md   SYS-001   SYS-002   SYS-003
                  |         |         |
-02-lower.md   SW-001    SW-002    SW-003 / SW-004
+03-lower.md   SW-001    SW-002    SW-003 / SW-004
                  |         |         |
-03-tests.md   TC-001    TC-002    TC-003 / TC-004
+04-tests.md   TC-001    TC-002    TC-003 / TC-004
 ```
 
 **`Role` を足すと関係に意味が付く。** 種類は `Parent` のままでよい。
@@ -154,7 +157,7 @@
   **Role**: `Verifies`
 ```
 
-`03-tests.md` は `Verifies`、 `04-review.md` は `Reviews` を使っている。
+`04-tests.md` は `Verifies`、 `05-review.md` は `Reviews` を使っている。
 **`Role` は使う前に文法側で宣言しておく。** 宣言していない値を書くと落ちる。
 
 繋がりの確認は画面で行う。 文書の上の **VIEWS** から
@@ -231,7 +234,7 @@ StrictDoc が自動でコピーするので、 設定に何も足さなくてよ
 `[DOCUMENT_FROM_FILE]` に相当するものが無く、 書いてもただの文字として表示される。
 **同じ図を 2 か所で見せたいなら、 図を持つ文書へ `[LINK:]` で飛ばす。**
 どうしても本文へ展開したいなら、 その文書だけ `.sdoc` にする
-(`samples/sd-basic-ja/00-guide.sdoc` がその形)。
+(`samples/sd-basic-ja/01-guide-for-human.sdoc` がその形)。
 
 ## 表
 
@@ -251,7 +254,7 @@ StrictDoc が自動でコピーするので、 設定に何も足さなくてよ
 いく文書では、 この差がそのまま作業量の差になる。
 
 `.sdoc` でパイプ表を使いたい場合は `MARKUP: Markdown` を宣言する。 例は
-`samples/sd-basic-ja/05-markdown.sdoc` にある。
+`samples/sd-basic-ja/06-markdown.sdoc` にある。
 
 ## JSON で引く
 
