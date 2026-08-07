@@ -331,8 +331,8 @@ emits everything.**
 
 **You need no export just to read the HTML.** Drag this folder onto
 `launch-strictdoc.bat` and the server starts; edit a file and save it, and the
-screen picks the change up in about 0.6 seconds. The next chapter collects what you
-need for switching notation.
+screen picks the change up in about 0.6 seconds. The last chapter, "Moving
+between .sdoc and .md", collects what you need for switching notation.
 <<<
 
 [[/SECTION]]
