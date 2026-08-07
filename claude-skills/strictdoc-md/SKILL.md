@@ -163,8 +163,17 @@ passive and an accidental one look identical to it, and it cannot find a
 transitive verb missing its object because valency is not in the text. Expect
 `negative` rows on any requirement written in the EARS unwanted-behaviour
 pattern - those are correct. Only `ears-order`, a condition placed after the
-subject, is a defect on its own. Hand the rest to a reader, or to the prompt in
-section 3.
+subject, is a defect on its own.
+
+Hand the rest to a reader, or judge them yourself. The machine narrows the list;
+you decide which of its candidates is really a mistake, and you catch the one
+thing it cannot see at all:
+
+> Take each row `audit.sh` reported. For every one, quote the statement, say
+> whether the passive, the negative or the missing subject is deliberate, and
+> why. Then, separately, read every requirement for a transitive verb with no
+> object - `audit.sh` cannot find those. Propose a rewrite for each real
+> problem and leave the deliberate ones alone.
 
 It exits with the number of checks that found something, so you can gate on it.
 

@@ -32,7 +32,7 @@
 **STATUS**: Approved \
 **REVIEW_STATUS**: NoFinding
 
-**Statement**: 変換を開始する前に入力ファイルの形式を検査し、 利用者が指定した形式と異なることを検出したとき、 本ツールは、 変換を行わず異常終了すること。
+**Statement**: もし入力ファイルの形式が利用者の指定した形式と異なるならば、 本ツールは、 変換を行わず異常終了すること。
 
 **Relations**:
 - **Type**: `Parent` \
@@ -44,7 +44,7 @@
 **STATUS**: Approved \
 **REVIEW_STATUS**: NotReviewed
 
-**Statement**: 出力ファイルを書き出す前に同名のファイルの有無を確認し、 その存在を検出したとき、 本ツールは、 書き出しを行わず異常終了すること。
+**Statement**: もし出力先に同名のファイルが既にあるならば、 本ツールは、 書き出しを行わず異常終了すること。
 
 **Relations**:
 - **Type**: `Parent` \

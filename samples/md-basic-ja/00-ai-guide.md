@@ -326,7 +326,18 @@ Location: C:\...\00-ai-guide.md:54:1
 **Type**: SECTION
 
 **新しくプロジェクトを起こすときは、必ず自分で `.sgra` を書くことになる。**
-下がそのまま使える最小の雛形である。これで export が通ることを確認してある。
+下がそのまま使える最小の雛形である。**この雛形は 1 章の `.md` の雛形と対になっている。**
+両方をそのまま貼って `--formats=json` と `--formats=html` を通したところ、
+どちらも成功した (実測)。
+
+**★ 2 つの雛形は必ず対で使うこと。** `.md` の雛形が書くフィールドを `.sgra` が
+1 つでも宣言していないと、StrictDoc は export を止める。下は `REVIEW_STATUS` の
+宣言を落として実測したときのエラーである (`Hint:` が宣言済みの並びを教える)。
+片方だけを別のものに差し替えたときは、両方の並びを見比べて確かめること。
+
+```text
+Semantic error: Invalid requirement field: REVIEW_STATUS
+```
 
 ```text
 [GRAMMAR]
@@ -349,10 +360,19 @@ ELEMENTS:
   - TITLE: TITLE
     TYPE: String
     REQUIRED: True
+  - TITLE: REVIEW_STATUS
+    TYPE: SingleChoice(NotReviewed, NoFinding, Open, Fixed, WontFix)
+    REQUIRED: True
   - TITLE: STATEMENT
     TYPE: String
     REQUIRED: True
   - TITLE: RATIONALE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_ACTION
     TYPE: String
     REQUIRED: False
   RELATIONS:
@@ -497,7 +517,8 @@ flowchart LR
 **明確に小さくするか、迷わず外に出すかのどちらかにする。**
 
 **行数で決めているのは、書いている最中に道具無しで判定できるからである。**
-本当に効かせたいのは読む側の負担で、その実測値は次のとおり。
+本当に効かせたいのは読む側の負担で、その実測値は次のとおり。**本書が載せる
+tokens は tiktoken の `o200k_base` で数えた値である。** 測り直すときも同じ数え方を使うこと。
 
 | 中身 | tokens |
 |---|---:|
@@ -514,7 +535,7 @@ flowchart LR
 |---|---:|
 | 要求の一覧だけ | **91** |
 | 大きい図だけを名指しで | **334** |
-| 全 `TEXT` ノード (図も数式も込み) | **10,120** |
+| 全 `TEXT` ノード (図も数式も込み) | **約 58,000** |
 
 **要求を引いている限り、読む側は別文書にした図の分を 1 トークンも払わない。**
 必要なときだけ UID で名指しする。これが 16 行で切る理由である。
@@ -767,7 +788,7 @@ def convert(src: str, dst: str) -> None:
 | 画像を貼る | `![説明](_assets/x.svg)` |
 | **画像以外を添付する** | `[説明](_assets/x.csv)` — 普通のリンクで書く |
 
-`.csv` / `.pdf` / `.zip` を `_assets/` に置いて export したところ、**4 つとも出力へ
+`.csv` / `.pdf` / `.zip` を `_assets/` に置いて export したところ、**3 つとも出力へ
 複製され、リンクも解決した** (実測)。**拡大しても崩れないので、図の画像は SVG を既定にする。**
 
 **★ 添付は 2 通りの壊れ方を黙ってする。export は成功と報告する。**
@@ -795,8 +816,8 @@ def convert(src: str, dst: str) -> None:
 **Type**: SECTION
 
 **仕様書の一部だけが必要なとき、`.md` ファイルを読んではならない。**
-この実例の仕様書 (`03` 〜 `06` と `_assets/`) を全部読むと約 4,100 tokens、
-`02-guide-for-human.md` まで含めると約 12,300 tokens を消費する。
+この実例の仕様書 (`03` 〜 `05` と `_assets/`) を全部読むと約 5,300 tokens、
+`02-guide-for-human.md` まで含めると約 14,200 tokens を消費する。
 JSON に変換して `jq` で取り出せば、要求の一覧は 91 tokens で済む。
 
 **★ この禁止は「知るために読む」ことだけを指す。書き換えるなら開いてよい。**
@@ -837,7 +858,7 @@ error: TraceabilityIndex: the document "A" imports a grammar from a file that do
 **`.md` を修正したら、再度この `strictdoc export` を実行すること。**
 StrictDoc は JSON を自動では更新しない。
 
-**この `index.json` を直接読んではならない** — 約 102,000 tokens ある。
+**この `index.json` を直接読んではならない** — 約 188,000 tokens ある。
 `jq` に読ませるためだけのファイルである。
 
 **StrictDoc 自身にも問い合わせ言語があるが、JSON 出力には効かない。**
@@ -1004,15 +1025,30 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 ````
 
 ```text
-DOC-AI-GUIDE  4 行  本文でよい      ← 本書が載せている書き方の見本
+DOC-AI-GUIDE  4 行  本文でよい      ← ここから 10 行は本書が載せている書き方の見本
+DOC-AI-GUIDE  6 行  本文でよい
+DOC-AI-GUIDE  1 行  本文でよい
+DOC-AI-GUIDE  3 行  本文でよい
+DOC-AI-GUIDE  3 行  本文でよい
+DOC-AI-GUIDE  1 行  本文でよい
+DOC-AI-GUIDE  7 行  本文でよい
+DOC-AI-GUIDE  1 行  本文でよい
+DOC-AI-GUIDE  1 行  本文でよい
+DOC-AI-GUIDE  1 行  本文でよい
 DOC-AI-QUERIES  1 行  本文でよい    ← 同上
+DOC-AI-QUERIES  1 行  本文でよい
+DOC-AI-QUERIES  1 行  本文でよい
 DOC-GUIDE  8 行  本文でよい
 DOC-LOWER  8 行  本文でよい
+DOC-BROWSER  1 行  本文でよい
 DOC-FIG-STATE  19 行  外に出す
 ```
 
+**このクエリは 17 行返す。上は全部である。** 本物の図は `DOC-LOWER` と
+`DOC-FIG-STATE` の 2 つだけで、残る 15 行は解説文書が載せている見本である。
+
 **解説文書が載せている見本まで数える。** 本書は ```` の中に ```mermaid の例を
-書いているので、その断片が 1〜6 行の「図」として出る。**仕事に効くのは次の 14b だけ**で、
+書いているので、その断片が 1〜7 行の「図」として 10 行出る。**仕事に効くのは次の 14b だけ**で、
 こちらは眺めるためのものである。
 
 **14b. 規則違反だけを出す。0 件が正常。** 既に外に出した図 (`DOC-FIG-` で始まる文書) を
@@ -1100,7 +1136,9 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 **`reduce` の部分はコードフェンスの中身を捨てている。** `$` はフェンスの中では
 無害なので、捨てないと誤検出だらけになる。**開いたフェンスの記号の長さを覚えておき、
 同じ長さ以上の記号でだけ閉じる。** ` ```` ` の中に ` ``` ` が入っている本書のような文書では、
-単純に「``` で切って偶数番目を取る」やり方が破綻する (実測で偽陽性が 4 件出た)。
+単純に「``` で切って偶数番目を取る」やり方が破綻する。**本書に当てると、フェンスの中の
+83 行を「外」と数える** (実測)。今はその 83 行に `$` で終わる行が無いので偽陽性は 0 件だが、
+`$` で終わる行を 1 本書き足した瞬間に出る。
 
 **★ このクエリが 0 件でも安全とは限らない。** 検出できるのは**落ちる方の罠**
 (段落やセルが `$` で終わる) だけである。**2.3 のもう 1 つの罠 —
@@ -1121,6 +1159,8 @@ jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GU
   | tr -d '\r' | sort -u \
   | while read -r p; do [ -f "<出力先>/html/<仕様書のフォルダ名>/$p" ] || echo "NOT PUBLISHED  $p"; done
 ```
+
+**この実例に当てると 0 件である** (実測)。添付を壊した文書に当てると、こう出る:
 
 ```text
 NOT PUBLISHED  _assets/missing.svg      ← ファイルが無い
@@ -1158,6 +1198,7 @@ jq -r --arg doc DOC-LOWER --arg at 6.1 '.DOCUMENTS[] | select(.UID == $doc) | re
 |---|---|---|
 | $S_{need}$ バイト | バイト | 変換に必要な空き容量 |
 | $S_{out}$ バイト | バイト | 出力ファイルの大きさ |
+| $S_{tmp}$ バイト | バイト | 一時ファイルの大きさ。 $S_{out}$ と等しい |
 | 経路 | — | `入力 \| 変換 \| 出力` の 3 段 |
 ```
 
@@ -1297,5 +1338,5 @@ strictdoc export <仕様書のフォルダ> --formats=html --output-dir <出力�
 ---
 
 上で足りないときだけ `01-ai-queries.md` を読む。34 本を用途別に分類し、出力例を付けてある
-(約 6,800 tokens)。目次・章単位の絞り込み・推移的な子・ROLE での絞り込み・孤立要求の検出・
+(約 9,200 tokens)。目次・章単位の絞り込み・推移的な子・ROLE での絞り込み・孤立要求の検出・
 UID の重複検出などが載っている。

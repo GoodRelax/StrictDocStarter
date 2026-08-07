@@ -17,8 +17,11 @@
 この実例の中身: 上位要求 `SYS-001..003` / 下位要求 `SW-001..004` /
 テストケース `TC-001..004`。 レビューの結果は要求そのものの `REVIEW_STATUS` に入っている。
 **本書と `00-ai-guide.md` も文書である** (`DOC-AI-QUERIES` / `DOC-AI-GUIDE`)。
-記法を説明するために図やコードを大量に抱えているので、**集計するクエリでは必ず除くこと**。
-図・数式・コード・表は `DOC-LOWER` の末尾の章と、`_assets/fig-state.md` (`DOC-FIG-STATE`) にある。
+記法を説明する文書は図やコードを大量に抱えるので、**集計するクエリでは必ず除くこと**。
+除く 6 書は `DOC-AI-GUIDE` `DOC-AI-QUERIES` `DOC-GUIDE` `DOC-REVIEW` `DOC-BROWSER`
+`DOC-COWORK` である (G27 で測った)。
+図・数式・コード・表がそろっているのは `DOC-LOWER` の末尾の章と
+`_assets/fig-state.md` (`DOC-FIG-STATE`) である。
 
 ---
 
@@ -89,11 +92,18 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
 ```
 
 ```json
-{"REQUIREMENT":["RATIONALE","RELATIONS","REVIEW_ACTION","REVIEW_COMMENT","REVIEW_STATUS",
-                 "STATEMENT","STATUS","TITLE","UID","_NODE_TYPE","_TOC"],
+{"DOCUMENT":["GRAMMAR","NODES","TITLE","UID","VERSION","_NODE_TYPE","_OPTIONS"],
+ "REQUIREMENT":["RATIONALE","RELATIONS","REVIEW_ACTION","REVIEW_COMMENT","REVIEW_STATUS",
+                "STATEMENT","STATUS","TITLE","UID","_NODE_TYPE","_TOC"],
+ "SECTION":["NODES","TITLE","_NODE_TYPE","_TOC"],
  "TEST_CASE":["GIVEN","ISSUE_KEY","RELATIONS","TEST_REMARK","TEST_RESULT","THEN",
-              "TITLE","UID","WHEN","_NODE_TYPE","_TOC"]}
+              "TITLE","UID","WHEN","_NODE_TYPE","_TOC"],
+ "TEXT":["STATEMENT","_NODE_TYPE","_TOC"]}
 ```
+
+`-c` を付けたので jq は 1 行で出す。上は読みやすさのために折り返してある。
+5 つのノード型が全部出る。`basic.sgra` が定義するのは `REQUIREMENT` と `TEST_CASE` の
+2 つで、`DOCUMENT` `SECTION` `TEXT` は StrictDoc が Markdown の構造から組み立てる。
 
 ---
 
@@ -375,6 +385,11 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT") | 
 
 ```text
 SYS-001	Approved	ファイルの変換
+SYS-002	Approved	想定外の入力の拒否
+SYS-003	Reviewed	既存ファイルの保護
+SW-001	Approved	変換の実行
+SW-002	Approved	入力形式の検査
+SW-003	Approved	出力先の確認
 SW-004	Draft	書き込みの原子性
 ```
 
@@ -457,17 +472,22 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as
 ````
 
 ```text
+DOC-AI-GUIDE  5.2.1  図,コード,表
 DOC-GUIDE  3.2.1  図,画像
-DOC-GUIDE  5.1  数式,表
 DOC-GUIDE  5.2.1  数式,コード,表
-DOC-LOWER  6.1  図,数式,コード
+DOC-UPPER  2.1  表
+DOC-LOWER  6.1  図,数式,コード,表
 DOC-TESTS  1  コード
+DOC-BROWSER  5.1  表,画像
 DOC-FIG-STATE  1  図
 DOC-NOTE  1  表
 ```
 
-(全 76 行のうち代表を抜いた。**72 行を 3 つの解説文書が占める** — 本書・`00-ai-guide.md`・
-`02-guide-for-human.md`。記法を説明する文書は記法を大量に抱えるためである)
+(全 120 行のうち代表を 9 行抜いた。**115 行を 6 つの解説文書が占める** — 本書・
+`00-ai-guide.md`・`02-guide-for-human.md`・`06-review.md`・`07-browser-guide.md`・
+`08-cowork-with-claude.md`。記法を説明する文書は記法を大量に抱えるためである。
+中身の文書は 5 行しか出さない — 上の `DOC-UPPER` `DOC-LOWER` `DOC-TESTS`
+`DOC-FIG-STATE` `DOC-NOTE` がそれで、残る 4 行は解説文書から抜いた見本である)
 
 2 列目は `UID` があればそれ、無ければ `_TOC` の階層番号である。**地の文には UID が
 無い**ので、位置を指すには `_TOC` を使う。
@@ -475,7 +495,7 @@ DOC-NOTE  1  表
 **★ 言語名はフェンス 1 個ずつ見ること。** ` ``` ` で切ると奇数番目が必ずフェンスの
 中身になるので、その 1 行目が言語名である。**ノード全体に対して
 「`mermaid` を含むか」で判定してはならない。** 図とコードが同じノードに同居すると
-コードを取りこぼす。`DOC-LOWER 6.1` がまさにその形 (図・数式・コードが同居) なので、
+コードを取りこぼす。`DOC-LOWER 6.1` がまさにその形 (図・数式・コード・表が同居) なので、
 自分でこの種のクエリを書いたら**必ずこの行で試すこと。**
 
 ### G28. 図の定義を取り出す
@@ -517,10 +537,28 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 ````
 
 ```text
+DOC-AI-GUIDE  4 行  本文でよい
+DOC-AI-GUIDE  6 行  本文でよい
+DOC-AI-GUIDE  1 行  本文でよい
+DOC-AI-GUIDE  3 行  本文でよい
+DOC-AI-GUIDE  3 行  本文でよい
+DOC-AI-GUIDE  1 行  本文でよい
+DOC-AI-GUIDE  7 行  本文でよい
+DOC-AI-GUIDE  1 行  本文でよい
+DOC-AI-GUIDE  1 行  本文でよい
+DOC-AI-GUIDE  1 行  本文でよい
+DOC-AI-QUERIES  1 行  本文でよい
+DOC-AI-QUERIES  1 行  本文でよい
+DOC-AI-QUERIES  1 行  本文でよい
 DOC-GUIDE  8 行  本文でよい
 DOC-LOWER  8 行  本文でよい
+DOC-BROWSER  1 行  本文でよい
 DOC-FIG-STATE  19 行  外に出す
 ```
+
+全 17 行を出した。**`1 行` の並びは図ではない。** 解説文書はクエリの本文にフェンス記号と
+`mermaid` という言語名を並べて書いており、このクエリはそれを図の断片として拾ってしまう。
+記法を説明する文書を測るときは、この種の自己参照が必ず混ざる。
 
 違反だけを出す形。**`DOC-FIG-` で始まる文書は既に外に出したものなので除く。
 0 行が正常である。**
@@ -570,7 +608,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":47,"json":5,"markdown":2,"mermaid":5,"python":4,"text":41}
+{"bash":58,"json":5,"markdown":3,"mermaid":5,"python":4,"text":70}
 ```
 
 **`mermaid` もここに出る。** 図もコードフェンスだからである。
@@ -602,12 +640,27 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 ```
 
 ```text
+DOC-AI-GUIDE  _assets/x.svg
+DOC-AI-GUIDE  _assets/x.svg
+DOC-AI-GUIDE  "
+DOC-AI-GUIDE  path
+DOC-AI-QUERIES  "
+DOC-AI-QUERIES  path
+DOC-AI-QUERIES  ...
 DOC-GUIDE  path
 DOC-GUIDE  _assets/flow.svg
+DOC-BROWSER  _assets/browser-00-map.png
+DOC-BROWSER  _assets/browser-21-new-document-menu.png
 ```
 
+(先頭 11 行を出した。**全 38 行である。** うち 28 行を `DOC-BROWSER` が占める —
+`07-browser-guide.md` は画面写真 `_assets/browser-*.png` を 27 枚貼っており、
+残る 1 行は書式の見本に書いた `_assets/図の名前.png` である。
+ほかの 10 行は解説文書の書式説明と `02-guide-for-human.md` の `_assets/flow.svg` である)
+
 `path` は解説書に書いてある `![alt](path)` という書式の説明そのものである。**実在する
-画像ではない。** 記法を説明している文書を含む一式では、こういう見かけの当たりが混ざる。
+画像ではない。** `"` `...` `_assets/x.svg` も同じで、書式を説明する文にクエリが当たっている。
+記法を説明している文書を含む一式では、こういう見かけの当たりが混ざる。
 
 バックスラッシュを使わずに `![...](...)` を切り出すため、`split()` を 3 回重ねている。
 
@@ -650,7 +703,10 @@ DOC-LINT  | CRASH cell ending in math | $T$ |
 **開いたフェンスの記号の長さを覚えておき、同じ長さ以上の記号でだけ閉じる。**
 `` ` `` 3 個で切って偶数番目を取る、という簡単なやり方もあるが、**それは
 ` ```` ` の中に ` ``` ` が入っている文書で破綻する。** 本書と `00-ai-guide.md` が
-まさにその形なので、簡単な版を当てると偽陽性が 4 件出る (実測)。
+まさにその形である。簡単な版を当てると、この 2 書ではフェンスの内と外が入れ替わり、
+**フェンスの中の行を「外」として拾う** (実測)。
+いまのサンプルはその拾った範囲に `$` で終わる行を持たないので誤検出は 0 件で済むが、
+それは運である。行を 1 行足せば出る。
 
 **誤検出は 1 種類だけある** — `\$` と書いて逃がしてある行も出る (上の 3 行目)。
 逃がしてあるなら安全なので、見て飛ばす。
@@ -672,11 +728,18 @@ grep -rlF '**UID**: DOC-FIG-STATE' <仕様書のフォルダ> --include=*.md
 ```
 
 ```text
+samples/md-basic-ja/00-ai-guide.md
+samples/md-basic-ja/01-ai-queries.md
 samples/md-basic-ja/_assets/fig-state.md
 ```
 
+**本物の宣言は `_assets/fig-state.md` だけである。** 上の 2 書はこの手引き自身で、
+`**UID**: DOC-FIG-STATE` という文字列を見本として本文に載せているために当たる。
+`grep` はフェンスの中と外を区別しないので、**記法を説明する一式では当たりを目で選ること**。
+
 **UID を書いてあるだけのファイルは出ない。** 上のクエリは `**UID**:` の宣言に
 一致するので、`[LINK: DOC-FIG-STATE]` で参照しているだけの `04-lower.md` は外れる。
+`output/` を消してから当てること。消さないと export した控えも当たる。
 
 **3. その `.md` を直接編集する。** フェンスの中身を差し替える。
 
