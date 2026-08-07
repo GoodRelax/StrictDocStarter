@@ -33,9 +33,9 @@ measured like this:
 
 | What you read | tokens |
 |---|---:|
-| The requirement list through jq | **91** |
-| Every `.md` in the folder | 12,300 |
-| `index.json` itself | 102,000 |
+| The requirement list through jq | **74** |
+| Every `.md` in the folder | 40,000 |
+| `index.json` itself | 56,000 |
 
 **Write the output next to the specification, at
 `<specification folder>/output/strictdoc`.** That is where `launch-strictdoc.bat`
@@ -98,17 +98,17 @@ The built-in grammar already gives you `**UID**:`, `**Statement**:`,
 | A custom field such as `PRIORITY` | **Stops** |
 
 **★ A node with no `**Type**:` line is a `REQUIREMENT`.** That is the default,
-and it is the mistake you will actually make: you declare `TEST_CASE` and
-`FINDING` in the grammar, write the nodes, forget the `**Type**:` line, and
-StrictDoc reads them as requirements and rejects the fields they carry.
+and it is the mistake you will actually make: you declare `TEST_CASE` in the
+grammar, write the nodes, forget the `**Type**:` line, and StrictDoc reads them
+as requirements and rejects the fields they carry.
 
 ```text
-Semantic error: Invalid requirement field: SEVERITY
+Semantic error: Invalid requirement field: GIVEN
 ```
 
 **The field name in that message tells you which node lost its type.** Write
-`**Type**: FINDING` (or `TEST_CASE`, or `SECTION`) as the first line of the
-field block. Only `REQUIREMENT` may leave it out.
+`**Type**: TEST_CASE` (or `SECTION`, or whatever the grammar declares) as the
+first line of the field block. Only `REQUIREMENT` may leave it out.
 
 `references/authoring.md` carries the `.md` shape, the rules that stop an
 export, and a `.sgra` template you can paste.
@@ -151,11 +151,22 @@ attachments that never reached the output, figures that outgrew the body, a
 review that says something is wrong without saying what, and requirement wording.
 
 The last two stay quiet where they do not apply. `review comment missing` needs
-a grammar that declares `REVIEW_STATUS`. `wording candidates` reads Japanese
-patterns only, so it skips any statement with no Japanese character in it -
-without that gate it flagged every requirement in an English project (measured),
-and since this script exits with the number of failing checks, gating a build on
-it would then fail forever.
+a grammar that declares `REVIEW_STATUS`. `wording candidates` runs one pass per
+language and gates each one on the script it reads: the Japanese patterns see
+only a statement that contains a Japanese character, the English patterns only a
+statement that contains none. Drop either gate and one language's patterns fire
+on the other language's requirements - without the Japanese gate, every
+requirement in an English project got flagged (measured) - and since this script
+exits with the number of failing checks, gating a build on it would then fail
+forever.
+
+| Verdict | Japanese | English |
+|---|---|---|
+| `ears-shape` | the sentence does not end in 「こと。」 | the sentence carries no `shall` |
+| `ears-order` | a condition marker sits after the subject | the sentence opens with something other than `WHEN` / `WHILE` / `IF` / `WHERE`, yet one of them appears later |
+| `passive` | される / された / られる | a form of "be" plus a past participle |
+| `no-subject` | no は before the first comma | - (an English sentence states its subject) |
+| `negative` | ない / ません | `shall not` / `must not` / `never` |
 
 **`wording candidates` reports candidates, not violations.** A shell script can
 decide which strings are present. It cannot decide intent, so an intended

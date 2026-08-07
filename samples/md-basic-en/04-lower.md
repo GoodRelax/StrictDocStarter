@@ -1,4 +1,4 @@
-# Basics - software requirements
+# Software requirements
 
 **Grammar**: basic.sgra \
 **UID**: DOC-LOWER \
@@ -18,7 +18,8 @@ boundary changes nothing. A mix of `.md` and `.sdoc` behaves the same way.
 ## Running the conversion
 
 **UID**: SW-001 \
-**STATUS**: Approved
+**STATUS**: Approved \
+**REVIEW_STATUS**: NoFinding
 
 **Statement**: The tool shall read the input file, convert it into the output format the user specifies, and write the result to the output file.
 
@@ -29,9 +30,10 @@ boundary changes nothing. A mix of `.md` and `.sdoc` behaves the same way.
 ## Checking the input format
 
 **UID**: SW-002 \
-**STATUS**: Approved
+**STATUS**: Approved \
+**REVIEW_STATUS**: NoFinding
 
-**Statement**: The tool shall check the format of the input file before it starts the conversion, and shall skip the conversion and exit with an error when that format differs from the format the user specifies.
+**Statement**: IF the format of the input file differs from the format the user specifies, THEN the tool shall skip the conversion and exit with an error.
 
 **Relations**:
 - **Type**: `Parent` \
@@ -40,9 +42,10 @@ boundary changes nothing. A mix of `.md` and `.sdoc` behaves the same way.
 ## Checking the destination
 
 **UID**: SW-003 \
-**STATUS**: Approved
+**STATUS**: Approved \
+**REVIEW_STATUS**: NotReviewed
 
-**Statement**: The tool shall check the destination for a file of the same name before it writes the output file, and shall skip the write and exit with an error when it finds one.
+**Statement**: IF a file of the same name already sits at the destination, THEN the tool shall skip the write and exit with an error.
 
 **Relations**:
 - **Type**: `Parent` \
@@ -51,15 +54,20 @@ boundary changes nothing. A mix of `.md` and `.sdoc` behaves the same way.
 ## Atomic writing
 
 **UID**: SW-004 \
-**STATUS**: Draft
+**STATUS**: Draft \
+**REVIEW_STATUS**: WontFix
 
-**Statement**: The tool shall leave no incomplete file at the destination when an interruption stops the write partway.
+**Statement**: IF an interruption stops the write partway, THEN the tool shall not leave an incomplete file at the destination.
 
 **Rationale**: If an incomplete file from an interruption stays on disk, SW-003 counts it as an existing file on the next run and stops the tool. The user then sees an error exit with no visible cause.
 
 **Relations**:
 - **Type**: `Parent` \
   **ID**: `SYS-003`
+
+**REVIEW_COMMENT**: Nobody decided where the temporary file goes. A rename stops being atomic once the two paths sit on different drives.
+
+**REVIEW_ACTION**: This set is a worked example of how to write, and it leaves implementation detail out. Decide this point in a real specification.
 
 ## How the pieces fit together
 

@@ -588,7 +588,7 @@ jq . out/json/index.json > readable.json
 **Type**: SECTION
 
 `--formats=sdoc` で `.md` を `.sdoc` に変換できる。 逆向きは
-`--formats=markdown` である。 **どちらも往復できる。**
+`--formats=markdown` である。
 
 ```bash
 strictdoc export --formats=sdoc --output-dir out .
@@ -624,7 +624,16 @@ UID → STATUS → TITLE → カスタムの単一行フィールド → STATEME
 自分の文法を作るときは、 この順序を崩さないこと。
 
 **★ ただし、 この一式は `.sdoc` へ往復できない** (0.27.1 で実測)。
-`--formats=sdoc` は 11 文書とも書き出すが、 その出力を読み戻すと
-`the inline link references an object with an UID that does not exist: UID` で
-止まる。 `[LINK:]` の書き方が変換で保たれないためであり、 **宣言順とは関係が無い。**
+`--formats=sdoc` は 11 文書とも書き出すが、 その出力の読み戻しは 2 つの理由で
+止まる。 **どちらも宣言順とは関係が無い。**
+
+- **`.sgra` が一緒に複製されない。** 生成した `.sdoc` は `basic.sgra` を名指しするが、
+  出力先へその複製を作る仕組みが無い。 自分で複製すること
+- **`[LINK: UID]` を例として引用している文書が、 その引用を実際のリンクに変える。**
+  `00-ai-guide.md` は表の中でこの書き方を見せている。 `.md` ではただの文字のままだが、
+  生成した `.sdoc` では StrictDoc がリンクとして解決しようとし、
+  `the inline link references an object with an UID that does not exist: UID` で止まる。
+  `[LINK: DOC-FIG-STATE]` のような本物のリンクは変換で保たれる — この引用 1 箇所を
+  外し、 文法を複製したところ、 読み戻しは通った (実測)
+
 往復が要る用途では、 `.md` を正本として保つこと。

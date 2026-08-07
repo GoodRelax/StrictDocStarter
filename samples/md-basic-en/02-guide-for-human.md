@@ -1,15 +1,16 @@
-# Basics - read this first
+# Read this first
 
 **Grammar**: basic.sgra \
 **UID**: DOC-GUIDE \
 **Version**: 1.0
 
-**This document teaches a beginner and an AI how to write a specification with StrictDoc.**
+**This document tells a beginner and an AI how to write a specification with StrictDoc.**
 This whole set is written in `.md`.
 
-System requirements, software requirements, test cases and review findings
-**live in separate files, and links join them together.** You start your own
-specification by **copying this whole set and replacing what is inside.**
+System requirements, software requirements and test cases **live in separate
+files, and links join them together.** A review result goes on the requirement
+itself. You start your own specification by **copying this whole set and
+replacing what is inside.**
 
 This paragraph carries no UID. It is free text, not a requirement. StrictDoc
 treats a requirement and free text as two different things. You may mix them.
@@ -33,8 +34,9 @@ long time, `.sdoc` sits on the safer side.
 The files line up like this.
 
 **The numbers give the reading order.** `00` and `01` address an AI, `02`
-addresses a human, and `03` onward hold the specification itself.
-**All nine become StrictDoc documents.**
+addresses a human, `03` to `05` hold the specification itself, and `06` tells you
+how the review runs. **The seven `.md` files here and the two under `_assets/` -
+nine in all - become StrictDoc documents.**
 
 - `00-ai-guide.md` — **the guide you hand to an AI.** It compresses this document
   down to the writing rules and the way to query the JSON. A human does not have
@@ -47,7 +49,7 @@ addresses a human, and `03` onward hold the specification itself.
 - `04-lower.md` — 4 software requirements. How we implement it. It links up to
   the system requirements
 - `05-tests.md` — 4 test cases. They link to the software requirements
-- `06-review.md` — 2 review findings. They link to the requirement each one reviews
+- `06-review.md` — **how the review runs.** A finding goes on the requirement itself
 - `basic.sgra` — the grammar definition every document shares
 - `strictdoc_config.py` — the project configuration. **StrictDoc reads it only
   directly under this folder**
@@ -106,7 +108,7 @@ does not need the backslash at the end of a line.** Markdown viewers other than
 StrictDoc would render each line as a separate paragraph, and this mark prevents that.
 
 ```text
-# Basics - read this first
+# Read this first
 
 **Grammar**: basic.sgra \
 **UID**: DOC-GUIDE \
@@ -114,15 +116,18 @@ StrictDoc would render each line as a separate paragraph, and this mark prevents
 ```
 
 **We move `Grammar` into an external file so that it stays the same across documents.**
-Five documents in this sample set read the same `basic.sgra`. That file declares four
+Seven documents in this sample set read the same `basic.sgra`. That file declares three
 node types.
 
 - `SECTION` - a chapter. You can nest it
-- `REQUIREMENT` - a requirement. `UID` / `STATUS` / `TITLE` / `STATEMENT` / `RATIONALE`
-- `TEST_CASE` - a test case. It carries `EXPECTED`
-- `FINDING` - a review finding. It carries `SEVERITY` and `RESOLUTION`
+- `REQUIREMENT` - a requirement. `UID` / `STATUS` / `TITLE` / `REVIEW_STATUS` /
+  `STATEMENT` / `RATIONALE` / `REVIEW_COMMENT` / `REVIEW_ACTION`
+- `TEST_CASE` - a test case. It carries the Gherkin words `GIVEN` / `WHEN` / `THEN`
+  plus `TEST_RESULT` / `ISSUE_KEY` / `TEST_REMARK`. **It carries no `STATEMENT`**
 
-The last two are **not standard StrictDoc concepts.** We added them in the grammar.
+**`TEST_CASE` is not a standard StrictDoc concept.** We added it in the grammar. The
+same goes for the three `REVIEW_*` fields, which the standard `REQUIREMENT` does not
+have - `06-review.md` shows you how to use them.
 **Never add a field to a single document.** Each document would take a different shape,
 and no one could tell where anything is. When you need a new field, add it to
 `basic.sgra`.
@@ -138,7 +143,7 @@ and no one could tell where anything is. When you need a new field, add it to
 
 The third trap hides an **asymmetry.** Only the eight words `Statement` `Title` `Status`
 `Rationale` `Comment` `Level` `Tags` `Prefix` ignore case. You spell everything else
-**exactly as the grammar spells it.** `EXPECTED` passes, but `Expected` fails. **You
+**exactly as the grammar spells it.** `GIVEN` passes, but `Given` fails. **You
 simply have to remember this.** When in doubt, write every custom field in all capitals.
 
 ### System requirements and software requirements
@@ -176,7 +181,7 @@ does cross files.
   **Role**: `Verifies`
 ```
 
-`05-tests.md` uses `Verifies`, and `06-review.md` uses `Reviews`.
+`05-tests.md` uses `Verifies`.
 **Declare a `Role` in the grammar before you use it.** StrictDoc fails on any value you
 have not declared.
 
@@ -497,12 +502,12 @@ reads the JSON and emits only what matches the condition you write.
 jq -r -f q-open-findings.jq out/json/index.json
 ```
 
-To list the findings that nobody has resolved yet, `q-open-findings.jq` holds this.
+To list the findings that nobody has acted on yet, `q-open-findings.jq` holds this.
 
 ```text
 .DOCUMENTS[] | recurse(.NODES[]?)
-| select(._NODE_TYPE == "FINDING" and .RESOLUTION == "Open")
-| .UID + "  " + .SEVERITY + "  " + .TITLE
+| select(.REVIEW_STATUS == "Open")
+| .UID + "  " + .TITLE
 ```
 
 **The leading `.` means "the input itself."** From there `.name` descends and `[]`
@@ -510,13 +515,13 @@ breaks an array apart. `.DOCUMENTS[]` means "each item of `DOCUMENTS` in the
 input." The `.` is not an option but the filter itself, and it sits in the middle
 of `jq [options] <filter> [file]`.
 
-**The key that gives you the node type is `_NODE_TYPE`.** It holds the name
-`FINDING` that the grammar declares. The leading underscore makes it **easy to
-mistype.** Run the filter against this set and it prints this.
+**`REVIEW_STATUS` is a field the grammar added to `REQUIREMENT`.** `06-review.md`
+gives the meaning of each state and lists the values. **When you want to filter by
+node type instead, the key is `_NODE_TYPE`, and the leading underscore makes it
+easy to mistype.** Run the filter against this set and it prints this.
 
 ```text
-RV-001  Major  SW-002 does not say how to check the format
-RV-002  Question  SYS-003 offers no way to allow overwriting
+SYS-003  Protecting an existing file
 ```
 
 **Run the same filter against the JSON from `samples/sd-basic-en/` and not one
@@ -546,30 +551,34 @@ jq -f q-findings-json.jq out/json/index.json
 ```
 
 ```text
-[ .DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE == "FINDING") ]
-| map({UID, SEVERITY, RESOLUTION, TITLE})
+[ .DOCUMENTS[] | recurse(.NODES[]?)
+  | select(.REVIEW_STATUS? and .REVIEW_STATUS != "NoFinding" and .REVIEW_STATUS != "NotReviewed") ]
+| map({UID, REVIEW_STATUS, TITLE})
 ```
 
 ```json
 [
   {
-    "UID": "RV-001",
-    "SEVERITY": "Major",
-    "RESOLUTION": "Open",
-    "TITLE": "SW-002 does not say how to check the format"
+    "UID": "SYS-002",
+    "REVIEW_STATUS": "Fixed",
+    "TITLE": "Rejecting unexpected input"
   },
   {
-    "UID": "RV-002",
-    "SEVERITY": "Question",
-    "RESOLUTION": "Open",
-    "TITLE": "SYS-003 offers no way to allow overwriting"
+    "UID": "SYS-003",
+    "REVIEW_STATUS": "Open",
+    "TITLE": "Protecting an existing file"
+  },
+  {
+    "UID": "SW-004",
+    "REVIEW_STATUS": "WontFix",
+    "TITLE": "Atomic writing"
   }
 ]
 ```
 
 **The outer `[ ... ]` gathers the results, which arrive one at a time, into a
 single array.** Without it jq only stacks JSON values one under another and builds
-no array. `map({UID, SEVERITY, RESOLUTION, TITLE})` keeps just the fields you
+no array. `map({UID, REVIEW_STATUS, TITLE})` keeps just the fields you
 want; drop the whole `| map(...)` line when you want every field.
 
 ### Non-ASCII characters
@@ -580,7 +589,7 @@ want; drop the whole `| map(...)` line when you want every field.
 A Japanese title reads like this in the file.
 
 ```text
-"TITLE": "\u57fa\u672c - \u307e\u305a\u3053\u308c\u3092\u8aad\u3080",
+"TITLE": "\u307e\u305a\u3053\u308c\u3092\u8aad\u3080",
 ```
 
 StrictDoc calls `json.dumps(..., indent=4)` as it is, and Python escapes every
@@ -599,11 +608,11 @@ jq . out/json/index.json > readable.json
 **`.` narrows nothing, so not one character of the content changes.** Only the
 notation changes, **and the file gets smaller.**
 
-| File | Bytes | vs the `.md` set (26,273 bytes) |
+| File | Bytes | vs the `.md` set (143,587 bytes) |
 |---|---:|---:|
-| `index.json` (as written) | 84,932 | 3.23 |
-| after `jq .` | 53,242 | 2.03 |
-| after `jq -c .` | 35,035 | 1.33 |
+| `index.json` (as written) | 244,103 | 1.70 |
+| after `jq .` | 209,198 | 1.46 |
+| after `jq -c .` | 167,892 | 1.17 |
 
 A Japanese character such as `検` drops from 6 bytes back to the 3 bytes of UTF-8,
 and the indent drops from 4 spaces to 2. `-c` strips the indent and the newlines
@@ -622,7 +631,7 @@ the size but in **pulling out the answer alone without reading the whole text.**
 **Type**: SECTION
 
 StrictDoc converts a `.md` document to `.sdoc` with `--formats=sdoc`. The reverse
-direction is `--formats=markdown`. **Both directions make the round trip.**
+direction is `--formats=markdown`.
 
 ```bash
 strictdoc export --formats=sdoc --output-dir out .
@@ -644,9 +653,8 @@ You need to know 3 things about the conversion.
    the H1 show up both in the `[DOCUMENT]` fields and in `METADATA:`. You lose no
    value, but the same thing appears in 2 places, so you may delete one by hand
    after the conversion.
-3. **Watch out for `Wrong field order`.** When StrictDoc reads the converted
-   `.sdoc` back, the fields line up in a fixed order. StrictDoc fails if your
-   grammar does not declare them in that order.
+3. **Watch out for `Wrong field order`.** The fields of a node line up in a fixed
+   order, and StrictDoc fails if your grammar does not declare them in that order.
 
 The order runs like this.
 
@@ -655,7 +663,22 @@ UID → STATUS → TITLE → your single-line custom fields → STATEMENT
     → the remaining multi-line fields such as RATIONALE
 ```
 
-**`basic.sgra` declares its fields in this order.** That is why this set makes the
-round trip — we confirmed on 0.27.1 that StrictDoc exports the 5 documents it
-converted with `--formats=sdoc` again as they are. Keep this order when you write
-a grammar of your own.
+**`basic.sgra` declares its fields in this order.** Break the order and the export
+stops on the spot. Keep this order when you write a grammar of your own.
+
+**★ This set does not make the round trip to `.sdoc`, though** (measured on
+0.27.1). `--formats=sdoc` writes all 9 documents out, but reading that output back
+stops for two reasons, and **neither one has anything to do with the declaration
+order.**
+
+- **The `.sgra` does not travel with the output.** The generated `.sdoc` names
+  `basic.sgra`, and nothing copies that file into the output folder. You copy it
+  in yourself.
+- **A document that quotes `[LINK: UID]` as an example turns that quotation into a
+  live link.** `00-ai-guide.md` shows the syntax that way in a table. In `.md` the
+  text stays inert; in the generated `.sdoc` StrictDoc resolves it and stops with
+  `the inline link references an object with an UID that does not exist: UID`.
+  A real link such as `[LINK: DOC-FIG-STATE]` survives the conversion intact -
+  we removed that one quotation, copied the grammar in, and the read-back passed.
+
+Keep the `.md` as the master copy whenever you need a round trip.

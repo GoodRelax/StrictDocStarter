@@ -434,8 +434,11 @@ ELEMENTS:
   エラーは `Semantic error: Wrong field order for requirement: [...]` で、
   `Hint:` が宣言済みの順まで教えるので直し方はその場で分かる
 - **順が正しいかは `--formats=json` を通せば分かる。** 「json は通るが sdoc で落ちる」
-  ということは起きない。 **`--formats=sdoc` は往復の確認には使えない** —
-  `[LINK:]` が保たれず、 読み戻しは宣言順と無関係の理由で落ちる (実測)
+  ということは起きない。 **`--formats=sdoc` も往復の確認には使えない** —
+  生成した `.sdoc` が名指しする `.sgra` は一緒に複製されず、 さらに
+  `[LINK: UID]` を例として引用している文書があると、 その引用が実際のリンクに変わり、
+  読み戻しが `the inline link references an object with an UID that does not exist: UID`
+  で止まる (実測)
 
 ```bash
 strictdoc export <仕様書のフォルダ> --formats=sdoc --output-dir <出力先>
@@ -858,7 +861,7 @@ error: TraceabilityIndex: the document "A" imports a grammar from a file that do
 **`.md` を修正したら、再度この `strictdoc export` を実行すること。**
 StrictDoc は JSON を自動では更新しない。
 
-**この `index.json` を直接読んではならない** — 約 188,000 tokens ある。
+**この `index.json` を直接読んではならない** — 約 194,000 tokens ある。
 `jq` に読ませるためだけのファイルである。
 
 **StrictDoc 自身にも問い合わせ言語があるが、JSON 出力には効かない。**
@@ -996,8 +999,10 @@ jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW,DOC-BROWSER,D
 
 ```text
 DOC-UPPER  2.1  表
+DOC-UPPER  2.2.1  コード,表
 DOC-LOWER  6.1  図,数式,コード,表
 DOC-TESTS  1  コード
+DOC-TESTS  2.1  コード,表
 DOC-FIG-STATE  1  図
 DOC-NOTE  1  表
 ```
@@ -1008,8 +1013,8 @@ DOC-NOTE  1  表
 まず用例 1 で文書を一覧し、記法の解説を兼ねた文書を見つけて渡す** (探し方は 3 章の
 「集計するときは解説文書を除くこと」)。
 
-**渡さないと 120 行返り、そのうち 115 行が解説文書になる** (実測)。解説書は説明のために
-記法を大量に抱えるためで、壊れてはいない。**渡せば 5 行になる。**
+**渡さないと 122 行返り、そのうち 115 行が解説文書になる** (実測)。解説書は説明のために
+記法を大量に抱えるためで、壊れてはいない。**渡せば 7 行になる。**
 
 **言語名はフェンス 1 個ずつ見ること。** ` ``` ` で切ると奇数番目が必ずフェンスの中身に
 なるので、その 1 行目が言語名である。**ノード全体に対して「`mermaid` を含むか」で
@@ -1121,7 +1126,7 @@ grep -rlF '**UID**: DOC-FIG-STATE' <仕様書のフォルダ> --include=*.md
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
-| split("\n")
+| split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, out: []};
     ([$line | scan("^`{3,}")] | (.[0] // "") | length) as $w
     | if $w > 0
@@ -1137,8 +1142,13 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 無害なので、捨てないと誤検出だらけになる。**開いたフェンスの記号の長さを覚えておき、
 同じ長さ以上の記号でだけ閉じる。** ` ```` ` の中に ` ``` ` が入っている本書のような文書では、
 単純に「``` で切って偶数番目を取る」やり方が破綻する。**本書に当てると、フェンスの中の
-83 行を「外」と数える** (実測)。今はその 83 行に `$` で終わる行が無いので偽陽性は 0 件だが、
+140 行を「外」と数える** (実測)。今はその 140 行に `$` で終わる行が無いので偽陽性は 0 件だが、
 `$` で終わる行を 1 本書き足した瞬間に出る。
+
+**★ `map(rtrimstr("\r"))` は飾りではない。** StrictDoc は元のファイルの CRLF を
+`STATEMENT` の中に残すので、各行は CR で終わって届き、末尾を見る `" *$"` は
+決して一致しない。 これを外すと、**HTML の export がまさにその行で落ちる文書に対して、
+このクエリは 0 件を返す** (実測)。
 
 **★ このクエリが 0 件でも安全とは限らない。** 検出できるのは**落ちる方の罠**
 (段落やセルが `$` で終わる) だけである。**2.3 のもう 1 つの罠 —
@@ -1265,7 +1275,7 @@ jq -r -f <クエリを書いたファイル>.jq <json>
 図・数式・コード・表を説明のために抱えているので、「この一式に図はいくつか」のような
 集計が必ず狂う。**この実例では解説文書が 6 つある** (`DOC-AI-GUIDE` = 本書、
 `DOC-AI-QUERIES`、`DOC-GUIDE`、`DOC-REVIEW`、`DOC-BROWSER`、`DOC-COWORK`)。
-**用例 13 の出力 120 行のうち 115 行をこの 6 つが占める** (実測)。
+**用例 13 の出力 122 行のうち 115 行をこの 6 つが占める** (実測)。
 
 **該当する文書は「UID を持つノードが 1 つも無い文書」として機械で見つかる。**
 地の文と章しか入っていない文書、という意味である。

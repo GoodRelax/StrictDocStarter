@@ -11,10 +11,10 @@ worked example in `samples/md-basic-en` and produced the output shown.
 ## 3. Pull only the part of the specification you need
 
 **When you need only a part of the specification, do not read the `.md` files.**
-Reading the whole specification of this worked example (`03` through `06` and
-`_assets/`) costs about 4,100 tokens, and about 12,300 tokens once you include
+Reading the whole specification of this worked example (`03` through `05` and
+`_assets/`) costs about 5,200 tokens, and about 12,500 tokens once you include
 `02-guide-for-human.md`. Convert it to JSON and pull the list of requirements
-with `jq`, and the same answer costs 91 tokens.
+with `jq`, and the same answer costs 74 tokens.
 
 **★ This ban covers only "reading in order to learn". You may open a file to rewrite it.**
 When your job is to fix an existing specification, the correct procedure is to
@@ -54,7 +54,7 @@ error: TraceabilityIndex: the document "A" imports a grammar from a file that do
 **After you edit a `.md`, run this `strictdoc export` again.**
 StrictDoc does not update the JSON on its own.
 
-**Do not read this `index.json` directly** - it holds about 102,000 tokens.
+**Do not read this `index.json` directly** - it holds about 56,000 tokens.
 The file exists only for `jq` to read.
 
 **StrictDoc has a query language of its own, but it does not affect the JSON output.**
@@ -133,8 +133,8 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.UID? and ._NOD
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.TITLE? and (.TITLE | test("convert|check"; "i"))) | (.UID // "-") + "  " + .TITLE' <json>
 
 # 7. and / or / not - put not at the end
-jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="FINDING" and .SEVERITY=="Major" and .RESOLUTION=="Open") | .UID' <json>
-jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE" or ._NODE_TYPE=="FINDING") | .UID' <json>
+jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS=="Open" and .STATUS=="Reviewed") | .UID' <json>
+jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE" or .REVIEW_STATUS=="WontFix") | .UID' <json>
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? and (._NODE_TYPE=="REQUIREMENT" | not)) | ._NODE_TYPE + " " + .UID' <json>
 
 # 8. Direct children (reverse lookup)
@@ -176,10 +176,10 @@ holds the `UID`, or `_TOC` when the node has none.
 list.** Without it the output mixes in a large amount of their content (below).
 
 ````bash
-jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE' '($skip | split(",")) as $s
+jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW' '($skip | split(",")) as $s
 | .DOCUMENTS[] | select(.UID | IN($s[]) | not) | .UID as $doc
 | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT as $t
-| [$t | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0]] as $lang
+| [$t | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0] | rtrimstr("\r")] as $lang
 | [ (if ($lang | index("mermaid")) then "figure" else empty end),
     (if ($t | contains("$$")) then "math" else empty end),
     (if ($lang | map(select(. != "mermaid" and . != "")) | length) > 0 then "code" else empty end),
@@ -189,22 +189,25 @@ jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE' '($skip | split(",")) a
 ````
 
 ```text
+DOC-UPPER  2.1  table
+DOC-UPPER  2.2.1  code,table
 DOC-LOWER  6.1  figure,math,code,table
 DOC-TESTS  1  code
+DOC-TESTS  2.1  code,table
 DOC-FIG-STATE  1  figure
 DOC-NOTE  1  table
 ```
 
 **What you pass to `--arg skip` differs from one worked example to the next.** This
-worked example has three explanatory documents (`DOC-AI-GUIDE` = this document,
-`DOC-AI-QUERIES`, and `DOC-GUIDE`). **In the other project, list the documents with
+worked example has four explanatory documents (`DOC-AI-GUIDE` = this document,
+`DOC-AI-QUERIES`, `DOC-GUIDE` and `DOC-REVIEW`). **In the other project, list the documents with
 example 1 first, find the ones that double as an explanation of the notation, and
 pass those** (`queries.md`, "Exclude explanatory documents when you count", tells you
 how to find them).
 
-**Without it the query returns 82 rows, and 78 of them come from the explanatory
+**Without it the query returns 91 rows, and 84 of them come from the explanatory
 documents** (measured). A guide carries the notation in bulk in order to explain it,
-so nothing is broken. **With it you get 4 rows.**
+so nothing is broken. **With it you get 7 rows.**
 
 **Read the language name one fence at a time.** When you cut the text on ` ``` `,
 every odd-numbered piece is fence content, so its first line is the language name.
@@ -217,21 +220,34 @@ to look at.
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
 | $doc + "  " + ($c | tostring) + " lines  " + (if $c > 15 then "move it out" else "keep it inline" end)' <json>
 ````
 
 ```text
-DOC-AI-GUIDE  4 lines  keep it inline    ← a sample of the notation this document shows
+DOC-AI-GUIDE  4 lines  keep it inline    ← these 10 rows are samples this document shows
+DOC-AI-GUIDE  6 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  3 lines  keep it inline
+DOC-AI-GUIDE  3 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  8 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
 DOC-AI-QUERIES  1 lines  keep it inline  ← the same
+DOC-AI-QUERIES  1 lines  keep it inline
+DOC-AI-QUERIES  1 lines  keep it inline
 DOC-GUIDE  8 lines  keep it inline
 DOC-LOWER  8 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
 
-**The query counts even the samples that an explanatory document carries.** This
-document writes, inside a ```` fence, a ```mermaid example, so that piece comes out
-as a "figure" of 1 to 6 lines. **Only the next one, 14b, does real work** - this one
+**The query returns 16 rows, and the list above is all of them.** Only two are real
+figures, `DOC-LOWER` and `DOC-FIG-STATE`; the other 14 are samples an explanatory
+document carries. **The query counts even those samples.** This document writes,
+inside a ```` fence, a ```mermaid example, so each such piece comes out as a
+"figure" of 1 to 8 lines. **Only the next one, 14b, does real work** - this one
 is for looking.
 
 **14b. Print only the rule violations. 0 rows is the normal result.** It skips the
@@ -246,7 +262,7 @@ the body of the query.**
 jq -r --arg figprefix 'DOC-FIG-' '.DOCUMENTS[] | select(.UID | startswith($figprefix) | not) | .UID as $doc
 | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
 | select($c > 15) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($c | tostring) + " lines"' <json>
 ````
 
@@ -273,7 +289,7 @@ ends before you paste. The version that drops them:
 ````bash
 jq -r '.DOCUMENTS[] | select(.UID == "DOC-FIG-STATE") | recurse(.NODES[]?) | (.STATEMENT? // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid")) | ltrimstr("mermaid")
-| split("\n") | map(select(. != "")) | join("\n")' <json>
+| split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | join("\n")' <json>
 ````
 
 **Trap 2 - `jq` on Windows prints CRLF line endings** (measured. The JSON itself
@@ -289,7 +305,7 @@ position with `_TOC` (the second column of example 13 holds that number).
 ````bash
 jq -r '.DOCUMENTS[] | select(.UID == "DOC-LOWER") | recurse(.NODES[]?) | select(._TOC? == "6.1")
 | (.STATEMENT? // "") | split("```")[] | select(startswith("mermaid")) | ltrimstr("mermaid")
-| split("\n") | map(select(. != "")) | join("\n")' <json>
+| split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | join("\n")' <json>
 ````
 
 **16. Track down which file defines a given UID.**
@@ -315,7 +331,7 @@ every time you add a figure or a formula.
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
-| split("\n")
+| split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, out: []};
     ([$line | scan("^`{3,}")] | (.[0] // "") | length) as $w
     | if $w > 0
@@ -347,7 +363,7 @@ It judges every reference that `jq` lists by whether the file exists **on the
 exported HTML side**. Run `--formats=html` first.
 
 ```bash
-jq -r '.DOCUMENTS[] | select(.UID | startswith("DOC-AI-") or . == "DOC-GUIDE" | not)
+jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW") | not)
 | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("](") | .[1:][] | split(")")[0]
 | select(startswith("http") or startswith("#") | not)' <json> \
@@ -396,6 +412,7 @@ jq -r --arg doc DOC-LOWER --arg at 6.1 '.DOCUMENTS[] | select(.UID == $doc) | re
 |---|---|---|
 | $S_{need}$ bytes | bytes | Free space the conversion needs |
 | $S_{out}$ bytes | bytes | Size of the output file |
+| $S_{tmp}$ bytes | bytes | Size of the temporary file. It equals $S_{out}$ bytes |
 | Path | - | The three stages `input \| convert \| output` |
 ```
 
@@ -474,7 +491,8 @@ jq -r '.DOCUMENTS[] | select([recurse(.NODES[]?) | select(._NODE_TYPE != "DOCUME
 ```text
 DOC-AI-GUIDE  Markdown StrictDoc specifications - a guide for AI
 DOC-AI-QUERIES  jq query collection - for AI
-DOC-GUIDE  Basics - read this first
+DOC-GUIDE  Read this first
+DOC-REVIEW  How we review
 DOC-FIG-STATE  Large figure - conversion state machine
 DOC-NOTE  Terminology map
 ```
@@ -487,7 +505,7 @@ Drop the UIDs you do not need from the result, then aggregate. **What you drop d
 goal** - keep the figure document when you want to count figures.
 
 ```bash
-jq -r '.DOCUMENTS[] | select(.UID | startswith("DOC-AI-") or . == "DOC-GUIDE" | not) | .UID' <json>
+jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW") | not) | .UID' <json>
 ```
 
 **Add this `select` to examples 13 through 15 as well when you aggregate with them.**
@@ -554,11 +572,11 @@ jq -r '.DOCUMENTS[] | (.UID // "-") + "  " + .TITLE' <json>
 ```text
 DOC-AI-GUIDE  Markdown StrictDoc specifications - a guide for AI
 DOC-AI-QUERIES  jq query collection - for AI
-DOC-GUIDE  Basics - read this first
-DOC-UPPER  Basics - system requirements
-DOC-LOWER  Basics - software requirements
-DOC-TESTS  Basics - test cases
-DOC-REVIEW  Basics - review findings
+DOC-GUIDE  Read this first
+DOC-UPPER  System requirements
+DOC-LOWER  Software requirements
+DOC-TESTS  Test cases
+DOC-REVIEW  How we review
 DOC-FIG-STATE  Large figure - conversion state machine
 DOC-NOTE  Terminology map
 ```
@@ -576,7 +594,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":9,"FINDING":2,"REQUIREMENT":7,"SECTION":80,"TEST_CASE":4,"TEXT":81}
+{"DOCUMENT":9,"REQUIREMENT":7,"SECTION":97,"TEST_CASE":4,"TEXT":98}
 ```
 
 ### A3. The table of contents
@@ -598,10 +616,19 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
 ```
 
 ```json
-{"REQUIREMENT":["RATIONALE","RELATIONS","STATEMENT","STATUS","TITLE","UID","_NODE_TYPE","_TOC"],
- "TEST_CASE":["EXPECTED","RELATIONS","STATEMENT","TITLE","UID","_NODE_TYPE","_TOC"],
- "FINDING":["RELATIONS","RESOLUTION","SEVERITY","STATEMENT","TITLE","UID","_NODE_TYPE","_TOC"]}
+{"DOCUMENT":["GRAMMAR","NODES","TITLE","UID","VERSION","_NODE_TYPE","_OPTIONS"],
+ "REQUIREMENT":["RATIONALE","RELATIONS","REVIEW_ACTION","REVIEW_COMMENT","REVIEW_STATUS",
+                "STATEMENT","STATUS","TITLE","UID","_NODE_TYPE","_TOC"],
+ "SECTION":["NODES","TITLE","_NODE_TYPE","_TOC"],
+ "TEST_CASE":["GIVEN","ISSUE_KEY","RELATIONS","TEST_REMARK","TEST_RESULT","THEN",
+              "TITLE","UID","WHEN","_NODE_TYPE","_TOC"],
+ "TEXT":["STATEMENT","_NODE_TYPE","_TOC"]}
 ```
+
+`-c` makes jq print one line; the block above wraps it for reading. All five node types
+show up. This worked example's grammar defines two of them, `REQUIREMENT` and
+`TEST_CASE`; StrictDoc builds `DOCUMENT`, `SECTION` and `TEXT` from the structure of the
+Markdown.
 
 ---
 
@@ -647,11 +674,10 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.TITLE? and (.TITLE | test("co
 ```
 
 ```text
+-  Step 1 - Convert to JSON
 SYS-001  Converting a file
-SW-001  Running the conversion
 SW-002  Checking the input format
-TC-001  The conversion succeeds
-RV-001  SW-002 does not say how to check the format
+SW-003  Checking the destination
 ```
 
 ### B9. Narrow to one document
@@ -720,7 +746,7 @@ TC-001
 
 ### C15. Narrow by ROLE
 
-Test cases use `Verifies`; review findings use `Reviews`.
+In this worked example only the test cases use `Verifies`.
 
 ```bash
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) as $n | ($n.RELATIONS // [])[] | select(.ROLE=="Verifies") | $n.UID + " -> " + .VALUE' <json>
@@ -804,11 +830,11 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT" and
 You can use the ordinary logical operators inside `select()`.
 
 ```bash
-# and - findings that are major and still open
-jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="FINDING" and .SEVERITY=="Major" and .RESOLUTION=="Open") | .UID' <json>
+# and - requirements that reached review and carry a finding nobody has acted on
+jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS=="Open" and .STATUS=="Reviewed") | .UID' <json>
 
-# or - test cases or findings
-jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE" or ._NODE_TYPE=="FINDING") | .UID' <json>
+# or - test cases, or requirements we decided against changing
+jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE" or .REVIEW_STATUS=="WontFix") | .UID' <json>
 
 # not - nodes that hold a UID and are not requirements
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? and (._NODE_TYPE=="REQUIREMENT" | not)) | ._NODE_TYPE + " " + .UID' <json>
@@ -837,6 +863,11 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT") | 
 
 ```text
 SYS-001	Approved	Converting a file
+SYS-002	Approved	Rejecting unexpected input
+SYS-003	Reviewed	Protecting an existing file
+SW-001	Approved	Running the conversion
+SW-002	Approved	Checking the input format
+SW-003	Approved	Checking the destination
 SW-004	Draft	Atomic writing
 ```
 
@@ -849,7 +880,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")] 
 ### F26. Only the fields you need, as JSON
 
 ```bash
-jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="FINDING")] | map({UID, SEVERITY, RESOLUTION})' <json>
+jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS? and .REVIEW_STATUS != "NoFinding")] | map({UID, REVIEW_STATUS})' <json>
 ```
 
 **Do not add `-r`.** It flattens the output into strings.
@@ -901,7 +932,7 @@ code, a table, or an image.
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT as $s
-| [$s | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0]] as $lang
+| [$s | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0] | rtrimstr("\r")] as $lang
 | [ (if ($lang | index("mermaid")) then "figure" else empty end),
     (if ($s | contains("$$")) then "math" else empty end),
     (if ($lang | map(select(. != "mermaid" and . != "")) | length) > 0 then "code" else empty end),
@@ -911,16 +942,23 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as
 ````
 
 ```text
+DOC-AI-GUIDE  5.2.1  figure,code,table
+DOC-GUIDE  3.2.1  figure,image
+DOC-UPPER  2.1  table
+DOC-UPPER  2.2.1  code,table
 DOC-LOWER  6.1  figure,math,code,table
 DOC-TESTS  1  code
+DOC-TESTS  2.1  code,table
 DOC-FIG-STATE  1  figure
 DOC-NOTE  1  table
 ```
 
-(These are the specification-side rows. The query returns 82 in all: **three explanatory
-documents take up 78 of them** - this document, the skill, and
-`02-guide-for-human.md`. A document that explains the notation carries that notation in
-bulk, so pass `--arg skip` as the skill example 13 does when you count)
+(9 representative rows out of 91. **Four explanatory documents take up 84 of them** -
+this document, `00-ai-guide.md`, `02-guide-for-human.md` and `06-review.md`. A document
+that explains the notation carries that notation in bulk, so pass `--arg skip` as
+example 13 does when you count. The specification itself produces only 7 rows - the
+`DOC-UPPER`, `DOC-LOWER`, `DOC-TESTS`, `DOC-FIG-STATE` and `DOC-NOTE` rows above - and
+the other 2 rows above are samples lifted out of an explanatory document)
 
 The second column shows the `UID` when the node has one and the `_TOC` hierarchical number
 when it does not. **Free text carries no UID**, so use `_TOC` to point at a position.
@@ -946,7 +984,7 @@ stateDiagram-v2
 ```
 
 `split("```")` cuts the text at every fence boundary, keeps only the pieces that start with
-`mermaid`, and drops the leading `mermaid` (5 characters). **The JSON holds the fence
+`mermaid`, and drops the leading `mermaid` (7 characters). **The JSON holds the fence
 content verbatim**, so this hands you the whole Mermaid definition.
 
 Change the language name and the same shape pulls out code as well (G31).
@@ -961,15 +999,32 @@ First, measure every figure:
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
 | $doc + "  " + ($c | tostring) + " lines  " + (if $c > 15 then "move it out" else "keep it inline" end)' <json>
 ````
 
 ```text
+DOC-AI-GUIDE  4 lines  keep it inline
+DOC-AI-GUIDE  6 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  3 lines  keep it inline
+DOC-AI-GUIDE  3 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  8 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-QUERIES  1 lines  keep it inline
+DOC-AI-QUERIES  1 lines  keep it inline
+DOC-AI-QUERIES  1 lines  keep it inline
 DOC-GUIDE  8 lines  keep it inline
 DOC-LOWER  8 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
+
+All 16 rows are above. **The run of `1 lines` rows holds no figure.** A document that
+explains the notation writes the fence marker and the language name `mermaid` inside the
+body of a query, and this query picks that up as a fragment of a figure.
 
 The next form prints only the violations. **It skips a document whose UID starts with
 `DOC-FIG-`, because you already moved that one out. 0 rows is the normal result.**
@@ -978,7 +1033,7 @@ The next form prints only the violations. **It skips a document whose UID starts
 jq -r --arg figprefix 'DOC-FIG-' '.DOCUMENTS[] | select(.UID | startswith($figprefix) | not) | .UID as $doc
 | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
 | select($c > 15) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($c | tostring) + " lines"' <json>
 ````
 
@@ -1017,7 +1072,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":47,"json":5,"markdown":2,"mermaid":5,"python":4,"text":41}
+{"bash":58,"json":5,"markdown":3,"mermaid":5,"python":4,"text":51}
 ```
 
 **`mermaid` shows up here too.** A figure is a code fence as well.
@@ -1031,7 +1086,7 @@ jq -r '.DOCUMENTS[] | select(.UID == "DOC-LOWER") | recurse(.NODES[]?) | (.STATE
 
 ```text
 def convert(src: str, dst: str) -> None:
-    tmp = dst + ".part"          # in the same directory as dst
+    tmp = dst + ".part"          # create it in the same directory as dst
     (6 more lines)
 ```
 
@@ -1047,6 +1102,13 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 ```
 
 ```text
+DOC-AI-GUIDE  _assets/x.svg
+DOC-AI-GUIDE  _assets/x.svg
+DOC-AI-GUIDE  "
+DOC-AI-GUIDE  path
+DOC-AI-QUERIES  "
+DOC-AI-QUERIES  path
+DOC-AI-QUERIES  ...
 DOC-GUIDE  path
 DOC-GUIDE  _assets/flow.svg
 ```
@@ -1069,7 +1131,7 @@ query, and you find the place before you build the HTML.**
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
-| split("\n")
+| split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, out: []};
     ([$line | scan("^`{3,}")] | (.[0] // "") | length) as $w
     | if $w > 0

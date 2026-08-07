@@ -46,8 +46,12 @@ TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
 # 1. A paragraph or table cell ending in "$" stops the HTML export.
+#    map(rtrimstr("\r")) is load-bearing: StrictDoc keeps the CRLF of the source
+#    file inside STATEMENT, so every line arrives ending in CR and the anchored
+#    " *$" below can never match. Without it this check reported 0 rows on a
+#    document whose HTML export died on that very line (measured).
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
-| split("\n")
+| split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, out: []};
     ([$line | scan("^`{3,}")] | (.[0] // "") | length) as $w
     | if $w > 0
@@ -62,7 +66,7 @@ report "trailing dollar" "$TMP/dollar"
 # 2. A table row whose cell count differs from the header loses cells on render.
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as $n
 | ($n.UID // $n._TOC // "-") as $at
-| $n.STATEMENT | split("\n")
+| $n.STATEMENT | split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, want: 0, bad: []};
     ([$line | scan("^`{3,}")] | (.[0] // "") | length) as $w
     | if $w > 0
@@ -115,7 +119,7 @@ jq -r '.DOCUMENTS[] | (.UID // .TITLE) as $doc
   "$JSON" > "$TMP/review"
 report "review comment missing" "$TMP/review"
 
-# 6. Wording candidates in Japanese specification prose.
+# 6. Wording candidates in specification prose.
 #
 #    These are CANDIDATES, not violations. A shell script cannot tell an
 #    intended passive from an accidental one, and it cannot tell a transitive
@@ -127,6 +131,15 @@ report "review comment missing" "$TMP/review"
 #    Applies to any node carrying a STATEMENT, so it covers requirements at
 #    every level - needs, requirements, design - not just top-level ones.
 #
+#    Two passes run, one per language, and each one carries the gate the other
+#    lacks: 6a reads only statements that contain a Japanese character, 6b only
+#    statements that contain none. Drop either gate and one language's patterns
+#    fire on the other language's requirements - a plain English project has no
+#    「こと。」 and no 「は」, so the Japanese pass flagged 2 of its 2
+#    requirements (measured) - and since this script exits with the number of
+#    failing checks, gating a build on it would then fail forever.
+#
+#    6a. Japanese.
 #    ears-shape     the sentence does not end in the shall-form 「こと。」
 #    ears-order     a condition marker sits after the subject; EARS puts the
 #                   condition first
@@ -139,10 +152,6 @@ jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
 | recurse(.NODES[]?)
 | select(._NODE_TYPE == "REQUIREMENT" and .UID? and (.STATEMENT? // "") != "")
 | . as $n | ($n.STATEMENT | gsub("\r"; "")) as $t
-# Every pattern below is a Japanese one. Without this gate the check fires on
-# every requirement in an English project - no 「こと。」, no 「は」 - and since
-# the script exits with the number of failing checks, gating a build on it would
-# fail forever. Measured on a plain English project: 2 of 2 requirements flagged.
 | select($t | test("[぀-ヿ一-鿿]"))
 | [ (if ($t | test("こと。\\s*$") | not) then "ears-shape" else empty end),
     (if ($t | test("は、?[^。]*(もし|場合|とき|時|の間)")) then "ears-order" else empty end),
@@ -152,6 +161,34 @@ jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
 | select(($why | length) > 0)
 | $doc + "  " + $n.UID + "  " + ($why | join(","))' \
   "$JSON" > "$TMP/wording"
+
+#    6b. English.
+#    ears-shape     the sentence carries no "shall". English EARS states a
+#                   requirement with that one word
+#    ears-order     the sentence opens with something other than WHEN / WHILE /
+#                   IF / WHERE, yet one of those words appears later in it, so
+#                   the condition sits behind the subject
+#    passive        a form of "be" followed by a past participle
+#    negative       "shall not" / "must not" / "never" appears. The EARS
+#                   unwanted-behaviour pattern uses this legitimately, so expect
+#                   rows here.
+#
+#    English carries no no-subject rule: an English sentence states its subject,
+#    so the omission the Japanese rule looks for cannot happen.
+jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
+| .DOCUMENTS[] | select((.UID // "") | IN($s[]) | not) | (.UID // .TITLE) as $doc
+| recurse(.NODES[]?)
+| select(._NODE_TYPE == "REQUIREMENT" and .UID? and (.STATEMENT? // "") != "")
+| . as $n | ($n.STATEMENT | gsub("\r"; "")) as $t
+| select($t | test("[぀-ヿ一-鿿]") | not)
+| [ (if ($t | test("\\bshall\\b"; "i") | not) then "ears-shape" else empty end),
+    (if ($t | test("^\\s*(when|while|if|where)\\b"; "i") | not)
+        and ($t | test("\\b(when|while|if|where)\\b"; "i")) then "ears-order" else empty end),
+    (if ($t | test("\\b(is|are|was|were|be|been|being)\\s+([a-z]+ed|written|given|taken|shown|known|seen|done|made|held|kept|sent|put|left|built|thrown|drawn|chosen|driven|broken)\\b"; "i")) then "passive" else empty end),
+    (if ($t | test("\\b(shall not|must not|never)\\b"; "i")) then "negative" else empty end) ] as $why
+| select(($why | length) > 0)
+| $doc + "  " + $n.UID + "  " + ($why | join(","))' \
+  "$JSON" >> "$TMP/wording"
 report "wording candidates" "$TMP/wording"
 
 # StrictDoc itself refuses to export a duplicate UID or a relation that points

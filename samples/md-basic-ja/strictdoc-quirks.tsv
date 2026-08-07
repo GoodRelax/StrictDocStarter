@@ -6,3 +6,5 @@ date	sd_version	step	symptom	workaround	where
 2026-08-07	0.27.1	server	config edit had no effect	restarted the server	00-ai-guide.md 1
 2026-08-07	0.27.1	export-json	heading level forward jumps are not allowed: L1 -> L3	used ## instead of ### under the H1	00-ai-guide.md
 2026-08-07	0.27.1	export-json	pool died with no message; StrictDocSemanticError takes 1 arg but 6 given	re-ran with --no-parallelization to see the real error	00-ai-guide.md
+2026-08-08	0.27.1	export-sdoc	the generated .sdoc does not carry the .sgra it names	copied basic.sgra into the output folder by hand	02-guide-for-human.md
+2026-08-08	0.27.1	export-sdoc	the inline link references an object with an UID that does not exist: UID	kept the .md as the master; a guide quoting [LINK: UID] becomes a live link in .sdoc	02-guide-for-human.md

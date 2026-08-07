@@ -23,12 +23,15 @@ Text directly under the H1 becomes free text. It has no UID, so it is not a requ
 
 ## Chapter name
 
+**Type**: SECTION
+
 Free text inside the chapter. Without `Type`, StrictDoc reads this paragraph as the body of a requirement.
 
 ## Requirement name
 
 **UID**: SW-001 \
-**STATUS**: Approved
+**STATUS**: Approved \
+**REVIEW_STATUS**: NoFinding
 
 **Statement**: The system shall ...
 
@@ -37,11 +40,14 @@ Free text inside the chapter. Without `Type`, StrictDoc reads this paragraph as 
 ## Test case name
 
 **Type**: TEST_CASE \
-**UID**: TC-001
+**UID**: TC-001 \
+**TEST_RESULT**: NotRun
 
-**Statement**: We run it under the ... condition.
+**GIVEN**: ... is in the ... state.
 
-**EXPECTED**: The result is ...
+**WHEN**: ... runs ...
+
+**THEN**: ... has become ...
 
 **Relations**:
 - **Type**: `Parent` \
@@ -111,7 +117,7 @@ For every other error, the first line tells you where it is.
   under the H1 is an exception**; it always becomes free text
 - **Case of a field name**: only these eight words ignore case: `Statement` `Title` `Status`
   `Rationale` `Comment` `Level` `Tags` `Prefix`. Spell every other field as the grammar declares it
-  (`EXPECTED` passes, `Expected` stops). **When you cannot decide, write the name in all capitals**
+  (`GIVEN` passes, `Given` stops). **When you cannot decide, write the name in all capitals**
 - **Write the link on the lower side.** Put `**Relations**:` on the lower node and point it at the
   parent's UID. Write nothing on the upper side. The parent may live in another file (StrictDoc
   resolves a UID across the whole project)
@@ -122,7 +128,6 @@ For every other error, the first line tells you where it is.
   |---|---|
   | `REQUIREMENT` | `Parent` / `Child`. **You cannot add a `Role`** |
   | `TEST_CASE` | `Parent` + `Role: Verifies` |
-  | `FINDING` | `Parent` + `Role: Reviews` |
 - **Only inside a relation does the key become `**ID**:`.** A node's identifier is `**UID**:`, but
   the key that points at the other node inside a `**Relations**:` block is `**ID**:`. `**UID**:`
   does not pass there
@@ -166,7 +171,17 @@ For every other error, the first line tells you where it is.
 ### 1.1 Writing a grammar file (`.sgra`)
 
 **When you start a new project, you always end up writing your own `.sgra`.**
-Below is the smallest template that you can use as it stands. We confirmed that the export passes with it.
+Below is the smallest template that you can use as it stands. **It pairs with the `.md` template
+above.** We pasted both as they stand and ran `--formats=json` and `--formats=html`; both passed
+(measured).
+
+**★ Always use the two templates as a pair.** Leave one field the `.md` template writes out of the
+`.sgra` and StrictDoc stops the export - `Semantic error: Invalid requirement field: <name>`, with
+a `Hint:` line listing the fields the grammar does declare.
+
+**`REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` are a convention, not StrictDoc.** They put
+the review result on the requirement itself, which is what `audit.sh`'s `review comment missing`
+check reads. Drop all three from both templates if the project tracks findings some other way.
 
 ```text
 [GRAMMAR]
@@ -189,10 +204,19 @@ ELEMENTS:
   - TITLE: TITLE
     TYPE: String
     REQUIRED: True
+  - TITLE: REVIEW_STATUS
+    TYPE: SingleChoice(NotReviewed, NoFinding, Open, Fixed, WontFix)
+    REQUIRED: True
   - TITLE: STATEMENT
     TYPE: String
     REQUIRED: True
   - TITLE: RATIONALE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_ACTION
     TYPE: String
     REQUIRED: False
   RELATIONS:
@@ -206,12 +230,24 @@ ELEMENTS:
   - TITLE: TITLE
     TYPE: String
     REQUIRED: True
-  - TITLE: STATEMENT
+  - TITLE: TEST_RESULT
+    TYPE: SingleChoice(NotRun, Passed, Failed, Blocked)
+    REQUIRED: True
+  - TITLE: ISSUE_KEY
+    TYPE: String
+    REQUIRED: False
+  - TITLE: GIVEN
     TYPE: String
     REQUIRED: True
-  - TITLE: EXPECTED
+  - TITLE: WHEN
     TYPE: String
     REQUIRED: True
+  - TITLE: THEN
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TEST_REMARK
+    TYPE: String
+    REQUIRED: False
   RELATIONS:
   - TYPE: Parent
     ROLE: Verifies
@@ -234,17 +270,24 @@ How to read it:
 
 - **`SECTION` needs a declaration. `TEXT` does not** (it is built in)
 - **Match the names you give `TAG` and `TITLE` to the spelling on the `.md` side exactly.** Once you
-  declare `EXPECTED`, write `**EXPECTED**:` in the `.md` too. `**Expected**:` stops the export
+  declare `GIVEN`, write `**GIVEN**:` in the `.md` too. `**Given**:` stops the export
 - **Never declare a field named `TYPE`.** It is the reserved word that picks a node type
 - **The order in which you declare the fields constrains the `.md` side.** Declare them in the order
   `UID → STATUS → TITLE → your own single-line fields → STATEMENT →
-  multi-line fields such as RATIONALE`. In any other order, reading the document back with
-  `--formats=sdoc` stops with `Wrong field order`
-- **Run `--formats=sdoc` to learn whether the order is right. If it finishes without a word, it is right**
+  multi-line fields such as RATIONALE`. **In any other order json, html and sdoc all stop on the
+  spot** (measured): `Semantic error: Wrong field order for requirement: [...]`, and the `Hint:`
+  line names the offending field and prints the order the grammar declares
+- **`--formats=json` already tells you whether the order is right.** "json passes but sdoc fails"
+  does not happen
 
 ```bash
-strictdoc export <specification folder> --formats=sdoc --output-dir <output dir>
+strictdoc export <specification folder> --formats=json --output-dir <output dir>
 ```
+
+**`--formats=sdoc` is no use as a round-trip check** (measured). The generated `.sdoc` names the
+`.sgra` but nothing copies that file into the output, and a document that quotes `[LINK: UID]` as
+an example turns the quotation into a live link, so reading the result back stops with
+`the inline link references an object with an UID that does not exist: UID`.
 
 **The export passes without a `strictdoc_config.py`.** Put one directly in this folder only when
 you need `exclude_doc_paths` or a screen setting (do not put it in the parent folder; StrictDoc does not read it there).

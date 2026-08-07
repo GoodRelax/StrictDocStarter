@@ -14,7 +14,7 @@ StrictDoc resolves it from the UID.
 | system requirement | REQUIREMENT | `SYS-*` in `03-upper.md` |
 | software requirement | REQUIREMENT | `SW-*` in `04-lower.md` |
 | test case | TEST_CASE | `TC-*` in `05-tests.md` |
-| review finding | FINDING | `RV-*` in `06-review.md` |
+| review result | a field of REQUIREMENT | `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` |
 | free text | TEXT | a paragraph that carries no UID |
 | chapter | SECTION | a heading that declares `**Type**: SECTION` |
 

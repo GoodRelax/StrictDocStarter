@@ -19,7 +19,7 @@ into `SKILL.md` and the queries and worked examples into `references/` as they a
 **★ When you hit an error that this guide does not list, do not stop: log one line
 and move on.** Chapter 0 tells you how. **Never chase the cause on the spot.**
 
-The explanations below use `samples/md-basic-ja` as their worked example. **The same
+The explanations below use `samples/md-basic-en` as their worked example. **The same
 rules apply to every Markdown StrictDoc project.**
 
 Here is how the worked example is laid out. **StrictDoc parses every `.md` file as a
@@ -33,18 +33,20 @@ document.** This guide is no exception: it becomes one document, `DOC-AI-GUIDE`.
 | `03-upper.md` | 3 system requirements | `DOC-UPPER` |
 | `04-lower.md` | 4 software requirements. They link up to the system requirements | `DOC-LOWER` |
 | `05-tests.md` | 4 test cases. They link up to the software requirements | `DOC-TESTS` |
-| `06-review.md` | 2 review findings. They link to the requirements they target | `DOC-REVIEW` |
+| `06-review.md` | How we review. A finding goes on the requirement itself | `DOC-REVIEW` (no requirements) |
 | `_assets/note.md` | A terminology table. A link target | `DOC-NOTE` (no requirements) |
 | `_assets/fig-state.md` | One large figure. A link target | `DOC-FIG-STATE` (no requirements) |
 | `basic.sgra` | The grammar definition. You declare node types, fields and `Role` here | — |
 | `strictdoc_config.py` | The project settings | — |
 
 **The numbers give the reading order.** `00` and `01` are for an AI, `02` is for a human,
-and `03` onward is the specification itself. The files inside `_assets/` carry no number.
+`03` to `05` are the specification itself, and `06` tells you how the review runs.
+The files inside `_assets/` carry no number.
 
 **Example 1, further down, returns 9 documents.** They are every row of the table above
-that carries a UID. `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` / `DOC-NOTE` /
-`DOC-FIG-STATE` hold no requirements, so they never mix in when you count requirements.
+that carries a UID. Six of them - `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` /
+`DOC-REVIEW` / `DOC-NOTE` / `DOC-FIG-STATE` - hold no requirements, so they never mix
+in when you count requirements.
 
 **★ This guide and `01-ai-queries.md` are themselves StrictDoc documents.**
 That is why every heading carries `**Type**: SECTION`. Without it StrictDoc reads the
@@ -66,12 +68,12 @@ below shows. **You do not need to substitute the rules themselves.**
 
 | Name in this guide | What it stands for | In the other project |
 |---|---|---|
-| `samples/md-basic-ja` | The specification folder | The other project's folder |
+| `samples/md-basic-en` | The specification folder | The other project's folder |
 | `basic.sgra` | The grammar file | **Any name works.** Only the extension has to be `.sgra` |
 | `DOC-UPPER` / `DOC-LOWER` and so on | The document UID | The other project decides it. **Look it up with example 1** |
-| `SYS-*` / `SW-*` / `TC-*` / `RV-*` | The UIDs of requirements, tests and findings | The other project's numbering. **Look it up with example 3** |
+| `SYS-*` / `SW-*` / `TC-*` | The UIDs of requirements and tests | The other project's numbering. **Look it up with example 3** |
 | `DOC-FIG-` | **The prefix for the UID of a figure document** | **You decide it.** Pass it to the audit query with `--arg figprefix` |
-| `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` | **The UIDs of the explanatory documents** | The other project's explanatory documents. Exclude them with `--arg skip` when you count |
+| `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` / `DOC-REVIEW` | **The UIDs of the explanatory documents** | The other project's explanatory documents. Exclude them with `--arg skip` when you count |
 | File names such as `03-upper.md` | The file name of a document | **They never land in the JSON.** Look them up with the `grep` in example 16 |
 | `_assets` | The place for attachments | **Fixed. You cannot change it** (2.8) |
 | `strictdoc-quirks.tsv` | The quirk log | Create one under the same name (0.1) |
@@ -197,7 +199,8 @@ Free text inside the chapter. Without `Type`, StrictDoc reads this paragraph as 
 ## Requirement name
 
 **UID**: SW-001 \
-**STATUS**: Approved
+**STATUS**: Approved \
+**REVIEW_STATUS**: NoFinding
 
 **Statement**: The system shall ...
 
@@ -206,11 +209,14 @@ Free text inside the chapter. Without `Type`, StrictDoc reads this paragraph as 
 ## Test case name
 
 **Type**: TEST_CASE \
-**UID**: TC-001
+**UID**: TC-001 \
+**TEST_RESULT**: NotRun
 
-**Statement**: We run it under the ... condition.
+**GIVEN**: ... is in the ... state.
 
-**EXPECTED**: The result is ...
+**WHEN**: ... runs ...
+
+**THEN**: ... has become ...
 
 **Relations**:
 - **Type**: `Parent` \
@@ -284,7 +290,7 @@ For every other error, the first line tells you where it is.
   under the H1 is an exception**; it always becomes free text
 - **Case of a field name**: only these eight words ignore case: `Statement` `Title` `Status`
   `Rationale` `Comment` `Level` `Tags` `Prefix`. Spell every other field as the grammar declares it
-  (`EXPECTED` passes, `Expected` stops). **When you cannot decide, write the name in all capitals**
+  (`GIVEN` passes, `Given` stops). **When you cannot decide, write the name in all capitals**
 - **Write the link on the lower side.** Put `**Relations**:` on the lower node and point it at the
   parent's UID. Write nothing on the upper side. The parent may live in another file (StrictDoc
   resolves a UID across the whole project)
@@ -295,7 +301,6 @@ For every other error, the first line tells you where it is.
   |---|---|
   | `REQUIREMENT` | `Parent` / `Child`. **You cannot add a `Role`** |
   | `TEST_CASE` | `Parent` + `Role: Verifies` |
-  | `FINDING` | `Parent` + `Role: Reviews` |
 - **Only inside a relation does the key become `**ID**:`.** A node's identifier is `**UID**:`, but
   the key that points at the other node inside a `**Relations**:` block is `**ID**:`. `**UID**:`
   does not pass there
@@ -304,9 +309,10 @@ For every other error, the first line tells you where it is.
   the grammar
 - **Declare `FIELDS` in `.sgra` in this order** (it is not the order you write them in `.md`).
   `UID → STATUS → TITLE → your own single-line fields → STATEMENT →
-  multi-line fields such as RATIONALE`. A json / html export still passes when you break the
-  order, but converting to `.sdoc` with `--formats=sdoc` and reading it back stops with
-  `Wrong field order`. **You cannot catch this later, so write them in this order from the start**
+  multi-line fields such as RATIONALE`. **Break the order and json, html and sdoc all stop on the
+  spot** (measured). The error is
+  `Semantic error: Wrong field order for requirement: [...]`, and the `Hint:` line names the field
+  that broke it and prints the order the grammar declares, so you fix it where you stand
 - **Only five fields written directly under the document's H1 survive into the JSON:
   `**Grammar**:` `**UID**:` `**Version**:` `**Classification**:` `**Prefix**:`**
   (measured). `**Date**:` and `**Root**:` **do not stop the export, but they disappear from the
@@ -341,7 +347,19 @@ For every other error, the first line tells you where it is.
 **Type**: SECTION
 
 **When you start a new project, you always end up writing your own `.sgra`.**
-Below is the smallest template that you can use as it stands. We confirmed that the export passes with it.
+Below is the smallest template that you can use as it stands. **This template pairs with the `.md`
+template in chapter 1.** We pasted both as they stand and ran `--formats=json` and
+`--formats=html`; both passed (measured).
+
+**★ Always use the two templates as a pair.** Leave one field the `.md` template writes out of the
+`.sgra` and StrictDoc stops the export. Below is the error we measured after dropping the
+`REVIEW_STATUS` declaration (the `Hint:` line prints the fields the grammar does declare).
+Once you swap either side for something else, compare the two orders and check them against
+each other.
+
+```text
+Semantic error: Invalid requirement field: REVIEW_STATUS
+```
 
 ```text
 [GRAMMAR]
@@ -364,10 +382,19 @@ ELEMENTS:
   - TITLE: TITLE
     TYPE: String
     REQUIRED: True
+  - TITLE: REVIEW_STATUS
+    TYPE: SingleChoice(NotReviewed, NoFinding, Open, Fixed, WontFix)
+    REQUIRED: True
   - TITLE: STATEMENT
     TYPE: String
     REQUIRED: True
   - TITLE: RATIONALE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_ACTION
     TYPE: String
     REQUIRED: False
   RELATIONS:
@@ -381,12 +408,24 @@ ELEMENTS:
   - TITLE: TITLE
     TYPE: String
     REQUIRED: True
-  - TITLE: STATEMENT
+  - TITLE: TEST_RESULT
+    TYPE: SingleChoice(NotRun, Passed, Failed, Blocked)
+    REQUIRED: True
+  - TITLE: ISSUE_KEY
+    TYPE: String
+    REQUIRED: False
+  - TITLE: GIVEN
     TYPE: String
     REQUIRED: True
-  - TITLE: EXPECTED
+  - TITLE: WHEN
     TYPE: String
     REQUIRED: True
+  - TITLE: THEN
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TEST_REMARK
+    TYPE: String
+    REQUIRED: False
   RELATIONS:
   - TYPE: Parent
     ROLE: Verifies
@@ -409,16 +448,20 @@ How to read it:
 
 - **`SECTION` needs a declaration. `TEXT` does not** (it is built in)
 - **Match the names you give `TAG` and `TITLE` to the spelling on the `.md` side exactly.** Once you
-  declare `EXPECTED`, write `**EXPECTED**:` in the `.md` too. `**Expected**:` stops the export
+  declare `GIVEN`, write `**GIVEN**:` in the `.md` too. `**Given**:` stops the export
 - **Never declare a field named `TYPE`.** It is the reserved word that picks a node type
 - **The order in which you declare the fields constrains the `.md` side.** Declare them in the order
   `UID → STATUS → TITLE → your own single-line fields → STATEMENT →
-  multi-line fields such as RATIONALE`. In any other order, reading the document back with
-  `--formats=sdoc` stops with `Wrong field order`
-- **Run `--formats=sdoc` to learn whether the order is right. If it finishes without a word, it is right**
+  multi-line fields such as RATIONALE`. **In any other order json, html and sdoc all stop on the
+  spot** (measured). The `Hint:` line names the field that broke it and prints the declared order
+- **`--formats=json` already tells you whether the order is right.** "json passes but sdoc fails"
+  does not happen. **`--formats=sdoc` is no use as a round-trip check either**: the `.sgra` the
+  generated `.sdoc` names does not travel with it, and any document that quotes `[LINK: UID]` as
+  an example turns that quotation into a live link, so reading the result back stops with
+  `the inline link references an object with an UID that does not exist: UID` (measured)
 
 ```bash
-strictdoc export <specification folder> --formats=sdoc --output-dir <output dir>
+strictdoc export <specification folder> --formats=json --output-dir <output dir>
 ```
 
 **The export passes without a `strictdoc_config.py`.** Put one directly in this folder only when
@@ -500,6 +543,8 @@ figure. Both give the same number.
 
 **We decide by line count because you can judge it without a tool while you write.**
 What we really want to control is the burden on the reader, and we measured that as follows.
+**Every token count in this guide comes from tiktoken's `o200k_base` encoding.** Use the same
+counting method when you measure again.
 
 | Content | tokens |
 |---|---:|
@@ -514,9 +559,9 @@ We measured what you gain by moving a figure out as well. In this sample:
 
 | What you pull | tokens |
 |---|---:|
-| The requirement list alone | **91** |
-| The large figure alone, named by UID | **334** |
-| Every `TEXT` node (figures and math included) | **10,120** |
+| The requirement list alone | **74** |
+| The large figure alone, named by UID | **233** |
+| Every `TEXT` node (figures and math included) | **about 36,000** |
 
 **As long as you pull requirements, the reader pays not one token for a figure you moved into its own document.**
 You name it by UID only when you need it. This is why we cut at 16 lines.
@@ -772,7 +817,7 @@ This mechanism does not serve images alone.
 | Place an image | `![description](_assets/x.svg)` |
 | **Attach something other than an image** | `[description](_assets/x.csv)` - write it as an ordinary link |
 
-We put `.csv`, `.pdf` and `.zip` files in `_assets/` and ran the export: **all four reached the
+We put `.csv`, `.pdf` and `.zip` files in `_assets/` and ran the export: **all three reached the
 output, and every link resolved** (measured). **An SVG stays sharp when you zoom in, so make SVG the default for a figure image.**
 
 **★ An attachment breaks silently in two ways. The export reports success.**
@@ -800,10 +845,10 @@ output, and every link resolved** (measured). **An SVG stays sharp when you zoom
 **Type**: SECTION
 
 **When you need only a part of the specification, do not read the `.md` files.**
-Reading the whole specification of this worked example (`03` through `06` and
-`_assets/`) costs about 4,100 tokens, and about 12,300 tokens once you include
+Reading the whole specification of this worked example (`03` through `05` and
+`_assets/`) costs about 5,200 tokens, and about 12,500 tokens once you include
 `02-guide-for-human.md`. Convert it to JSON and pull the list of requirements
-with `jq`, and the same answer costs 91 tokens.
+with `jq`, and the same answer costs 74 tokens.
 
 **★ This ban covers only "reading in order to learn". You may open a file to rewrite it.**
 When your job is to fix an existing specification, the correct procedure is to
@@ -845,7 +890,7 @@ error: TraceabilityIndex: the document "A" imports a grammar from a file that do
 **After you edit a `.md`, run this `strictdoc export` again.**
 StrictDoc does not update the JSON on its own.
 
-**Do not read this `index.json` directly** - it holds about 102,000 tokens.
+**Do not read this `index.json` directly** - it holds about 55,000 tokens.
 The file exists only for `jq` to read.
 
 **StrictDoc has a query language of its own, but it does not affect the JSON output.**
@@ -928,8 +973,8 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.UID? and ._NOD
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.TITLE? and (.TITLE | test("convert|check"; "i"))) | (.UID // "-") + "  " + .TITLE' <json>
 
 # 7. and / or / not - put not at the end
-jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="FINDING" and .SEVERITY=="Major" and .RESOLUTION=="Open") | .UID' <json>
-jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE" or ._NODE_TYPE=="FINDING") | .UID' <json>
+jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS=="Open" and .STATUS=="Reviewed") | .UID' <json>
+jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE" or .REVIEW_STATUS=="WontFix") | .UID' <json>
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? and (._NODE_TYPE=="REQUIREMENT" | not)) | ._NODE_TYPE + " " + .UID' <json>
 
 # 8. Direct children (reverse lookup)
@@ -973,10 +1018,10 @@ holds the `UID`, or `_TOC` when the node has none.
 list.** Without it the output mixes in a large amount of their content (below).
 
 ````bash
-jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE' '($skip | split(",")) as $s
+jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW' '($skip | split(",")) as $s
 | .DOCUMENTS[] | select(.UID | IN($s[]) | not) | .UID as $doc
 | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT as $t
-| [$t | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0]] as $lang
+| [$t | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0] | rtrimstr("\r")] as $lang
 | [ (if ($lang | index("mermaid")) then "figure" else empty end),
     (if ($t | contains("$$")) then "math" else empty end),
     (if ($lang | map(select(. != "mermaid" and . != "")) | length) > 0 then "code" else empty end),
@@ -986,22 +1031,25 @@ jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE' '($skip | split(",")) a
 ````
 
 ```text
+DOC-UPPER  2.1  table
+DOC-UPPER  2.2.1  code,table
 DOC-LOWER  6.1  figure,math,code,table
 DOC-TESTS  1  code
+DOC-TESTS  2.1  code,table
 DOC-FIG-STATE  1  figure
 DOC-NOTE  1  table
 ```
 
 **What you pass to `--arg skip` differs from one worked example to the next.** This
-worked example has three explanatory documents (`DOC-AI-GUIDE` = this document,
-`DOC-AI-QUERIES`, and `DOC-GUIDE`). **In the other project, list the documents with
+worked example has four explanatory documents (`DOC-AI-GUIDE` = this document,
+`DOC-AI-QUERIES`, `DOC-GUIDE` and `DOC-REVIEW`). **In the other project, list the documents with
 example 1 first, find the ones that double as an explanation of the notation, and
 pass those** (chapter 3, "Exclude explanatory documents when you count", tells you
 how to find them).
 
-**Without it the query returns 82 rows, and 78 of them come from the explanatory
+**Without it the query returns 91 rows, and 84 of them come from the explanatory
 documents** (measured). A guide carries the notation in bulk in order to explain it,
-so nothing is broken. **With it you get 4 rows.**
+so nothing is broken. **With it you get 7 rows.**
 
 **Read the language name one fence at a time.** When you cut the text on ` ``` `,
 every odd-numbered piece is fence content, so its first line is the language name.
@@ -1014,22 +1062,34 @@ to look at.
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
 | $doc + "  " + ($c | tostring) + " lines  " + (if $c > 15 then "move it out" else "keep it inline" end)' <json>
 ````
 
 ```text
-DOC-AI-GUIDE  4 lines  keep it inline    ← a sample of the notation this document shows
+DOC-AI-GUIDE  4 lines  keep it inline    ← these 10 rows are samples this document shows
+DOC-AI-GUIDE  6 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  3 lines  keep it inline
+DOC-AI-GUIDE  3 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  8 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
+DOC-AI-GUIDE  1 lines  keep it inline
 DOC-AI-QUERIES  1 lines  keep it inline  ← the same
+DOC-AI-QUERIES  1 lines  keep it inline
+DOC-AI-QUERIES  1 lines  keep it inline
 DOC-GUIDE  8 lines  keep it inline
 DOC-LOWER  8 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
 
-**The query counts even the samples that an explanatory document carries.** This
-document writes, inside a ```` fence, a ```mermaid example, so that piece comes out
-as a "figure" of 1 to 6 lines. **Only the next one, 14b, does real work** - this one
-is for looking.
+**The query returns 16 rows, and the list above is all of them.** Only two are real
+figures, `DOC-LOWER` and `DOC-FIG-STATE`; the other 14 are samples an explanatory
+document carries. **The query counts even those samples.** This document writes, inside
+a ```` fence, a ```mermaid example, so each such piece comes out as a "figure" of 1 to
+8 lines. **Only the next one, 14b, does real work** - this one is for looking.
 
 **14b. Print only the rule violations. 0 rows is the normal result.** It skips the
 figures you already moved out (documents whose UID starts with `DOC-FIG-`), so
@@ -1043,7 +1103,7 @@ the body of the query.**
 jq -r --arg figprefix 'DOC-FIG-' '.DOCUMENTS[] | select(.UID | startswith($figprefix) | not) | .UID as $doc
 | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
 | select($c > 15) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($c | tostring) + " lines"' <json>
 ````
 
@@ -1070,7 +1130,7 @@ ends before you paste. The version that drops them:
 ````bash
 jq -r '.DOCUMENTS[] | select(.UID == "DOC-FIG-STATE") | recurse(.NODES[]?) | (.STATEMENT? // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid")) | ltrimstr("mermaid")
-| split("\n") | map(select(. != "")) | join("\n")' <json>
+| split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | join("\n")' <json>
 ````
 
 **Trap 2 - `jq` on Windows prints CRLF line endings** (measured. The JSON itself
@@ -1086,7 +1146,7 @@ position with `_TOC` (the second column of example 13 holds that number).
 ````bash
 jq -r '.DOCUMENTS[] | select(.UID == "DOC-LOWER") | recurse(.NODES[]?) | select(._TOC? == "6.1")
 | (.STATEMENT? // "") | split("```")[] | select(startswith("mermaid")) | ltrimstr("mermaid")
-| split("\n") | map(select(. != "")) | join("\n")' <json>
+| split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | join("\n")' <json>
 ````
 
 **16. Track down which file defines a given UID.**
@@ -1112,7 +1172,7 @@ every time you add a figure or a formula.
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
-| split("\n")
+| split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, out: []};
     ([$line | scan("^`{3,}")] | (.[0] // "") | length) as $w
     | if $w > 0
@@ -1129,7 +1189,15 @@ inside a fence, so without that the query fills up with false positives. **It
 remembers the length of the marker that opened the fence, and it closes only on a
 marker of the same length or longer.** In a document like this one, where a ` ```` `
 holds a ` ``` ` inside it, the simple approach of "cut on ``` and take the
-even-numbered pieces" falls apart (we measured 4 false positives).
+even-numbered pieces" falls apart. **Applied to this guide, it exposes 141 lines that
+really sit inside a fence** (measured). None of those 141 ends with `$` today, so it
+costs 0 false positives right now - and that turns non-zero the moment somebody writes
+one.
+
+**★ `map(rtrimstr("\r"))` is not decoration.** StrictDoc keeps the CRLF of the source
+file inside `STATEMENT`, so every line arrives ending in CR and the anchored `" *$"`
+never matches. Leave it out and this query reports 0 rows on a document whose HTML
+export dies on that very line (measured).
 
 **★ 0 rows from this query does not prove you are safe.** It detects only **the trap
 that fails the export** (a paragraph or a cell that ends with `$`). **The other trap
@@ -1144,13 +1212,16 @@ It judges every reference that `jq` lists by whether the file exists **on the
 exported HTML side**. Run `--formats=html` first.
 
 ```bash
-jq -r '.DOCUMENTS[] | select(.UID | startswith("DOC-AI-") or . == "DOC-GUIDE" | not)
+jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW") | not)
 | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("](") | .[1:][] | split(")")[0]
 | select(startswith("http") or startswith("#") | not)' <json> \
   | tr -d '\r' | sort -u \
   | while read -r p; do [ -f "<output dir>/html/<specification folder name>/$p" ] || echo "NOT PUBLISHED  $p"; done
 ```
+
+**On this worked example it returns 0 rows** (measured). Run it against a document
+whose attachments are broken and you get this:
 
 ```text
 NOT PUBLISHED  _assets/missing.svg      ← the file does not exist
@@ -1193,6 +1264,7 @@ jq -r --arg doc DOC-LOWER --arg at 6.1 '.DOCUMENTS[] | select(.UID == $doc) | re
 |---|---|---|
 | $S_{need}$ bytes | bytes | Free space the conversion needs |
 | $S_{out}$ bytes | bytes | Size of the output file |
+| $S_{tmp}$ bytes | bytes | Size of the temporary file. It equals $S_{out}$ bytes |
 | Path | - | The three stages `input \| convert \| output` |
 ```
 
@@ -1261,9 +1333,9 @@ jq -r -f <query file>.jq <json>
 
 **A project sometimes mixes in a document that doubles as an explanation of the notation.**
 Such a document carries figures, formulas, code and tables to explain them, so it always skews
-an aggregate such as "how many figures does this set hold". **This worked example has three
-explanatory documents** (`DOC-AI-GUIDE` = this guide, `DOC-AI-QUERIES`, `DOC-GUIDE`).
-**These three take up 78 of the 82 lines that example 13 prints** (measured).
+an aggregate such as "how many figures does this set hold". **This worked example has four
+explanatory documents** (`DOC-AI-GUIDE` = this guide, `DOC-AI-QUERIES`, `DOC-GUIDE`,
+`DOC-REVIEW`). **These four take up 78 of the 82 lines that example 13 prints** (measured).
 
 **A query finds those documents mechanically, as "a document that holds no node with a UID".**
 That means a document that holds nothing but free text and chapters.
@@ -1275,20 +1347,21 @@ jq -r '.DOCUMENTS[] | select([recurse(.NODES[]?) | select(._NODE_TYPE != "DOCUME
 ```text
 DOC-AI-GUIDE  Markdown StrictDoc specifications - a guide for AI
 DOC-AI-QUERIES  jq query collection - for AI
-DOC-GUIDE  Basics - read this first
+DOC-GUIDE  Read this first
+DOC-REVIEW  How we review
 DOC-FIG-STATE  Large figure - conversion state machine
 DOC-NOTE  Terminology map
 ```
 
 **Do not filter on "a document that holds no requirement".** That also catches a document that
-holds nothing but test cases or review findings (`DOC-TESTS` / `DOC-REVIEW`), because node types
-other than the requirement carry a UID too.
+holds nothing but test cases (`DOC-TESTS`), because node types other than the requirement carry
+a UID too.
 
 Drop the UIDs you do not need from the result, then aggregate. **What you drop depends on your
 goal** - keep the figure document when you want to count figures.
 
 ```bash
-jq -r '.DOCUMENTS[] | select(.UID | startswith("DOC-AI-") or . == "DOC-GUIDE" | not) | .UID' <json>
+jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW") | not) | .UID' <json>
 ```
 
 **Add this `select` to examples 13 through 15 as well when you aggregate with them.**
@@ -1338,6 +1411,6 @@ input folder** (measured). It is a side effect of loading the configuration. You
 ---
 
 Read `01-ai-queries.md` only when the above does not cover your need. It sorts 34 queries by
-purpose and shows the output of each one (about 6,800 tokens). It holds the table of contents,
+purpose and shows the output of each one (about 6,900 tokens). It holds the table of contents,
 a filter by chapter, transitive children, a filter by ROLE, the detection of an orphan
 requirement, the detection of a duplicate UID, and more.

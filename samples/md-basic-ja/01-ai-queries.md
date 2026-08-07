@@ -67,7 +67,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":11,"REQUIREMENT":7,"SECTION":135,"TEST_CASE":4,"TEXT":134}
+{"DOCUMENT":11,"REQUIREMENT":7,"SECTION":139,"TEST_CASE":4,"TEXT":138}
 ```
 
 ### A3. 目次
@@ -476,18 +476,19 @@ DOC-AI-GUIDE  5.2.1  図,コード,表
 DOC-GUIDE  3.2.1  図,画像
 DOC-GUIDE  5.2.1  数式,コード,表
 DOC-UPPER  2.1  表
+DOC-UPPER  2.2.1  コード,表
 DOC-LOWER  6.1  図,数式,コード,表
 DOC-TESTS  1  コード
-DOC-BROWSER  5.1  表,画像
+DOC-TESTS  2.1  コード,表
 DOC-FIG-STATE  1  図
 DOC-NOTE  1  表
 ```
 
-(全 120 行のうち代表を 9 行抜いた。**115 行を 6 つの解説文書が占める** — 本書・
+(全 122 行のうち代表を 10 行抜いた。**115 行を 6 つの解説文書が占める** — 本書・
 `00-ai-guide.md`・`02-guide-for-human.md`・`06-review.md`・`07-browser-guide.md`・
 `08-cowork-with-claude.md`。記法を説明する文書は記法を大量に抱えるためである。
-中身の文書は 5 行しか出さない — 上の `DOC-UPPER` `DOC-LOWER` `DOC-TESTS`
-`DOC-FIG-STATE` `DOC-NOTE` がそれで、残る 4 行は解説文書から抜いた見本である)
+中身の文書は 7 行しか出さない — 上の `DOC-UPPER` 2 行、`DOC-LOWER`、`DOC-TESTS` 2 行、
+`DOC-FIG-STATE`、`DOC-NOTE` がそれで、残る 3 行は解説文書から抜いた見本である)
 
 2 列目は `UID` があればそれ、無ければ `_TOC` の階層番号である。**地の文には UID が
 無い**ので、位置を指すには `_TOC` を使う。
@@ -608,7 +609,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":58,"json":5,"markdown":3,"mermaid":5,"python":4,"text":70}
+{"bash":58,"json":5,"markdown":3,"mermaid":5,"python":4,"text":73}
 ```
 
 **`mermaid` もここに出る。** 図もコードフェンスだからである。
@@ -676,7 +677,7 @@ DOC-BROWSER  _assets/browser-21-new-document-menu.png
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
-| split("\n")
+| split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, out: []};
     ([$line | scan("^`{3,}")] | (.[0] // "") | length) as $w
     | if $w > 0
