@@ -3,11 +3,9 @@
 **本書は、AI が Markdown 形式の StrictDoc 仕様書を書き、そこから必要な情報を
 取り出すための手引きである。** StrictDoc には `.sdoc` 形式もあるが、本書は扱わない。
 
-**既にある文法 (`.sgra`) を使って仕様書を書く・読むだけなら、本書 1 つで足りる。**
-ほかの解説文書を読む必要はない。
-
-**例外は 1 つだけ** — **文法そのものを新しく起こすときは `.sgra` ファイルを開いて真似すること。**
-`.sgra` の書式は本書には載っていない。ノード型・フィールド・`Role` を足すときも同じである。
+**本書 1 つで足りる。** ほかの解説文書も、既存の仕様書も開かなくてよい。
+既にある文法を使う場合も、**文法ごと新しく起こす場合も**同じである
+(文法ファイルの雛形は 1.1 にそのまま使える形で載せてある)。
 
 以下の説明は、実例として `samples/md-basic-ja` を使う。**同じ規則がどの
 Markdown 形式の StrictDoc プロジェクトにも当てはまる。**
@@ -94,17 +92,29 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 | フィールド名は文法どおりの綴りで書く | `Invalid requirement field` |
 | 文法に `TYPE` という名前のフィールドを作らない | 型の指定に使う名前なので `.md` から書けなくなる |
 | 宣言されていない `Role` を書かない | `Semantic error: Requirement relation type/role is not registered: Parent / Verifies` |
-| **文法を自分で起こすなら `TEXT` と `SECTION` も宣言する。** 組み込みではない | `Semantic error: Invalid node type: SECTION.` |
+| **文法を自分で起こすなら `SECTION` を宣言する** | `Semantic error: Invalid node type: SECTION.` |
 | **`SECTION` には `PROPERTIES: IS_COMPOSITE: True` を付ける** | `The SECTION grammar element must be declared as composite.` (Hint に修正例が出る) |
 
-**原因が書かれていないエラーが 1 つある。**
+**`TEXT` は宣言しなくてよい。組み込みである** (実測)。`SECTION` と `REQUIREMENT` だけを
+宣言した文法で export したところ、地の文はちゃんと `TEXT` ノードになった。
+**宣言が要るのは `SECTION` のほうだけである。**
+
+**エラーは 2 行で出る。1 行目にファイル名が入る。**
+
+```text
+error: could not parse file: C:\...\04-lower.md.
+Semantic error: Invalid node type: SECTION.
+```
+
+**例外が 1 つだけある。原因もファイル名も出ないエラー。**
 
 ```text
 error: A process in the process pool was terminated abruptly while the future was running or pending.
 ```
 
-**ファイル名も行番号も出ない。** 行継続の `\` が壊れているときなどに出る。
-`strictdoc --debug export ...` を付け直すと stack trace が出るので、そこから当たる。
+行継続の `\` が壊れているときなどに出る。`strictdoc --debug export ...` を付け直すと
+stack trace が出るので、そこから当たる。**これと 2.3 の `string index out of range` の
+2 つだけが「場所を教えないエラー」である。** ほかは 1 行目を読めば場所が分かる。
 
 ### 実例を見ても分からない規則
 
@@ -145,16 +155,101 @@ error: A process in the process pool was terminated abruptly while the future wa
   画像もコピーされなくなり、export は成功と報告するのに HTML の画像だけが 404 になる
 - **図・数式・コード・表・画像の書き方は 2 章にまとめてある。** 罠が多いので、
   これらを書く前に必ず読むこと
-- **ノード型・フィールド・`Role` を追加するときは `basic.sgra` に追加する。**
+- **ノード型・フィールド・`Role` を追加するときは `.sgra` に追加する。**
   個別の文書に追加してはならない
 
 **新しくプロジェクトを起こすときの最小構成** (実測):
 
 ```text
 <プロジェクトフォルダ>/
-  basic.sgra        ← 文書と同じフォルダに置く。**Grammar**: basic.sgra はここを指す
-  03-upper.md
-  04-lower.md
+  <名前>.sgra       ← 文書と同じフォルダに置く。**Grammar**: <名前>.sgra はここを指す
+  00-upper.md
+  01-lower.md
+```
+
+**文法ファイルの名前は自由である** (実測。`basic.sgra` でなくてよい)。拡張子だけ `.sgra`。
+**`.sgra` も StrictDoc が読み込んでログに `Reading SDOC:` と出るが、文書にはならない。**
+
+### 1.1 文法ファイル (`.sgra`) の書き方
+
+**新しくプロジェクトを起こすときは、必ず自分で `.sgra` を書くことになる。**
+下がそのまま使える最小の雛形である。これで export が通ることを確認してある。
+
+```text
+[GRAMMAR]
+ELEMENTS:
+- TAG: SECTION
+  PROPERTIES:
+    IS_COMPOSITE: True
+  FIELDS:
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+- TAG: REQUIREMENT
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: STATUS
+    TYPE: SingleChoice(Draft, Reviewed, Approved)
+    REQUIRED: False
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+  - TITLE: RATIONALE
+    TYPE: String
+    REQUIRED: False
+  RELATIONS:
+  - TYPE: Parent
+  - TYPE: Child
+- TAG: TEST_CASE
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+  - TITLE: EXPECTED
+    TYPE: String
+    REQUIRED: True
+  RELATIONS:
+  - TYPE: Parent
+    ROLE: Verifies
+```
+
+読み方:
+
+| 書くもの | 意味 |
+|---|---|
+| `- TAG: <名前>` | ノード型を 1 つ宣言する。`.md` 側の `**Type**: <名前>` がこれを指す |
+| `PROPERTIES: IS_COMPOSITE: True` | 中に他のノードを入れられる。**`SECTION` には必須** |
+| `- TITLE: <名前>` | フィールドを 1 つ宣言する。`.md` 側の `**<名前>**:` がこれを指す |
+| `TYPE: String` | 任意の文字列 |
+| `TYPE: SingleChoice(A, B, C)` | 列挙。ここに無い値を書くと停止する |
+| `REQUIRED: True` | 省略すると停止する |
+| `RELATIONS: - TYPE: Parent` | `**Relations**:` で `Parent` を張れるようになる |
+| `ROLE: <名前>` | その関係に `**Role**:` を書けるようになる。**書かなければ `Role` は使えない** |
+
+**規則:**
+
+- **`SECTION` は宣言が要る。`TEXT` は要らない** (組み込み)
+- **`TAG` と `TITLE` の名前は、`.md` 側の綴りとそのまま一致させる。** `EXPECTED` と
+  宣言したら `.md` にも `**EXPECTED**:` と書く。`**Expected**:` は停止する
+- **`TYPE` という名前のフィールドを宣言してはならない。** ノード型の指定に使う予約語である
+- **フィールドの宣言順が `.md` 側の制約になる。** `UID → STATUS → TITLE →
+  カスタムの単一行フィールド → STATEMENT → RATIONALE などの複数行フィールド` の順に宣言する。
+  この順でないと `--formats=sdoc` で読み戻すとき `Wrong field order` で停止する
+- **順が正しいかは `--formats=sdoc` を通せば分かる。何も言わずに終われば正しい**
+
+```bash
+strictdoc export <仕様書のフォルダ> --formats=sdoc --output-dir <出力先>
 ```
 
 **`strictdoc_config.py` は無くても export は通る。** `exclude_doc_paths` や画面の設定が
@@ -208,11 +303,11 @@ flowchart LR
 ```
 ````
 
-自分で数えなくてよい。書き終えたら 3 章の**用例 14** のクエリで測れる。
+**この数え方は 3 章の用例 14 のクエリと完全に一致する。** クエリも空行を落として数える。
+自分で数えてもよいし、書き終えてからクエリで測ってもよい。同じ数になる。
 
-**境界を狙ってはならない。** クエリは空行を落として数えるので、目で数えた行数とずれる。
-14 行や 16 行のつもりで書いたものが逆側に落ちる。**明確に小さくするか、迷わず外に出すか
-のどちらかにすること。**
+**それでも 15 行ちょうどを狙う書き方はしないこと。** 図はあとで必ず育つ。
+**明確に小さくするか、迷わず外に出すかのどちらかにする。**
 
 **行数で決めているのは、書いている最中に道具無しで判定できるからである。**
 本当に効かせたいのは読む側の負担で、その実測値は次のとおり。
@@ -265,7 +360,11 @@ stateDiagram-v2
 本文には展開されない。`[LINK:]` の文字はリンク先のタイトルから自動で作られ、
 **自分では指定できない。**
 
-**★ 名前の規則を 2 つとも守ること。監査クエリ (用例 14) が UID で判定するためである。**
+**★ 名前の規則を 2 つとも守ること。ただし機械で効くのは UID のほうだけである。**
+監査クエリ (用例 14b) は**文書の UID が `DOC-FIG-` で始まるか**で「既に外に出した図」を
+判定する。**ファイル名は JSON に入らないので、どのクエリからも見えない** —
+`fig-` の規則は人がファイル一覧を見たときに図だと分かるための取り決めである。
+**UID を間違えると監査が壊れる。ファイル名を間違えても壊れない。**
 
 | | 規則 | 例 |
 |---|---|---|
@@ -297,9 +396,10 @@ error: DocumentIndex: the inline link references an object with an UID that does
 **RST の `.. math::` は使えない。** 書くと `.. math::` という文字が段落として出る。
 **export は止まらないので、HTML を見るまで気づけない。**
 
-**`$$ ... $$` の中では LaTeX の記法がそのまま通る。** `\\` の改行も `\begin{aligned}` も
-`\begin{pmatrix}` も、原文のまま MathJax に渡る (実測)。数式の中身は Markdown の
-エスケープ処理を受けない。
+**`$ ... $` と `$$ ... $$` のどちらでも、中の LaTeX はそのまま通る。** `\bar{T}` も
+`\frac{a}{b}` も `\\` の改行も `\begin{aligned}` も `\begin{pmatrix}` も、原文のまま
+MathJax に渡る (実測)。**数式の中身は Markdown のエスケープも強調も受けない** —
+`T_a` の `_` が `<em>` に化けることもない。
 
 **ただし数式の外では `\\` は `\` 1 本に潰れる** — これは Markdown の通常の
 エスケープであって不具合ではない。
@@ -352,7 +452,7 @@ strictdoc export <仕様書のフォルダ> --formats=html --output-dir <出力�
 ```
 
 JSON が出ていれば、HTML を作る前に危ない行を機械で探せる。**0 件が正常。**
-クエリは 3 章の**用例 15** にある (詳細版では G33)。
+クエリは 3 章の**用例 17** にある (詳細版では G33)。
 
 **表のセルでは `$` を単独で閉じない。** 逃げ方は 2 つあり、**前者を選ぶこと。**
 
@@ -415,9 +515,19 @@ def convert(src: str, dst: str) -> None:
 ## 3. 仕様書から必要な部分だけを取り出す
 
 **仕様書の一部だけが必要なとき、`.md` ファイルを読んではならない。**
-このフォルダの仕様書 (`02` 〜 `05` と `_assets/`) を全部読むと約 4,100 tokens、
+この実例の仕様書 (`03` 〜 `06` と `_assets/`) を全部読むと約 4,100 tokens、
 `02-guide-for-human.md` まで含めると約 11,900 tokens を消費する。
 JSON に変換して `jq` で取り出せば、要求の一覧は 91 tokens で済む。
+
+**★ この禁止は「知るために読む」ことだけを指す。書き換えるなら開いてよい。**
+既にある仕様書を直す仕事では、対象の `.md` を開いて編集するのが正しい手順である
+(3.1 に手順をまとめてある)。**JSON から `.md` へ機械的に書き戻すことはできない** —
+JSON にファイルパスが入っていないためである。
+
+| やること | `.md` を開くか |
+|---|---|
+| 内容を知る・数える・探す | **開かない。** JSON を出して `jq` で引く |
+| 内容を書き換える | **開く。** 場所は用例 16 で特定してから開く |
 
 ### 手順 1 — JSON に変換する
 
@@ -574,7 +684,12 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as
 DOC-GUIDE  3.2.1  図,画像
 DOC-LOWER  6.1  図,数式,コード
 DOC-FIG-STATE  1  図
+（この実例では 19 行返る。上は代表を 3 行だけ抜いたもの）
 ```
+
+**返る行数の多さに驚かないこと。** この実例では 19 行のうち 15 行が `DOC-GUIDE`
+(人間向けの解説書) である。解説書は説明のために記法を大量に抱えるためで、壊れてはいない。
+集計に使うときは後述の「集計するときは解説文書を除くこと」を読むこと。
 
 **言語名はフェンス 1 個ずつ見ること。** ` ``` ` で切ると奇数番目が必ずフェンスの中身に
 なるので、その 1 行目が言語名である。**ノード全体に対して「`mermaid` を含むか」で
@@ -615,6 +730,33 @@ jq -r '.DOCUMENTS[] | select(.UID == "DOC-FIG-STATE") | recurse(.NODES[]?) | (.S
 
 `split("```")` でフェンスを境に切り、`mermaid` で始まる断片だけを拾い、先頭の 7 文字を
 落としている。**言語名を変えれば同じ形でコードも取れる** (`startswith("python")`)。
+
+**この出力を書き戻すときの罠が 2 つある。どちらも実測。**
+
+**罠 1 — 先頭と末尾に空行が付く。** `ltrimstr("mermaid")` は `mermaid` の 7 文字しか
+落とさず、その直後の改行が残る。19 行の図の出力が 21 行になる。**そのまま貼り戻すと
+往復のたびに空行が 1 本ずつ溜まる。** 用例 14 は空行を落として数えるので**行数では
+気づけない。** 貼る前に前後の空行を落とすこと。落とした版:
+
+````bash
+jq -r '.DOCUMENTS[] | select(.UID == "DOC-FIG-STATE") | recurse(.NODES[]?) | (.STATEMENT? // "")
+| select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid")) | ltrimstr("mermaid")
+| split("\n") | map(select(. != "")) | join("\n")' <json>
+````
+
+**罠 2 — Windows の jq は改行を CRLF で出す** (実測。JSON の中身は LF である。
+StrictDoc が読み込み時に LF へ正規化している)。**リダイレクトで `.md` に流し込むと
+改行が混ざる。** 貼り付けは編集ツールで行い、シェルのリダイレクトで書き込まないこと。
+
+**16b. 本文の中にある図を取り出す。** 用例 15 は図だけの専用文書を想定している。
+本文の文書から取るときは `_TOC` で場所を指す (用例 13 の 2 列目がその番号である)。
+**同じ文書に図が 2 つ以上あるときは、これでないと区別できない。**
+
+````bash
+jq -r '.DOCUMENTS[] | select(.UID == "DOC-LOWER") | recurse(.NODES[]?) | select(._TOC? == "6.1")
+| (.STATEMENT? // "") | split("```")[] | select(startswith("mermaid")) | ltrimstr("mermaid")
+| split("\n") | map(select(. != "")) | join("\n")' <json>
+````
 
 **16. その UID がどのファイルで定義されているかを突き止める。**
 **JSON にファイルパスは入っていないので、ここだけは `grep` を使う。**
@@ -659,12 +801,31 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 jq -r -f <クエリを書いたファイル>.jq <json>
 ```
 
-### 集計するときは `DOC-GUIDE` を除くこと
+### 集計するときは解説文書を除くこと
 
-**`02-guide-for-human.md` は「読まなくてよい」が、JSON には全部入る。**
-記法の解説書なので、図・数式・コード・表がどっさり入っている。**用例 13 の出力は
-20 行のうち 15 行が `DOC-GUIDE` になる** (実測)。「この一式に図はいくつか」のような
-集計は必ず狂うので、仕様書だけを数えるなら先頭に 1 段挟んで除外する。
+**記法の解説を兼ねた文書がプロジェクトに混ざっていることがある。** その手の文書は
+図・数式・コード・表を説明のために抱えているので、「この一式に図はいくつか」のような
+集計が必ず狂う。この実例では `DOC-GUIDE` (人間向け解説書) がそれで、**用例 13 の出力は
+19 行のうち 15 行が `DOC-GUIDE` になる** (実測)。
+
+**該当する文書は「UID を持つノードが 1 つも無い文書」として機械で見つかる。**
+地の文と章しか入っていない文書、という意味である。
+
+```bash
+jq -r '.DOCUMENTS[] | select([recurse(.NODES[]?) | select(._NODE_TYPE != "DOCUMENT" and .UID?)] | length == 0) | (.UID // "-") + "  " + .TITLE' <json>
+```
+
+```text
+DOC-GUIDE  基本 - まずこれを読む
+DOC-FIG-STATE  大きい図 - 変換処理の状態遷移
+DOC-NOTE  用語の対応表
+```
+
+**「要求を持たない文書」で絞ってはならない。** テストケースやレビュー指摘だけを収めた
+文書 (`DOC-TESTS` / `DOC-REVIEW`) まで引っ掛かる。要求以外にも UID を持つノード型があるためである。
+
+返った UID のうち不要なものを除いて集計する。**何を除くかは目的次第である** —
+図を数えたいなら図の文書は残す。
 
 ```bash
 jq -r '.DOCUMENTS[] | select(.UID != "DOC-GUIDE") | .UID' <json>
@@ -673,7 +834,43 @@ jq -r '.DOCUMENTS[] | select(.UID != "DOC-GUIDE") | .UID' <json>
 **用例 13 から 15 も、集計に使うならこの `select` を足すこと。**
 場所を突き止めるために使うだけなら、足さなくてよい。
 
+---
+
+## 3.1 既にある仕様書を書き換える
+
+**JSON から `.md` へ機械的に戻すことはできない。** JSON にファイルパスが入っていないため、
+書き換えは `.md` を開いて行う。手順は決まっている。
+
+**1. 直す場所を突き止める** — 用例 13 で在処を出し、用例 15 / 16b で中身を取り出す。
+
+**2. どのファイルかを突き止める** — 用例 16 の `grep`。**ここまでは `.md` を開かない。**
+
+**3. その `.md` を開いて書き換える。** 貼り戻すときは用例 15 の罠 2 つに注意すること
+(前後の空行・Windows の jq が出す CRLF)。
+
+**4. 図を触ったなら行数を測り直す** — 用例 14。**16 行以上になったら 2.1 に従って
+`_assets/fig-*.md` へ出し、元の場所には `[LINK:]` を残す。**
+
+**5. 図を本文から外したら、前後の地の文も直す。** 「下の図のとおり」「小さい図は本文に置く」
+のような文が宙に浮く。**これは機械では検出できない。必ず目で読むこと。**
+
+**6. 新しく `_assets/fig-*.md` を足すとき、`strictdoc_config.py` は触らなくてよい**
+(実測)。`exclude_doc_paths` はファイル名を名指しする仕組みなので、新しいファイルは
+素通りして普通に文書になる。
+
+**7. 再 export して確かめる。** JSON は自動では更新されない。**json と html を両方通し、
+用例 14b (規則違反) と用例 17 (`$` の罠) と用例 11 (リンク切れ) が全部 0 件であることを見る。**
+
+```bash
+strictdoc export <仕様書のフォルダ> --formats=json --output-dir <出力先>
+strictdoc export <仕様書のフォルダ> --formats=html --output-dir <出力先>
+```
+
+**`strictdoc_config.py` があるプロジェクトでは、export が入力フォルダの中に
+`__pycache__/` を作る** (実測)。設定を読み込む副作用である。消してよい。
+
+---
+
 上で足りないときだけ `01-ai-queries.md` を読む。34 本を用途別に分類し、出力例を付けてある
 (約 6,800 tokens)。目次・章単位の絞り込み・推移的な子・ROLE での絞り込み・孤立要求の検出・
-UID の重複検出のほか、**図の定義の取り出し・15 行規則の監査・数式やコードの抽出・
-図を書き換えて `.md` に戻す手順** (G 節) が載っている。
+UID の重複検出などが載っている。
