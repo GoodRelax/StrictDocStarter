@@ -15,7 +15,7 @@
 **クエリの形は読み替えなくてよい。** 実例に依存する値は `--arg` で外から渡す作りにしてある。
 
 この実例の中身: 上位要求 `SYS-001..003` / 下位要求 `SW-001..004` /
-テストケース `TC-001..004` / レビュー指摘 `RV-001..002`。
+テストケース `TC-001..004`。 レビューの結果は要求そのものの `REVIEW_STATUS` に入っている。
 **本書と `00-ai-guide.md` も文書である** (`DOC-AI-QUERIES` / `DOC-AI-GUIDE`)。
 記法を説明するために図やコードを大量に抱えているので、**集計するクエリでは必ず除くこと**。
 図・数式・コード・表は `DOC-LOWER` の末尾の章と、`_assets/fig-state.md` (`DOC-FIG-STATE`) にある。
@@ -37,18 +37,22 @@ jq -r '.DOCUMENTS[] | (.UID // "-") + "  " + .TITLE' <json>
 ```text
 DOC-AI-GUIDE  Markdown 形式の StrictDoc 仕様書 — AI 向け手引き
 DOC-AI-QUERIES  jq クエリ集 — AI 向け
-DOC-GUIDE  基本 - まずこれを読む
-DOC-UPPER  基本 - 上位要求
-DOC-LOWER  基本 - 下位要求
-DOC-TESTS  基本 - テストケース
-DOC-REVIEW  基本 - レビュー指摘
+DOC-GUIDE  まずこれを読む
+DOC-UPPER  上位要求
+DOC-LOWER  下位要求
+DOC-TESTS  テストケース
+DOC-REVIEW  レビューの進め方
+DOC-BROWSER  ブラウザ操作の手引き
+DOC-COWORK  Claude と組んで書く
 DOC-FIG-STATE  大きい図 - 変換処理の状態遷移
 DOC-NOTE  用語の対応表
 ```
 
-**9 件出る。** `DOC-AI-GUIDE` と `DOC-AI-QUERIES` は AI 向けの手引き、`DOC-GUIDE` は
-人間向けの解説書、`DOC-NOTE` は `_assets/note.md` の用語表、`DOC-FIG-STATE` は
-`_assets/fig-state.md` の大きい図で、**この 5 つはどれも要求を持たない。**
+**11 件出る。** `DOC-AI-GUIDE` と `DOC-AI-QUERIES` は AI 向けの手引き、`DOC-GUIDE` は
+人間向けの解説書、`DOC-REVIEW` はレビューの進め方、`DOC-BROWSER` はブラウザ操作の
+手引き、`DOC-COWORK` は AI と組んで書く方法、`DOC-NOTE` は `_assets/note.md` の
+用語表、`DOC-FIG-STATE` は `_assets/fig-state.md` の大きい図で、
+**この 8 つはどれも要求を持たない。**
 StrictDoc が `.md` を置き場所に関係なく文書として解析するためである。
 
 ### A2. ノード型ごとの件数
@@ -60,7 +64,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":9,"FINDING":2,"REQUIREMENT":7,"SECTION":80,"TEST_CASE":4,"TEXT":81}
+{"DOCUMENT":11,"REQUIREMENT":7,"SECTION":121,"TEST_CASE":4,"TEXT":120}
 ```
 
 ### A3. 目次
@@ -85,9 +89,9 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
 ```
 
 ```json
-{"REQUIREMENT":["RATIONALE","RELATIONS","STATEMENT","STATUS","TITLE","UID","_NODE_TYPE","_TOC"],
- "TEST_CASE":["EXPECTED","RELATIONS","STATEMENT","TITLE","UID","_NODE_TYPE","_TOC"],
- "FINDING":["RELATIONS","RESOLUTION","SEVERITY","STATEMENT","TITLE","UID","_NODE_TYPE","_TOC"]}
+{"REQUIREMENT":["RATIONALE","RELATIONS","REVIEW_ACTION","REVIEW_COMMENT","REVIEW_STATUS",
+                 "STATEMENT","STATUS","TITLE","UID","_NODE_TYPE","_TOC"],
+ "TEST_CASE":["EXPECTED","RELATIONS","STATEMENT","TITLE","UID","_NODE_TYPE","_TOC"]}
 ```
 
 ---
@@ -142,11 +146,12 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.TITLE? and (.TITLE | test("�
 ```
 
 ```text
+-  手順 1 — JSON に変換する
 SYS-001  ファイルの変換
 SW-001  変換の実行
 SW-002  入力形式の検査
 TC-001  変換が成功する
-RV-001  SW-002 の検査方法が決まっていない
+DOC-FIG-STATE  大きい図 - 変換処理の状態遷移
 ```
 
 ### B9. 特定の文書だけに絞る
@@ -230,7 +235,7 @@ TC-001
 
 **Type**: SECTION
 
-`Verifies` はテスト、`Reviews` はレビュー指摘が使う。
+この一式では `Verifies` をテストケースだけが使う。
 
 ```bash
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) as $n | ($n.RELATIONS // [])[] | select(.ROLE=="Verifies") | $n.UID + " -> " + .VALUE' <json>
@@ -331,11 +336,11 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT" and
 `select()` の中で普通の論理演算子が使える。
 
 ```bash
-# and — 未対処かつ重大な指摘
-jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="FINDING" and .SEVERITY=="Major" and .RESOLUTION=="Open") | .UID' <json>
+# and — 承認前なのに指摘が未対応の要求
+jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS=="Open" and .STATUS=="Reviewed") | .UID' <json>
 
-# or — テストか指摘
-jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE" or ._NODE_TYPE=="FINDING") | .UID' <json>
+# or — テストか、直さないと決めた要求
+jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE" or .REVIEW_STATUS=="WontFix") | .UID' <json>
 
 # not — 要求以外で UID を持つもの
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? and (._NODE_TYPE=="REQUIREMENT" | not)) | ._NODE_TYPE + " " + .UID' <json>
@@ -385,7 +390,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")] 
 **Type**: SECTION
 
 ```bash
-jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="FINDING")] | map({UID, SEVERITY, RESOLUTION})' <json>
+jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS? and .REVIEW_STATUS != "NoFinding")] | map({UID, REVIEW_STATUS})' <json>
 ```
 
 **`-r` を付けない。** 付けると文字列に潰れる。
@@ -441,7 +446,7 @@ jq -r -f <クエリを書いたファイル>.jq <json>
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT as $s
-| [$s | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0]] as $lang
+| [$s | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0] | rtrimstr("\r")] as $lang
 | [ (if ($lang | index("mermaid")) then "図" else empty end),
     (if ($s | contains("$$")) then "数式" else empty end),
     (if ($lang | map(select(. != "mermaid" and . != "")) | length) > 0 then "コード" else empty end),
@@ -489,7 +494,7 @@ stateDiagram-v2
 ```
 
 `split("```")` でフェンスを境に切り、`mermaid` で始まる断片だけを拾い、
-先頭の `mermaid` の 5 文字を落としている。**フェンスの中身はそのまま入っている**ので、
+先頭の `mermaid` の 7 文字を落としている。**フェンスの中身はそのまま入っている**ので、
 これで Mermaid の定義がそっくり手に入る。
 
 言語を変えれば同じ形でコードも取れる (G31)。
@@ -506,7 +511,7 @@ stateDiagram-v2
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
 | $doc + "  " + ($c | tostring) + " 行  " + (if $c > 15 then "外に出す" else "本文でよい" end)' <json>
 ````
 
@@ -523,7 +528,7 @@ DOC-FIG-STATE  19 行  外に出す
 jq -r --arg figprefix 'DOC-FIG-' '.DOCUMENTS[] | select(.UID | startswith($figprefix) | not) | .UID as $doc
 | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
 | select($c > 15) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($c | tostring) + " 行"' <json>
 ````
 

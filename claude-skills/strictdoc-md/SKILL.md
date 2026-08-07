@@ -146,9 +146,12 @@ strictdoc export <specification folder> --formats=html --output-dir <output dir>
 scripts/audit.sh <specification folder> <output dir> [skip-uids] [figure-prefix]
 ```
 
-It checks the four things StrictDoc does not: the `$` trap, broken table rows,
-attachments that never reached the output, and figures that outgrew the body. It
-exits with the number of checks that found something, so you can gate on it.
+It checks the five things StrictDoc does not: the `$` trap, broken table rows,
+attachments that never reached the output, figures that outgrew the body, and a
+review that says something is wrong without saying what. The last one only finds
+anything in a project whose grammar declares `REVIEW_STATUS`; elsewhere it stays
+quiet. It exits with the number of checks that found something, so you can gate
+on it.
 
 **It deliberately does not check duplicate UIDs or dangling relations.**
 StrictDoc refuses to export either one - within a document and across documents

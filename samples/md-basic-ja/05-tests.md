@@ -1,4 +1,4 @@
-# 基本 - テストケース
+# テストケース
 
 **Grammar**: basic.sgra \
 **UID**: DOC-TESTS \

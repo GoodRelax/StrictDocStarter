@@ -13,7 +13,7 @@
 | 上位要求 | REQUIREMENT | `03-upper.md` の `SYS-*` |
 | 下位要求 | REQUIREMENT | `04-lower.md` の `SW-*` |
 | テストケース | TEST_CASE | `05-tests.md` の `TC-*` |
-| レビュー指摘 | FINDING | `06-review.md` の `RV-*` |
+| レビューの結果 | REQUIREMENT の項目 | `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` |
 | 地の文 | TEXT | UID を持たない段落 |
 | 章 | SECTION | `**Type**: SECTION` を書いた見出し |
 

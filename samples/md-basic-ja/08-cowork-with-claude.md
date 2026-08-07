@@ -1,11 +1,11 @@
-# 基本 - Claude と組んで書く
+# Claude と組んで書く
 
 **Grammar**: basic.sgra \
 **UID**: DOC-COWORK \
 **Version**: 1.0
 
 **本書は、 この一式に同梱した `strictdoc-md` スキルを使って、 Claude Code に
-仕様書を書かせ、 調べさせ、 レビューさせる方法を教える。**
+仕様書を書かせ、 調べさせ、 レビューさせる方法を伝える。**
 
 **スキルとは、 AI に渡す手引きをフォルダにまとめたものである。** Claude Code は
 起動時に説明文だけを読み、 **仕事の中身が合致したときに本体を読み込む。**
@@ -18,27 +18,28 @@
 
 **Type**: SECTION
 
-スキルは `claude-skills/strictdoc-md/` にある。 使いたい場所へ複製する。
+**Claude Code に頼むのがいちばん速い。** 次のように言えば、 複製から置き場所の
+選択までやる。
 
 ```text
-cp -r claude-skills/strictdoc-md ~/.claude/skills/
+claude-skills/strictdoc-md を私の環境で使えるようにして
 ```
 
-**利用者ごとに入れるなら `~/.claude/skills/`、 プロジェクトごとに入れるなら
-そのプロジェクトの `.claude/skills/` に置く。** 次にセッションを始めると
-Claude Code が拾う。 `/strictdoc-md` と打てば名前で呼べるし、 仕事の中身が
-合えば自分から使う。
+**自分で入れたい人は付録を見ること。** 置き場所の規則と 1 行のコマンドがある。
+
+入れたかどうかは、 **`/strictdoc-md` と打って名前で呼べるか**で分かる。
+呼べるようになれば、 以降は仕事の中身が合致したときに自分から使う。
 
 中身は次のとおりである。
 
 | ファイル | 何が書いてあるか |
 | --- | --- |
-| `SKILL.md` | 規則・前提・4 つの罠。 いちばん先に読まれる |
+| `SKILL.md` | 規則・前提・4 つの罠。 Claude Code がいちばん先に読む |
 | `references/authoring.md` | `.md` の形、 export を止める規則、 `.sgra` の雛形 |
 | `references/notation.md` | 図・数式・コード・表・添付の書き方 |
 | `references/traps.md` | 黙って壊れるもの。 癖の記録の運用 |
 | `references/queries.md` | jq のクエリ集と、 実際に出た出力 |
-| `scripts/audit.sh` | **StrictDoc が報告しない 4 つの検査** |
+| `scripts/audit.sh` | **StrictDoc が報告しない 5 つの検査** |
 
 **前提は `strictdoc` と `jq` の 2 つである。** どちらも `PATH` に無いと
 スキルは何もできない。
@@ -56,7 +57,7 @@ Claude Code が拾う。 `/strictdoc-md` と打てば名前で呼べるし、 �
 strictdoc export <仕様書のフォルダ> --formats=json --output-dir <出力先>
 ```
 
-スキルはこの手順を知っていて、 聞かれた内容に応じたクエリを組む。
+スキルはこの手順を知っていて、 利用者が聞いた内容に応じたクエリを組む。
 利用者の側は**普通に日本語で聞けばよい。**
 
 - 「この仕様書の要求を一覧にして」
@@ -79,14 +80,14 @@ AI が勝手に決めて、 後から直す羽目になる。
 
 1. **UID の付け方** — `SYS-` `SW-` `TC-` のような接頭辞と桁数
 2. **ファイルの分け方** — 上位・下位・テスト・レビューで分けるのか、 機能で分けるのか
-3. **文法** — `TEST_CASE` や `FINDING` を使うのか、 既定の範囲で済ませるのか
+3. **文法** — `TEST_CASE` や独自の項目を使うのか、 既定の範囲で済ませるのか
 
 **既定の文法で通るのはここまでである** (実測)。
 
 | 使えるもの | `.sgra` が要るもの |
 | --- | --- |
 | `UID` / `Statement` / `Rationale` / `STATUS` | `Role` (`Verifies` などの役割) |
-| `**Type**: SECTION` | `TEST_CASE` / `FINDING` などの独自の型 |
+| `**Type**: SECTION` | `TEST_CASE` などの独自の型 |
 | 関係の `Parent` | 独自の項目 |
 
 **書かせた後は必ず export を通すこと。** 通らない `.md` は仕様書ではない。
@@ -122,7 +123,7 @@ export が止まって場所が出ないときは、 **`--no-parallelization` �
 
 **Type**: SECTION
 
-こちらがスキルの `audit.sh` の担当である。 **4 つを調べる。**
+こちらがスキルの `audit.sh` の担当である。 **5 つを調べる。**
 
 ```text
 sh claude-skills/strictdoc-md/scripts/audit.sh <仕様書> <出力先> <除外する文書のUID>
@@ -134,13 +135,14 @@ sh claude-skills/strictdoc-md/scripts/audit.sh <仕様書> <出力先> <除外�
 | `broken table row` | 表の行が壊れている |
 | `attachment not published` | 参照しているファイルが出力に出ていない。 **`_assets/` の外に置いた添付** |
 | `oversized inline figure` | 本文に埋めた図が大きすぎる。 AI に渡す量が膨らむ |
+| `review comment missing` | **指摘したのに中身が空。** `REVIEW_STATUS` が `Open` / `Fixed` / `WontFix` なのに `REVIEW_COMMENT` が無い |
 
 **第 3 引数を忘れないこと。** 解説文書は `![alt](path)` のような**書式の説明**を
 本文に載せているので、 除外しないと `attachment not published` が誤って発火する。
 この一式なら次を渡す。
 
 ```text
-DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-BROWSER
+DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW,DOC-BROWSER,DOC-COWORK
 ```
 
 ### 中身のレビュー
@@ -189,3 +191,26 @@ DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-BROWSER
 行が溜まったときに読み返し、 手引きを直す材料にする。 **いま 7 行ある。**
 
 ブラウザからの操作は `07-browser-guide.md` にある。
+
+## 付録 - 手で入れる
+
+**Type**: SECTION
+
+スキルは `claude-skills/strictdoc-md/` にある。 使いたい場所へフォルダごと複製する。
+
+```text
+cp -r claude-skills/strictdoc-md ~/.claude/skills/
+```
+
+**置き場所は 2 つある。**
+
+| 置き場所 | 効く範囲 |
+| --- | --- |
+| `~/.claude/skills/` | その利用者のすべてのプロジェクト |
+| `<プロジェクト>/.claude/skills/` | そのプロジェクトだけ |
+
+**次にセッションを始めると Claude Code が拾う。** 開いている最中に置いても、
+そのセッションでは見えない。
+
+**`claude-skills/` は公開用の写しであり、 Claude Code が読むのは `.claude/skills/`
+である。** 両方を手で同期しているので、 **片方だけ直すと必ずずれる。**

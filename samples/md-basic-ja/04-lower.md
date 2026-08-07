@@ -1,4 +1,4 @@
-# 基本 - 下位要求
+# 下位要求
 
 **Grammar**: basic.sgra \
 **UID**: DOC-LOWER \
@@ -17,7 +17,8 @@
 ## 変換の実行
 
 **UID**: SW-001 \
-**STATUS**: Approved
+**STATUS**: Approved \
+**REVIEW_STATUS**: NoFinding
 
 **Statement**: 本ツールは、 入力ファイルを読み、 利用者が指定した出力形式へ変換した結果を出力ファイルへ書き出すこと。
 
@@ -28,7 +29,8 @@
 ## 入力形式の検査
 
 **UID**: SW-002 \
-**STATUS**: Approved
+**STATUS**: Approved \
+**REVIEW_STATUS**: NoFinding
 
 **Statement**: 本ツールは、 変換を開始する前に入力ファイルの形式を検査し、 利用者が指定した形式と異なる場合は、 変換を行わず異常終了すること。
 
@@ -39,7 +41,8 @@
 ## 出力先の確認
 
 **UID**: SW-003 \
-**STATUS**: Approved
+**STATUS**: Approved \
+**REVIEW_STATUS**: NotReviewed
 
 **Statement**: 本ツールは、 出力ファイルを書き出す前に同名のファイルの有無を確認し、 存在する場合は、 書き出しを行わず異常終了すること。
 
@@ -50,7 +53,8 @@
 ## 書き込みの原子性
 
 **UID**: SW-004 \
-**STATUS**: Draft
+**STATUS**: Draft \
+**REVIEW_STATUS**: WontFix
 
 **Statement**: 本ツールは、 書き出しが途中で中断した場合、 出力先に不完全なファイルを残さないこと。
 
@@ -59,6 +63,10 @@
 **Relations**:
 - **Type**: `Parent` \
   **ID**: `SYS-003`
+
+**REVIEW_COMMENT**: 一時ファイルの置き場所が決まっていない。 同じドライブでないと改名が原子的にならない場合がある。
+
+**REVIEW_ACTION**: この一式は書き方の実例であり、 実装の詳細は扱わない。 実際の仕様書ではここを決めること。
 
 ## 実現の見取り図
 

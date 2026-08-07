@@ -1,15 +1,15 @@
-# 基本 - まずこれを読む
+# まずこれを読む
 
 **Grammar**: basic.sgra \
 **UID**: DOC-GUIDE \
 **Version**: 1.0
 
-**本書は、 初心者と AI に StrictDoc による仕様書の書き方を教える。**
+**本書は、 初心者と AI に StrictDoc による仕様書の書き方を伝える。**
 この一式は全部 `.md` で書いてある。
 
-上位要求から下位要求、 テストケース、 レビュー指摘までが**別のファイルに分かれ、
-その間が繋がっている。** 自分の仕様書は**この一式を丸ごと写して、 中身を差し替える
-ところから始める。**
+上位要求から下位要求、 テストケースまでが**別のファイルに分かれ、
+その間が繋がっている。** レビューの結果は要求そのものに書く。 自分の仕様書は
+**この一式を丸ごと写して、 中身を差し替えるところから始める。**
 
 この段落には UID が無い。 要求ではない地の文である。 StrictDoc は要求と地の文を
 別のものとして扱う。 混ぜてよい。
@@ -43,7 +43,7 @@
 - `03-upper.md` — 上位要求 3 件。 何を作るか
 - `04-lower.md` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
 - `05-tests.md` — テストケース 4 件。 下位へ結ぶ
-- `06-review.md` — レビュー指摘 2 件。 対象の要求へ結ぶ
+- `06-review.md` — **レビューの進め方。** 指摘は要求そのものに書く
 - `07-browser-guide.md` — **ブラウザから仕様書を作り、 直し、 見る方法。**
   `strictdoc server` の画面の手引きで、 画面の写真が入っている
 - `08-cowork-with-claude.md` — **同梱の `strictdoc-md` スキルで、 Claude Code に
@@ -102,7 +102,7 @@
 離して表示してしまうので、 それをこの記号が防ぐ。
 
 ```text
-# 基本 - まずこれを読む
+# まずこれを読む
 
 **Grammar**: basic.sgra \
 **UID**: DOC-GUIDE \
@@ -110,15 +110,17 @@
 ```
 
 **`Grammar` を外部ファイルに出す理由は、 文書をまたいで揃えるためである。**
-この一式では 5 つの文書が同じ `basic.sgra` を読む。 宣言しているのは 4 つの
+この一式では 7 つの文書が同じ `basic.sgra` を読む。 宣言しているのは 3 つの
 ノード型である。
 
 - `SECTION` — 章。 入れ子にできる
-- `REQUIREMENT` — 要求。 `UID` / `STATUS` / `TITLE` / `STATEMENT` / `RATIONALE`
+- `REQUIREMENT` — 要求。 `UID` / `STATUS` / `TITLE` / `REVIEW_STATUS` /
+  `STATEMENT` / `RATIONALE` / `REVIEW_COMMENT` / `REVIEW_ACTION`
 - `TEST_CASE` — テストケース。 `EXPECTED` を持つ
-- `FINDING` — レビュー指摘。 `SEVERITY` と `RESOLUTION` を持つ
 
-後ろの 2 つは **StrictDoc の標準概念ではない。** 文法で足したものである。
+**`TEST_CASE` は StrictDoc の標準概念ではない。** 文法で足したものである。
+`REVIEW_*` の 3 項目も同じで、 標準の `REQUIREMENT` には無い。 使い方は
+`06-review.md` にある。
 **個別の文書にフィールドを足してはならない。** 文書ごとに違う形になり、 どこに
 何があるか誰も分からなくなる。 足すときは `basic.sgra` に足す。
 
@@ -170,7 +172,7 @@
   **Role**: `Verifies`
 ```
 
-`05-tests.md` は `Verifies`、 `06-review.md` は `Reviews` を使っている。
+`05-tests.md` が `Verifies` を使っている。
 **`Role` は使う前に文法側で宣言しておく。** 宣言していない値を書くと落ちる。
 
 繋がりの確認は画面で行う。 文書の上の **VIEWS** から
@@ -463,12 +465,12 @@ JSON は `out/json/index.json` に出る。 **要求を直したら毎回出し�
 jq -r -f q-open-findings.jq out/json/index.json
 ```
 
-`q-open-findings.jq` の中身は、 例えば未対処の指摘を出すならこうなる。
+`q-open-findings.jq` の中身は、 例えば未対応の指摘を出すならこうなる。
 
 ```text
 .DOCUMENTS[] | recurse(.NODES[]?)
-| select(._NODE_TYPE == "FINDING" and .RESOLUTION == "Open")
-| .UID + "  " + .SEVERITY + "  " + .TITLE
+| select(.REVIEW_STATUS == "Open")
+| .UID + "  " + .TITLE
 ```
 
 **先頭の `.` は「入力そのもの」を指す。** そこから `.名前` で下へ降り、 `[]` で配列を
@@ -476,13 +478,12 @@ jq -r -f q-open-findings.jq out/json/index.json
 `.` はオプションではなくフィルタ本体で、 `jq [オプション] <フィルタ> [ファイル]`
 の真ん中に来る。
 
-**ノード型を引くキーは `_NODE_TYPE` である。** 文法に書いた `FINDING` という名前が
-そこに入る。 先頭に下線が付くので**書き間違えやすい。** この一式に当てた実際の
-出力はこうなる。
+**`REVIEW_STATUS` は文法が `REQUIREMENT` に足した項目である。** 状態の意味と値は
+`06-review.md` にある。 **ノード型で絞りたいときのキーは `_NODE_TYPE` で、
+先頭に下線が付くので書き間違えやすい。** この一式に当てた実際の出力はこうなる。
 
 ```text
-RV-001  Major  SW-002 の検査方法が決まっていない
-RV-002  Question  SYS-003 に上書きを許す手段が無い
+SYS-003  既存ファイルの保護
 ```
 
 **同じフィルタを `samples/sd-basic-ja/` の JSON に当てても出力は 1 文字も
@@ -509,30 +510,34 @@ jq -f q-findings-json.jq out/json/index.json
 ```
 
 ```text
-[ .DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE == "FINDING") ]
-| map({UID, SEVERITY, RESOLUTION, TITLE})
+[ .DOCUMENTS[] | recurse(.NODES[]?)
+  | select(.REVIEW_STATUS? and .REVIEW_STATUS != "NoFinding" and .REVIEW_STATUS != "NotReviewed") ]
+| map({UID, REVIEW_STATUS, TITLE})
 ```
 
 ```json
 [
   {
-    "UID": "RV-001",
-    "SEVERITY": "Major",
-    "RESOLUTION": "Open",
-    "TITLE": "SW-002 の検査方法が決まっていない"
+    "UID": "SYS-002",
+    "REVIEW_STATUS": "Fixed",
+    "TITLE": "想定外の入力の拒否"
   },
   {
-    "UID": "RV-002",
-    "SEVERITY": "Question",
-    "RESOLUTION": "Open",
-    "TITLE": "SYS-003 に上書きを許す手段が無い"
+    "UID": "SYS-003",
+    "REVIEW_STATUS": "Open",
+    "TITLE": "既存ファイルの保護"
+  },
+  {
+    "UID": "SW-004",
+    "REVIEW_STATUS": "WontFix",
+    "TITLE": "書き込みの原子性"
   }
 ]
 ```
 
 **外側の `[ ... ]` は、 1 個ずつ出てくる結果を 1 つの配列にまとめるためのものである。**
 これが無いと JSON の値が縦に並ぶだけで、 配列にはならない。
-`map({UID, SEVERITY, RESOLUTION, TITLE})` は欲しい欄だけを残す書き方で、 全部の欄が
+`map({UID, REVIEW_STATUS, TITLE})` は欲しい欄だけを残す書き方で、 全部の欄が
 要るなら `| map(...)` の行ごと外す。
 
 ### 日本語について
@@ -543,7 +548,7 @@ jq -f q-findings-json.jq out/json/index.json
 StrictDoc はこう書く。
 
 ```text
-"TITLE": "\u57fa\u672c - \u307e\u305a\u3053\u308c\u3092\u8aad\u3080",
+"TITLE": "\u307e\u305a\u3053\u308c\u3092\u8aad\u3080",
 ```
 
 StrictDoc が `json.dumps(..., indent=4)` をそのまま呼び、 Python が既定で

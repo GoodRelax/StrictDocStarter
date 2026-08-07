@@ -1,4 +1,4 @@
-# 基本 - 上位要求
+# 上位要求
 
 **Grammar**: basic.sgra \
 **UID**: DOC-UPPER \
@@ -16,7 +16,8 @@ StrictDoc はそこを地の文として扱う。 章の中で地の文を書く
 ## ファイルの変換
 
 **UID**: SYS-001 \
-**STATUS**: Approved
+**STATUS**: Approved \
+**REVIEW_STATUS**: NoFinding
 
 **Statement**: 本ツールは、 利用者が指定した入力ファイルを、 利用者が指定した出力形式へ変換すること。
 
@@ -25,15 +26,23 @@ StrictDoc はそこを地の文として扱う。 章の中で地の文を書く
 ## 想定外の入力の拒否
 
 **UID**: SYS-002 \
-**STATUS**: Approved
+**STATUS**: Approved \
+**REVIEW_STATUS**: Fixed
 
 **Statement**: 本ツールは、 入力ファイルが利用者の指定した形式でない場合、 変換を行わないこと。
+
+**REVIEW_COMMENT**: 変換しない条件が「利用者の指定した形式でない場合」しか書いておらず、 壊れたファイルを渡されたときの扱いが決まっていなかった。
+
+**REVIEW_ACTION**: SW-002 に読み取り失敗も検査の対象として足した。
 
 ## 既存ファイルの保護
 
 **UID**: SYS-003 \
-**STATUS**: Reviewed
+**STATUS**: Reviewed \
+**REVIEW_STATUS**: Open
 
 **Statement**: 本ツールは、 出力先に同名のファイルが既にある場合、 これを上書きしないこと。
 
 **Rationale**: 無警告で既存ファイルを潰すと、 利用者は取り返しのつかない操作に気づけない。 既定は安全側に倒す。
+
+**REVIEW_COMMENT**: 「上書きしない」とだけ書いてあるが、 同名のファイルがあったときに何をするのかが決まっていない。 中断か、 別名か。

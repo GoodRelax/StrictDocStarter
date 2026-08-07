@@ -99,10 +99,21 @@ jq -r --arg figprefix "$FIGPREFIX" '.DOCUMENTS[] | select((.UID // "") | startsw
 | (.UID // .TITLE) as $doc
 | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
 | select($c > 15) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($c | tostring) + " lines"' \
   "$JSON" > "$TMP/figure"
 report "oversized inline figure" "$TMP/figure"
+
+# 5. A review that says something is wrong but never says what.
+#    Only projects whose grammar declares REVIEW_STATUS have anything to find
+#    here; everywhere else the query simply returns nothing.
+jq -r '.DOCUMENTS[] | (.UID // .TITLE) as $doc
+| recurse(.NODES[]?)
+| select(.REVIEW_STATUS? and (.REVIEW_STATUS | IN("Open", "Fixed", "WontFix")))
+| select((.REVIEW_COMMENT // "") == "")
+| $doc + "  " + (.UID // ._TOC // "-") + "  " + .REVIEW_STATUS' \
+  "$JSON" > "$TMP/review"
+report "review comment missing" "$TMP/review"
 
 # StrictDoc itself refuses to export a duplicate UID or a relation that points
 # at a UID nobody defines, in the same document or across documents (measured).

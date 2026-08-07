@@ -30,17 +30,20 @@ Markdown 形式の StrictDoc プロジェクトにも当てはまる。**
 | `03-upper.md` | 上位要求 3 件 | `DOC-UPPER` |
 | `04-lower.md` | 下位要求 4 件。上位要求へ繋がる | `DOC-LOWER` |
 | `05-tests.md` | テストケース 4 件。下位要求へ繋がる | `DOC-TESTS` |
-| `06-review.md` | レビュー指摘 2 件。対象の要求へ繋がる | `DOC-REVIEW` |
+| `06-review.md` | レビューの進め方。指摘は要求そのものに書く | `DOC-REVIEW` (要求は無い) |
+| `07-browser-guide.md` | ブラウザ操作の手引き | `DOC-BROWSER` (要求は無い) |
+| `08-cowork-with-claude.md` | AI と組んで書く方法 | `DOC-COWORK` (要求は無い) |
 | `_assets/note.md` | 用語表。リンク先 | `DOC-NOTE` (要求は無い) |
 | `_assets/fig-state.md` | 大きい図 1 つ。リンク先 | `DOC-FIG-STATE` (要求は無い) |
 | `basic.sgra` | 文法定義。ノード型・フィールド・`Role` はここで宣言する | — |
 | `strictdoc_config.py` | プロジェクト設定 | — |
 
-**番号は読む順である。** `00` と `01` が AI 向け、`02` が人間向け、`03` 以降が仕様書本体。
+**番号は読む順である。** `00` と `01` が AI 向け、`02` が人間向け、`03` から `05` が仕様書本体、`06` から `08` が進め方と道具の手引きである。
 `_assets/` の中は番号を持たない。
 
-**後の用例 1 は文書を 9 件返す。** 上表のうち UID を持つもの全部である。
-`DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` / `DOC-NOTE` / `DOC-FIG-STATE` は
+**後の用例 1 は文書を 11 件返す。** 上表のうち UID を持つもの全部である。
+そのうち 8 件 — `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` / `DOC-REVIEW` /
+`DOC-BROWSER` / `DOC-COWORK` / `DOC-NOTE` / `DOC-FIG-STATE` — は
 要求を持たないので、要求を数えるときは混ざらない。
 
 **★ 本書と `01-ai-queries.md` は、自分自身も StrictDoc の文書である。**
@@ -64,9 +67,9 @@ Markdown 形式の StrictDoc プロジェクトにも当てはまる。**
 | `samples/md-basic-ja` | 仕様書のフォルダ | 相手のフォルダ |
 | `basic.sgra` | 文法ファイル | **名前は自由。** 拡張子だけ `.sgra` |
 | `DOC-UPPER` / `DOC-LOWER` など | 文書の UID | 相手が決めている。**用例 1 で調べる** |
-| `SYS-*` / `SW-*` / `TC-*` / `RV-*` | 要求・テスト・指摘の UID | 相手の採番。**用例 3 で調べる** |
+| `SYS-*` / `SW-*` / `TC-*` | 要求とテストの UID | 相手の採番。**用例 3 で調べる** |
 | `DOC-FIG-` | **図の文書の UID の接頭辞** | **自分で決める。** 監査クエリに `--arg figprefix` で渡す |
-| `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` | **解説文書の UID** | 相手の解説文書。集計時に `--arg skip` で除く |
+| `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` / `DOC-REVIEW` / `DOC-BROWSER` / `DOC-COWORK` | **解説文書の UID** | 相手の解説文書。集計時に `--arg skip` で除く |
 | `03-upper.md` などのファイル名 | 文書のファイル名 | **JSON には入らない。** 用例 16 の `grep` で調べる |
 | `_assets` | 添付ファイル置き場 | **固定。変えられない** (2.8) |
 | `strictdoc-quirks.tsv` | 癖の記録 | 同じ名前で作る (0.1) |
@@ -183,7 +186,8 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 ## 要求の名前
 
 **UID**: SW-001 \
-**STATUS**: Approved
+**STATUS**: Approved \
+**REVIEW_STATUS**: NoFinding
 
 **Statement**: 本システムは、 〜すること。
 
@@ -279,7 +283,6 @@ Location: C:\...\00-ai-guide.md:54:1
   |---|---|
   | `REQUIREMENT` | `Parent` / `Child`。**`Role` は付けられない** |
   | `TEST_CASE` | `Parent` + `Role: Verifies` |
-  | `FINDING` | `Parent` + `Role: Reviews` |
 - **関係の中だけ `**ID**:` である。** ノードの識別子は `**UID**:` だが、`**Relations**:`
   ブロックの中で相手を指すキーは `**ID**:` になる。`**UID**:` と書くと通らない
 - **`Type` は `.md` 上でノード型を選ぶための予約語であり、文法のフィールドではない。**
@@ -896,8 +899,8 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.UID? and ._NOD
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.TITLE? and (.TITLE | test("変換|検査"; "i"))) | (.UID // "-") + "  " + .TITLE' <json>
 
 # 7. and / or / not — not は後ろに置く
-jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="FINDING" and .SEVERITY=="Major" and .RESOLUTION=="Open") | .UID' <json>
-jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE" or ._NODE_TYPE=="FINDING") | .UID' <json>
+jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS=="Open" and .STATUS=="Reviewed") | .UID' <json>
+jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE" or .REVIEW_STATUS=="WontFix") | .UID' <json>
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? and (._NODE_TYPE=="REQUIREMENT" | not)) | ._NODE_TYPE + " " + .UID' <json>
 
 # 8. 直接の子 (逆引き)
@@ -939,10 +942,10 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")] 
 大量に混ざる (下記)。
 
 ````bash
-jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE' '($skip | split(",")) as $s
+jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW,DOC-BROWSER,DOC-COWORK' '($skip | split(",")) as $s
 | .DOCUMENTS[] | select(.UID | IN($s[]) | not) | .UID as $doc
 | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT as $t
-| [$t | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0]] as $lang
+| [$t | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0] | rtrimstr("\r")] as $lang
 | [ (if ($lang | index("mermaid")) then "図" else empty end),
     (if ($t | contains("$$")) then "数式" else empty end),
     (if ($lang | map(select(. != "mermaid" and . != "")) | length) > 0 then "コード" else empty end),
@@ -958,12 +961,13 @@ DOC-FIG-STATE  1  図
 DOC-NOTE  1  表
 ```
 
-**`--arg skip` に何を渡すかは実例ごとに違う。** この実例の解説文書は 3 つ
-(`DOC-AI-GUIDE` = 本書、`DOC-AI-QUERIES`、`DOC-GUIDE`) である。**相手のプロジェクトでは
+**`--arg skip` に何を渡すかは実例ごとに違う。** この実例の解説文書は 6 つ
+(`DOC-AI-GUIDE` = 本書、`DOC-AI-QUERIES`、`DOC-GUIDE`、`DOC-REVIEW`、
+`DOC-BROWSER`、`DOC-COWORK`) である。**相手のプロジェクトでは
 まず用例 1 で文書を一覧し、記法の解説を兼ねた文書を見つけて渡す** (探し方は 3 章の
 「集計するときは解説文書を除くこと」)。
 
-**渡さないと 76 行返り、そのうち 72 行が解説文書になる** (実測)。解説書は説明のために
+**渡さないと 109 行返り、そのうち 105 行が解説文書になる** (実測)。解説書は説明のために
 記法を大量に抱えるためで、壊れてはいない。**渡せば 4 行になる。**
 
 **言語名はフェンス 1 個ずつ見ること。** ` ``` ` で切ると奇数番目が必ずフェンスの中身に
@@ -975,7 +979,7 @@ DOC-NOTE  1  表
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
 | $doc + "  " + ($c | tostring) + " 行  " + (if $c > 15 then "外に出す" else "本文でよい" end)' <json>
 ````
 
@@ -1001,7 +1005,7 @@ DOC-FIG-STATE  19 行  外に出す
 jq -r --arg figprefix 'DOC-FIG-' '.DOCUMENTS[] | select(.UID | startswith($figprefix) | not) | .UID as $doc
 | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
 | select($c > 15) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($c | tostring) + " 行"' <json>
 ````
 
@@ -1025,7 +1029,7 @@ jq -r '.DOCUMENTS[] | select(.UID == "DOC-FIG-STATE") | recurse(.NODES[]?) | (.S
 ````bash
 jq -r '.DOCUMENTS[] | select(.UID == "DOC-FIG-STATE") | recurse(.NODES[]?) | (.STATEMENT? // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid")) | ltrimstr("mermaid")
-| split("\n") | map(select(. != "")) | join("\n")' <json>
+| split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | join("\n")' <json>
 ````
 
 **罠 2 — Windows の jq は改行を CRLF で出す** (実測。JSON の中身は LF である。
@@ -1039,7 +1043,7 @@ StrictDoc が読み込み時に LF へ正規化している)。**リダイレク
 ````bash
 jq -r '.DOCUMENTS[] | select(.UID == "DOC-LOWER") | recurse(.NODES[]?) | select(._TOC? == "6.1")
 | (.STATEMENT? // "") | split("```")[] | select(startswith("mermaid")) | ltrimstr("mermaid")
-| split("\n") | map(select(. != "")) | join("\n")' <json>
+| split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | join("\n")' <json>
 ````
 
 **16. どのファイルがその UID を定義しているかを突き止める。**
@@ -1053,7 +1057,7 @@ grep -rlF '**UID**: DOC-FIG-STATE' <仕様書のフォルダ> --include=*.md
 ファイルも一緒に出る (実測で 5 件出た)。`-F` は `**` を正規表現と解釈させないために要る。
 
 **それでも複数出ることがある。** このフォルダで実行すると 4 件出る — 本当の定義は
-`_assets/fig-state.md` だけで、残る 2 件は本書と `01-ai-queries.md` が**この書き方を
+`_assets/fig-state.md` だけで、残る 3 件は本書と `01-ai-queries.md` と`02-guide-for-human.md` が**この書き方を
 例として載せているから**である。**解説文書は自分が説明している文字列を含む。**
 返ってきたファイルが仕様書なのか手引きなのかは、冒頭の対応表で見分ける。
 
@@ -1090,7 +1094,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 `--formats=html` を先に通しておくこと。
 
 ```bash
-jq -r '.DOCUMENTS[] | select(.UID | startswith("DOC-AI-") or . == "DOC-GUIDE" | not)
+jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW", "DOC-BROWSER", "DOC-COWORK") | not)
 | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("](") | .[1:][] | split(")")[0]
 | select(startswith("http") or startswith("#") | not)' <json> \
@@ -1198,8 +1202,9 @@ jq -r -f <クエリを書いたファイル>.jq <json>
 
 **記法の解説を兼ねた文書がプロジェクトに混ざっていることがある。** その手の文書は
 図・数式・コード・表を説明のために抱えているので、「この一式に図はいくつか」のような
-集計が必ず狂う。**この実例では解説文書が 3 つある** (`DOC-AI-GUIDE` = 本書、
-`DOC-AI-QUERIES`、`DOC-GUIDE`)。**用例 13 の出力 76 行のうち 72 行をこの 3 つが占める** (実測)。
+集計が必ず狂う。**この実例では解説文書が 6 つある** (`DOC-AI-GUIDE` = 本書、
+`DOC-AI-QUERIES`、`DOC-GUIDE`、`DOC-REVIEW`、`DOC-BROWSER`、`DOC-COWORK`)。
+**用例 13 の出力 109 行のうち 105 行をこの 6 つが占める** (実測)。
 
 **該当する文書は「UID を持つノードが 1 つも無い文書」として機械で見つかる。**
 地の文と章しか入っていない文書、という意味である。
@@ -1211,19 +1216,22 @@ jq -r '.DOCUMENTS[] | select([recurse(.NODES[]?) | select(._NODE_TYPE != "DOCUME
 ```text
 DOC-AI-GUIDE  Markdown 形式の StrictDoc 仕様書 — AI 向け手引き
 DOC-AI-QUERIES  jq クエリ集 — AI 向け
-DOC-GUIDE  基本 - まずこれを読む
+DOC-GUIDE  まずこれを読む
+DOC-REVIEW  レビューの進め方
+DOC-BROWSER  ブラウザ操作の手引き
+DOC-COWORK  Claude と組んで書く
 DOC-FIG-STATE  大きい図 - 変換処理の状態遷移
 DOC-NOTE  用語の対応表
 ```
 
-**「要求を持たない文書」で絞ってはならない。** テストケースやレビュー指摘だけを収めた
-文書 (`DOC-TESTS` / `DOC-REVIEW`) まで引っ掛かる。要求以外にも UID を持つノード型があるためである。
+**「要求を持たない文書」で絞ってはならない。** テストケースだけを収めた
+文書 (`DOC-TESTS`) まで引っ掛かる。要求以外にも UID を持つノード型があるためである。
 
 返った UID のうち不要なものを除いて集計する。**何を除くかは目的次第である** —
 図を数えたいなら図の文書は残す。
 
 ```bash
-jq -r '.DOCUMENTS[] | select(.UID | startswith("DOC-AI-") or . == "DOC-GUIDE" | not) | .UID' <json>
+jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW", "DOC-BROWSER", "DOC-COWORK") | not) | .UID' <json>
 ```
 
 **用例 13 から 15 も、集計に使うならこの `select` を足すこと。**
