@@ -1,0 +1,5 @@
+入力形式,出力形式,備考
+csv,json,既定の組み合わせ
+csv,yaml,順序を保持しない
+tsv,json,区切りのみが csv と異なる
+json,csv,入れ子は 1 段まで
