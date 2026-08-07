@@ -32,7 +32,7 @@ DOC-NOTE  用語の対応表
 
 **7 件出る。** `DOC-GUIDE` は人間向けの解説書、`DOC-NOTE` は `_assets/note.md` の用語表、
 `DOC-FIG-STATE` は `_assets/fig-state.md` の大きい図で、いずれも要求を持たない。
-`.md` は置き場所に関係なく文書として解析されるためである。
+StrictDoc が `.md` を置き場所に関係なく文書として解析するためである。
 
 ### A2. ノード型ごとの件数
 
@@ -229,7 +229,7 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | (.RELATIONS // [])[] | select(.TYPE=
 | select(.UID | IN($parents[]) | not) | .UID' <json>
 ```
 
-このサンプルでは 0 件 (全要求が誰かに指されている)。
+このサンプルでは 0 件 (どの要求も誰かが指している)。
 
 ### D19. 存在しない UID を指している関係 (リンク切れ)
 
@@ -326,7 +326,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="FINDING")] | ma
   文字クラスを使い、正規表現で足りるところも `contains()` / `split()` で書いてある。
   理由は G0 に書く
 - **コードフェンスを 4 個のバッククォートで囲んである。** クエリ本文に ` ``` ` が出るため、
-  3 個だと囲みが途中で閉じる。4 個は StrictDoc でも正しく解釈される (実測)
+  3 個だと囲みが途中で閉じる。StrictDoc も 4 個の囲みを正しく解釈する (実測)
 
 ### G0. なぜ二重バックスラッシュを避けるか
 
@@ -490,7 +490,7 @@ def convert(src: str, dst: str) -> None:
     (以下 6 行)
 ```
 
-**言語名が書かれていないフェンスは、この形では拾えない。** だから書くときは必ず
+**書き手が言語名を書かなかったフェンスは、この形では拾えない。** だから書くときは必ず
 言語名を付ける。
 
 ### G32. 画像の参照先
@@ -568,7 +568,7 @@ samples/md-basic-ja/_assets/fig-state.md
 **4. 行数を測り直す。** 16 行以上になったなら、本文にあった図は
 `_assets/fig-*.md` へ移し、元の場所には `[LINK:]` を残す (G29)。
 
-**5. 再度 export する。** JSON は自動では更新されない。
+**5. 再度 export する。** StrictDoc は JSON を自動では更新しない。
 
 ```bash
 strictdoc export <仕様書のフォルダ> --formats=json --output-dir <出力先>
