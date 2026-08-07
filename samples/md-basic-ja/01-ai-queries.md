@@ -1,5 +1,8 @@
 # jq クエリ集 — AI 向け
 
+**UID**: DOC-AI-QUERIES \
+**Version**: 1.0
+
 **本書は、`00-ai-guide.md` の「3. 仕様書から必要な部分だけを取り出す」の詳細版である。**
 主要なクエリは `00-ai-guide.md` に載せてある。**そちらで足りるなら本書は読まなくてよい。**
 
@@ -8,19 +11,27 @@
 
 このサンプルの中身: 上位要求 `SYS-001..003` / 下位要求 `SW-001..004` /
 テストケース `TC-001..004` / レビュー指摘 `RV-001..002`。
+**本書と `00-ai-guide.md` も文書である** (`DOC-AI-QUERIES` / `DOC-AI-GUIDE`)。
+記法を説明するために図やコードを大量に抱えているので、**集計するクエリでは必ず除くこと**。
 図・数式・コードは `DOC-LOWER` の末尾の章と、`_assets/fig-state.md` (`DOC-FIG-STATE`) にある。
 
 ---
 
 ## A. 全体を掴む
 
+**Type**: SECTION
+
 ### A1. 文書の一覧
+
+**Type**: SECTION
 
 ```bash
 jq -r '.DOCUMENTS[] | (.UID // "-") + "  " + .TITLE' <json>
 ```
 
 ```text
+DOC-AI-GUIDE  Markdown 形式の StrictDoc 仕様書 — AI 向け手引き
+DOC-AI-QUERIES  jq クエリ集 — AI 向け
 DOC-GUIDE  基本 - まずこれを読む
 DOC-UPPER  基本 - 上位要求
 DOC-LOWER  基本 - 下位要求
@@ -30,21 +41,26 @@ DOC-FIG-STATE  大きい図 - 変換処理の状態遷移
 DOC-NOTE  用語の対応表
 ```
 
-**7 件出る。** `DOC-GUIDE` は人間向けの解説書、`DOC-NOTE` は `_assets/note.md` の用語表、
-`DOC-FIG-STATE` は `_assets/fig-state.md` の大きい図で、いずれも要求を持たない。
+**9 件出る。** `DOC-AI-GUIDE` と `DOC-AI-QUERIES` は AI 向けの手引き、`DOC-GUIDE` は
+人間向けの解説書、`DOC-NOTE` は `_assets/note.md` の用語表、`DOC-FIG-STATE` は
+`_assets/fig-state.md` の大きい図で、**この 5 つはどれも要求を持たない。**
 StrictDoc が `.md` を置き場所に関係なく文書として解析するためである。
 
 ### A2. ノード型ごとの件数
+
+**Type**: SECTION
 
 ```bash
 jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.[0]): length}) | add' <json>
 ```
 
 ```json
-{"DOCUMENT":7,"FINDING":2,"REQUIREMENT":7,"SECTION":18,"TEST_CASE":4,"TEXT":23}
+{"DOCUMENT":9,"FINDING":2,"REQUIREMENT":7,"SECTION":80,"TEST_CASE":4,"TEXT":81}
 ```
 
 ### A3. 目次
+
+**Type**: SECTION
 
 `_TOC` は `2.1.1` のような階層番号である。
 
@@ -53,6 +69,8 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="SECTION") | ._TO
 ```
 
 ### A4. 型ごとに使えるフィールド名
+
+**Type**: SECTION
 
 **既存プロジェクトのスキーマを JSON から知る。** 新規に書き起こすときは JSON がまだ無いので、
 このクエリは使えない。そのときは `basic.sgra` を直接読む。
@@ -71,7 +89,11 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
 
 ## B. 位置を特定する
 
+**Type**: SECTION
+
 ### B5. UID で 1 件
+
+**Type**: SECTION
 
 ```bash
 jq -c 'first(.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? == "SW-002")) | del(.NODES)' <json>
@@ -80,6 +102,8 @@ jq -c 'first(.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? == "SW-002")) | de
 `first(...)` は最初の 1 件で探索を打ち切る。`del(.NODES)` は章にも同じ式を使えるようにするため。
 
 ### B6. UID を正規表現で
+
+**Type**: SECTION
 
 ```bash
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? and (.UID | test("^SW-"))) | .UID' <json>
@@ -94,6 +118,8 @@ SW-004
 
 ### B7. 語で探す
 
+**Type**: SECTION
+
 ```bash
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT") | select(((.TITLE//"") + (.STATEMENT//"")) | contains("変換")) | .UID' <json>
 ```
@@ -101,6 +127,8 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT") | 
 全フィールドを対象にするなら `[.. | strings] | join(" ")` で潰してから `contains` する。
 
 ### B8. 正規表現で探す
+
+**Type**: SECTION
 
 **`test()` は第 2 引数にフラグを取る。`"i"` で大文字小文字を無視する。日本語も使える。**
 
@@ -118,6 +146,8 @@ RV-001  SW-002 の検査方法が決まっていない
 
 ### B9. 特定の文書だけに絞る
 
+**Type**: SECTION
+
 **ファイル名では絞れない。JSON にファイルパスは入っていない。** 文書の `UID` を使う。
 
 ```bash
@@ -127,6 +157,8 @@ jq -r '.DOCUMENTS[] | select(.UID=="DOC-UPPER") | recurse(.NODES[]?) | select(._
 文書の UID が分からないときは A1 で調べる。
 
 ### B10. 特定の章だけに絞る
+
+**Type**: SECTION
 
 ```bash
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._TOC? and (._TOC | startswith("2."))) | ._TOC + "  " + (.TITLE // "")' <json>
@@ -139,13 +171,19 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._TOC? and (._TOC | startswith
 
 ## C. 関係をたどる
 
+**Type**: SECTION
+
 ### C11. 直接の親
+
+**Type**: SECTION
 
 ```bash
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?=="TC-001") | (.RELATIONS // [])[] | select(.TYPE=="Parent") | .VALUE' <json>
 ```
 
 ### C12. 親を根までたどる (推移的)
+
+**Type**: SECTION
 
 ```bash
 jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE and .UID)] as $all
@@ -160,6 +198,8 @@ SYS-001
 
 ### C13. 直接の子 (逆引き)
 
+**Type**: SECTION
+
 **JSON に子は記録されていない。** 全ノードを走査して「親が自分であるもの」を集める。
 
 ```bash
@@ -167,6 +207,8 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select((.RELATIONS? // []) | any(.TYP
 ```
 
 ### C14. 子を葉までたどる (推移的)
+
+**Type**: SECTION
 
 ```bash
 jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE and .UID)] as $all
@@ -180,6 +222,8 @@ TC-001
 ```
 
 ### C15. ROLE で絞る
+
+**Type**: SECTION
 
 `Verifies` はテスト、`Reviews` はレビュー指摘が使う。
 
@@ -198,7 +242,11 @@ TC-004 -> SW-004
 
 ## D. 抜けを見つける
 
+**Type**: SECTION
+
 ### D16. テストケースから「直接」指されていない要求
+
+**Type**: SECTION
 
 ```bash
 jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE") | (.RELATIONS // [])[] | select(.TYPE=="Parent") | .VALUE] as $tested
@@ -217,11 +265,15 @@ SYS-003  既存ファイルの保護
 
 ### D17. 親を持たない要求
 
+**Type**: SECTION
+
 ```bash
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT") | select(((.RELATIONS // []) | map(select(.TYPE=="Parent")) | length) == 0) | .UID' <json>
 ```
 
 ### D18. 誰からも指されていない要求
+
+**Type**: SECTION
 
 ```bash
 jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | (.RELATIONS // [])[] | select(.TYPE=="Parent") | .VALUE] as $parents
@@ -233,6 +285,8 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | (.RELATIONS // [])[] | select(.TYPE=
 
 ### D19. 存在しない UID を指している関係 (リンク切れ)
 
+**Type**: SECTION
+
 ```bash
 jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) | .UID] as $ids
 | .DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) as $n
@@ -242,6 +296,8 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) | .UID] as $ids
 このサンプルでは 0 件。**0 件が正常**である。
 
 ### D20. UID の重複
+
+**Type**: SECTION
 
 ```bash
 jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) | .UID] | group_by(.) | map(select(length>1) | .[0])' <json>
@@ -253,13 +309,19 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) | .UID] | group_by(.) 
 
 ## E. フィールドで絞る
 
+**Type**: SECTION
+
 ### E21. STATUS で絞る
+
+**Type**: SECTION
 
 ```bash
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT" and .STATUS=="Draft") | .UID' <json>
 ```
 
 ### E22. and / or / not
+
+**Type**: SECTION
 
 `select()` の中で普通の論理演算子が使える。
 
@@ -278,6 +340,8 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? and (._NODE_TYPE=="REQUI
 
 ### E23. フィールドが無いものを探す
 
+**Type**: SECTION
+
 ```bash
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT") | select(has("RATIONALE") | not) | .UID' <json>
 ```
@@ -288,7 +352,11 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT") | 
 
 ## F. 形を整えて出す
 
+**Type**: SECTION
+
 ### F24. 表形式 (最も安い一覧)
+
+**Type**: SECTION
 
 ```bash
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT") | [.UID, .STATUS, .TITLE] | @tsv' <json>
@@ -301,11 +369,15 @@ SW-004	Draft	書き込みの原子性
 
 ### F25. 件数だけ
 
+**Type**: SECTION
+
 ```bash
 jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")] | length' <json>
 ```
 
 ### F26. 必要な欄だけを JSON で
+
+**Type**: SECTION
 
 ```bash
 jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="FINDING")] | map({UID, SEVERITY, RESOLUTION})' <json>
@@ -316,6 +388,8 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="FINDING")] | ma
 ---
 
 ## G. 図・数式・コードを扱う
+
+**Type**: SECTION
 
 **図も数式もコードも、`STATEMENT` に原文のまま入っている。** だから `jq` で取り出せるし、
 中身を数えることもできる。この節のクエリはそれを前提にしている。
@@ -329,6 +403,8 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="FINDING")] | ma
   3 個だと囲みが途中で閉じる。StrictDoc も 4 個の囲みを正しく解釈する (実測)
 
 ### G0. なぜ二重バックスラッシュを避けるか
+
+**Type**: SECTION
 
 **Git Bash に `bash -c "..."` の形でクエリを渡すと、二重バックスラッシュが半分に減る。**
 strictdoc 0.27.1 / jq 1.8.1 / Windows 11 で実測した。
@@ -352,6 +428,8 @@ jq -r -f <クエリを書いたファイル>.jq <json>
 ```
 
 ### G27. どこに何があるか
+
+**Type**: SECTION
 
 **最初に打つのはこれである。** どの文書のどのノードに図・数式・コード・表・画像が
 あるかを一覧にする。
@@ -377,7 +455,8 @@ DOC-FIG-STATE  1  図
 DOC-NOTE  1  表
 ```
 
-(全 19 行のうち代表を抜いた。`DOC-GUIDE` の行が多いのは、あれが記法の解説書だからである)
+(全 76 行のうち代表を抜いた。**72 行を 3 つの解説文書が占める** — 本書・`00-ai-guide.md`・
+`02-guide-for-human.md`。記法を説明する文書は記法を大量に抱えるためである)
 
 2 列目は `UID` があればそれ、無ければ `_TOC` の階層番号である。**地の文には UID が
 無い**ので、位置を指すには `_TOC` を使う。
@@ -389,6 +468,8 @@ DOC-NOTE  1  表
 自分でこの種のクエリを書いたら**必ずこの行で試すこと。**
 
 ### G28. 図の定義を取り出す
+
+**Type**: SECTION
 
 ````bash
 jq -r '.DOCUMENTS[] | select(.UID == "DOC-FIG-STATE") | recurse(.NODES[]?) | (.STATEMENT? // "")
@@ -409,6 +490,8 @@ stateDiagram-v2
 言語を変えれば同じ形でコードも取れる (G31)。
 
 ### G29. 図の大きさを測る (「15 行を超えたら外に出す」の監査)
+
+**Type**: SECTION
 
 **このプロジェクトの規則は「Mermaid フェンスの中身が 16 行以上なら
 `_assets/fig-*.md` に独立した文書として出す」である。** 守れているかを機械で確かめる。
@@ -443,6 +526,8 @@ jq -r '.DOCUMENTS[] | select(.UID | startswith("DOC-FIG-") | not) | .UID as $doc
 
 ### G30. 数式を取り出す
 
+**Type**: SECTION
+
 ```bash
 jq -r '.DOCUMENTS[] | select(.UID == "DOC-LOWER") | recurse(.NODES[]?) | (.STATEMENT? // "")
 | [scan("[$][$]([^$]+)[$][$]")] | .[][] | gsub("^\n|\n$"; "")' <json>
@@ -464,6 +549,8 @@ G27 で場所を突き止めてから、そのノードの `STATEMENT` を丸ご
 
 ### G31. コードを言語別に
 
+**Type**: SECTION
+
 何の言語が何個あるか:
 
 ````bash
@@ -472,7 +559,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":5,"json":1,"mermaid":3,"python":3,"text":14}
+{"bash":47,"json":5,"markdown":2,"mermaid":5,"python":4,"text":41}
 ```
 
 **`mermaid` もここに出る。** 図もコードフェンスだからである。
@@ -495,6 +582,8 @@ def convert(src: str, dst: str) -> None:
 
 ### G32. 画像の参照先
 
+**Type**: SECTION
+
 ```bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("![") | .[1:][] | select(contains("](")) | split("](")[1] | split(")")[0]
@@ -513,6 +602,8 @@ DOC-GUIDE  _assets/flow.svg
 
 ### G33. `$` の罠を含む行を探す
 
+**Type**: SECTION
+
 **`$` が段落や表のセルの最後の 1 文字になっていると、HTML の export が
 `error: string index out of range` だけを出して止まる。** ファイル名も行番号も出ない。
 
@@ -521,8 +612,15 @@ DOC-GUIDE  _assets/flow.svg
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
-| split("```") | to_entries | map(select(.key % 2 == 0) | .value) | .[]
-| split("\n")[] | select(test("[^$][$] *$") or test("[^$][$] *[|]"))
+| split("\n")
+| reduce .[] as $line ({open: 0, out: []};
+    ([$line | scan("^`{3,}")] | (.[0] // "") | length) as $w
+    | if $w > 0
+      then (if .open == 0 then .open = $w elif $w >= .open then .open = 0 else . end)
+      else (if .open == 0 then .out += [$line] else . end)
+      end)
+| .out[]
+| select(test("[^$][$] *$") or test("[^$][$] *[|]"))
 | $doc + "  " + .' <json>
 ````
 
@@ -535,14 +633,20 @@ DOC-LINT  SAFE   escaped trailing dollar 100 \$
 DOC-LINT  | CRASH cell ending in math | $T$ |
 ```
 
-`split("```") | to_entries | map(select(.key % 2 == 0))` は**コードフェンスの中身を
-捨てる定型である。** フェンスで切ると奇数番目が必ずフェンスの中身になる。
-`$` はフェンスの中では無害なので、除かないと誤検出だらけになる。
+`reduce` の部分は**コードフェンスの中身を捨てている。** `$` はフェンスの中では
+無害なので、捨てないと誤検出だらけになる。
+
+**開いたフェンスの記号の長さを覚えておき、同じ長さ以上の記号でだけ閉じる。**
+`` ` `` 3 個で切って偶数番目を取る、という簡単なやり方もあるが、**それは
+` ```` ` の中に ` ``` ` が入っている文書で破綻する。** 本書と `00-ai-guide.md` が
+まさにその形なので、簡単な版を当てると偽陽性が 4 件出る (実測)。
 
 **誤検出は 1 種類だけある** — `\$` と書いて逃がしてある行も出る (上の 3 行目)。
 逃がしてあるなら安全なので、見て飛ばす。
 
 ### G34. 図を書き換えて `.md` に戻す
+
+**Type**: SECTION
 
 **JSON から `.md` へ機械的に書き戻すことはできない。** JSON にファイルパスが
 入っていないためである (本書冒頭の注意)。手順は次のとおり。

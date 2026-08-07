@@ -1,5 +1,8 @@
 # Markdown 形式の StrictDoc 仕様書 — AI 向け手引き
 
+**UID**: DOC-AI-GUIDE \
+**Version**: 1.0
+
 **本書は、AI が Markdown 形式の StrictDoc 仕様書を書き、そこから必要な情報を
 取り出すための手引きである。** StrictDoc には `.sdoc` 形式もあるが、本書は扱わない。
 
@@ -7,15 +10,19 @@
 既にある文法を使う場合も、**文法ごと新しく起こす場合も**同じである
 (文法ファイルの雛形は 1.1 にそのまま使える形で載せてある)。
 
+**本書の英訳版から Claude Code の SKILL を定義できる。** 規則と実例を分けて訳せば、
+`SKILL.md` に規則を、`references/` にクエリと実例を置く形にそのまま移せる。
+
 以下の説明は、実例として `samples/md-basic-ja` を使う。**同じ規則がどの
 Markdown 形式の StrictDoc プロジェクトにも当てはまる。**
 
-この実例の構成。**StrictDoc は `.md` をすべて文書として解析する** — `exclude_doc_paths` で外したものを除く。
+この実例の構成。**StrictDoc は `.md` をすべて文書として解析する。**
+本書も例外ではなく、1 個の文書 `DOC-AI-GUIDE` になる。
 
-| ファイル | 中身 | 文書になるか |
+| ファイル | 中身 | 文書の UID |
 |---|---|---|
-| `00-ai-guide.md` | 本書 | **ならない** (`exclude_doc_paths`) |
-| `01-ai-queries.md` | 本書のクエリの詳細版 | **ならない** (`exclude_doc_paths`) |
+| `00-ai-guide.md` | 本書 | `DOC-AI-GUIDE` (要求は無い) |
+| `01-ai-queries.md` | 本書のクエリの詳細版 | `DOC-AI-QUERIES` (要求は無い) |
 | `02-guide-for-human.md` | 人間向けの解説書。**AI は読まなくてよい** | `DOC-GUIDE` (要求は無い) |
 | `03-upper.md` | 上位要求 3 件 | `DOC-UPPER` |
 | `04-lower.md` | 下位要求 4 件。上位要求へ繋がる | `DOC-LOWER` |
@@ -24,19 +31,28 @@ Markdown 形式の StrictDoc プロジェクトにも当てはまる。**
 | `_assets/note.md` | 用語表。リンク先 | `DOC-NOTE` (要求は無い) |
 | `_assets/fig-state.md` | 大きい図 1 つ。リンク先 | `DOC-FIG-STATE` (要求は無い) |
 | `basic.sgra` | 文法定義。ノード型・フィールド・`Role` はここで宣言する | — |
-| `strictdoc_config.py` | プロジェクト設定。`exclude_doc_paths` などを書く | — |
+| `strictdoc_config.py` | プロジェクト設定 | — |
 
-**番号は読む順である。** `00` と `01` は AI 向けなので文書にならず、`02` 以降が
-StrictDoc の文書になる。`_assets/` の中は番号を持たない。
+**番号は読む順である。** `00` と `01` が AI 向け、`02` が人間向け、`03` 以降が仕様書本体。
+`_assets/` の中は番号を持たない。
 
-**後の用例 1 は文書を 7 件返す。** 上表のうち「文書になる」もの全部である。
-`DOC-GUIDE` / `DOC-NOTE` / `DOC-FIG-STATE` は要求を持たないので、要求を数えるときは混ざらない。
+**後の用例 1 は文書を 9 件返す。** 上表のうち UID を持つもの全部である。
+`DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` / `DOC-NOTE` / `DOC-FIG-STATE` は
+要求を持たないので、要求を数えるときは混ざらない。
+
+**★ 本書と `01-ai-queries.md` は、自分自身も StrictDoc の文書である。**
+だから見出しには全部 `**Type**: SECTION` が付いている。付けないと StrictDoc が
+見出しの下の文を要求の本文と見なして停止する (1 章の規則そのままである)。
+**そして本書の中身も JSON に入る。** 図やコードを数えるクエリを当てると本書が混ざるので、
+集計するときは 3 章の「集計するときは解説文書を除くこと」に従うこと。
 
 コマンド例は Git Bash で実行する前提で書いてある。
 
 ---
 
 ## 1. 仕様書を書く
+
+**Type**: SECTION
 
 下は strictdoc 0.27.1 で parse 確認済みの雛形である。**この雛形は
 `DOCUMENT` / `TEXT` / `SECTION` / `REQUIREMENT` / カスタムノード型の 5 種のノードを作る。**
@@ -85,6 +101,8 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 
 ### 違反すると export 全体が停止する規則
 
+**Type**: SECTION
+
 | 規則 | 違反時のエラーメッセージ |
 |---|---|
 | ファイルの先頭を H1 で始める。1 ファイルに 1 つだけ | `the document must start with an H1 heading` |
@@ -117,6 +135,8 @@ stack trace が出るので、そこから当たる。**これと 2.3 の `strin
 2 つだけが「場所を教えないエラー」である。** ほかは 1 行目を読めば場所が分かる。
 
 ### 実例を見ても分からない規則
+
+**Type**: SECTION
 
 - **StrictDoc は、見出しの直下に置いた文を暗黙の `Statement` として扱う。** その結果、その見出しは
   要求ノードになる。要求ではない章には `**Type**: SECTION` を明記する。明記しないと
@@ -171,6 +191,8 @@ stack trace が出るので、そこから当たる。**これと 2.3 の `strin
 **`.sgra` も StrictDoc が読み込んでログに `Reading SDOC:` と出るが、文書にはならない。**
 
 ### 1.1 文法ファイル (`.sgra`) の書き方
+
+**Type**: SECTION
 
 **新しくプロジェクトを起こすときは、必ず自分で `.sgra` を書くことになる。**
 下がそのまま使える最小の雛形である。これで export が通ることを確認してある。
@@ -259,6 +281,8 @@ strictdoc export <仕様書のフォルダ> --formats=sdoc --output-dir <出力�
 
 ## 2. 図・数式・コードを書く
 
+**Type**: SECTION
+
 **以下はすべて strictdoc 0.27.1 で実測した。** 「通る」は export が成功し、意図した
 HTML が出たという意味である。
 
@@ -278,6 +302,8 @@ HTML が出たという意味である。
 `_static/mermaid/mermaid.min.js`)。外部への通信は起きない。設定に足すものは何も無い。
 
 ### 2.1 図 — 15 行を超えたら別文書にする
+
+**Type**: SECTION
 
 **規則はこれだけである。**
 
@@ -388,6 +414,8 @@ error: DocumentIndex: the inline link references an object with an UID that does
 
 ### 2.2 数式 — `$` と `$$` だけ
 
+**Type**: SECTION
+
 | 書き方 | 出る形 |
 |---|---|
 | `$ ... $` | 文の中に埋まる |
@@ -405,6 +433,8 @@ MathJax に渡る (実測)。**数式の中身は Markdown のエスケープも
 エスケープであって不具合ではない。
 
 ### 2.3 ★ `$` の罠 — export が原因不明で止まる
+
+**Type**: SECTION
 
 **`$` が段落や表のセルの最後の 1 文字になると、HTML の export が止まる。**
 
@@ -463,6 +493,8 @@ JSON が出ていれば、HTML を作る前に危ない行を機械で探せる�
 
 ### 2.4 コード — 言語名は必ず書く
 
+**Type**: SECTION
+
 ````markdown
 ```python
 def convert(src: str, dst: str) -> None:
@@ -480,6 +512,8 @@ def convert(src: str, dst: str) -> None:
 
 ### 2.5 フェンスの中は StrictDoc が一切解釈しない
 
+**Type**: SECTION
+
 **Mermaid でもコードでも同じである。** フェンスの中に書いた `[LINK: SW-001]` は
 リンクにならず、文字のまま出る。`$` も `|` も `**` も、フェンスの中では何も起こらない。
 
@@ -490,6 +524,8 @@ def convert(src: str, dst: str) -> None:
 3 個だと囲みが途中で閉じる。StrictDoc も 4 個の囲みを正しく解釈する (実測)。
 
 ### 2.6 `[DOCUMENT_FROM_FILE]` を書いてはならない
+
+**Type**: SECTION
 
 `.sdoc` の取り込み記法である。**`.md` では動かないだけでなく、書き方によっては
 黙って壊れる** (実測)。
@@ -504,6 +540,8 @@ def convert(src: str, dst: str) -> None:
 
 ### 2.7 表と画像
 
+**Type**: SECTION
+
 - 表は**パイプ表だけ**。桁は揃えなくてよい。RST の grid / simple 形式は通らない
 - 画像は `_assets/` に置いて `![alt](_assets/x.svg)` で参照する。このフォルダは
   StrictDoc が自動でコピーする。**拡大しても崩れない SVG を既定にする**
@@ -514,9 +552,11 @@ def convert(src: str, dst: str) -> None:
 
 ## 3. 仕様書から必要な部分だけを取り出す
 
+**Type**: SECTION
+
 **仕様書の一部だけが必要なとき、`.md` ファイルを読んではならない。**
 この実例の仕様書 (`03` 〜 `06` と `_assets/`) を全部読むと約 4,100 tokens、
-`02-guide-for-human.md` まで含めると約 11,900 tokens を消費する。
+`02-guide-for-human.md` まで含めると約 12,300 tokens を消費する。
 JSON に変換して `jq` で取り出せば、要求の一覧は 91 tokens で済む。
 
 **★ この禁止は「知るために読む」ことだけを指す。書き換えるなら開いてよい。**
@@ -530,6 +570,8 @@ JSON にファイルパスが入っていないためである。
 | 内容を書き換える | **開く。** 場所は用例 16 で特定してから開く |
 
 ### 手順 1 — JSON に変換する
+
+**Type**: SECTION
 
 ```bash
 strictdoc export <仕様書のフォルダ> --formats=json --output-dir <出力先>
@@ -555,7 +597,7 @@ error: TraceabilityIndex: the document "A" imports a grammar from a file that do
 **`.md` を修正したら、再度この `strictdoc export` を実行すること。**
 StrictDoc は JSON を自動では更新しない。
 
-**この `index.json` を直接読んではならない** — 約 41,000 tokens ある。
+**この `index.json` を直接読んではならない** — 約 102,000 tokens ある。
 `jq` に読ませるためだけのファイルである。
 
 **StrictDoc 自身にも問い合わせ言語があるが、JSON 出力には効かない。**
@@ -563,6 +605,8 @@ StrictDoc は JSON を自動では更新しない。
 **StrictDoc はエラーも警告も出さないまま全件を出力する**。絞り込みは `jq` で行う。
 
 ### 手順 2 — jq で取り出す
+
+**Type**: SECTION
 
 JSON の構造:
 
@@ -605,6 +649,8 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT") | 
   元の文字に戻して出力する。書き手が変換する必要は無い
 
 ### 用例
+
+**Type**: SECTION
 
 以下はすべて実行して出力を確認したものである。
 
@@ -664,6 +710,8 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")] 
 
 ### 図・数式・コードの用例
 
+**Type**: SECTION
+
 **この 2 本は囲みが 4 個のバッククォートになっている。** クエリ本文に ` ``` ` が
 出るためである (2.5)。
 
@@ -684,12 +732,13 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as
 DOC-GUIDE  3.2.1  図,画像
 DOC-LOWER  6.1  図,数式,コード
 DOC-FIG-STATE  1  図
-（この実例では 19 行返る。上は代表を 3 行だけ抜いたもの）
+（この実例では 76 行返る。上は代表を 3 行だけ抜いたもの）
 ```
 
-**返る行数の多さに驚かないこと。** この実例では 19 行のうち 15 行が `DOC-GUIDE`
-(人間向けの解説書) である。解説書は説明のために記法を大量に抱えるためで、壊れてはいない。
-集計に使うときは後述の「集計するときは解説文書を除くこと」を読むこと。
+**返る行数の多さに驚かないこと。** この実例では 76 行のうち **72 行が解説文書**である
+(本書が 21 行、`01-ai-queries.md` が 36 行、`02-guide-for-human.md` が 15 行)。
+解説書は説明のために記法を大量に抱えるためで、壊れてはいない。**仕様書側は 4 行しかない。**
+集計に使うときは必ず後述の「集計するときは解説文書を除くこと」を読むこと。
 
 **言語名はフェンス 1 個ずつ見ること。** ` ``` ` で切ると奇数番目が必ずフェンスの中身に
 なるので、その 1 行目が言語名である。**ノード全体に対して「`mermaid` を含むか」で
@@ -705,10 +754,16 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 ````
 
 ```text
+DOC-AI-GUIDE  4 行  本文でよい      ← 本書が載せている書き方の見本
+DOC-AI-QUERIES  1 行  本文でよい    ← 同上
 DOC-GUIDE  8 行  本文でよい
 DOC-LOWER  8 行  本文でよい
 DOC-FIG-STATE  19 行  外に出す
 ```
+
+**解説文書が載せている見本まで数える。** 本書は ```` の中に ```mermaid の例を
+書いているので、その断片が 1〜6 行の「図」として出る。**仕事に効くのは次の 14b だけ**で、
+こちらは眺めるためのものである。
 
 **14b. 規則違反だけを出す。0 件が正常。** 既に外に出した図 (`DOC-FIG-` で始まる文書) を
 除くので、**これが 1 行でも返ったら直す仕事がある**という意味になる。
@@ -768,7 +823,7 @@ grep -rlF '**UID**: DOC-FIG-STATE' <仕様書のフォルダ> --include=*.md
 **`**UID**:` まで含めて探すこと。** UID だけで探すと `[LINK:]` で参照しているだけの
 ファイルも一緒に出る (実測で 5 件出た)。`-F` は `**` を正規表現と解釈させないために要る。
 
-**それでも複数出ることがある。** このフォルダで実行すると 3 件出る — 本当の定義は
+**それでも複数出ることがある。** このフォルダで実行すると 4 件出る — 本当の定義は
 `_assets/fig-state.md` だけで、残る 2 件は本書と `01-ai-queries.md` が**この書き方を
 例として載せているから**である。**解説文書は自分が説明している文字列を含む。**
 返ってきたファイルが仕様書なのか手引きなのかは、冒頭の対応表で見分ける。
@@ -777,10 +832,22 @@ grep -rlF '**UID**: DOC-FIG-STATE' <仕様書のフォルダ> --include=*.md
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
-| split("```") | to_entries | map(select(.key % 2 == 0) | .value) | .[]
-| split("\n")[] | select(test("[^$][$] *$") or test("[^$][$] *[|]"))
+| split("\n")
+| reduce .[] as $line ({open: 0, out: []};
+    ([$line | scan("^`{3,}")] | (.[0] // "") | length) as $w
+    | if $w > 0
+      then (if .open == 0 then .open = $w elif $w >= .open then .open = 0 else . end)
+      else (if .open == 0 then .out += [$line] else . end)
+      end)
+| .out[]
+| select(test("[^$][$] *$") or test("[^$][$] *[|]"))
 | $doc + "  " + .' <json>
 ````
+
+**`reduce` の部分はコードフェンスの中身を捨てている。** `$` はフェンスの中では
+無害なので、捨てないと誤検出だらけになる。**開いたフェンスの記号の長さを覚えておき、
+同じ長さ以上の記号でだけ閉じる。** ` ```` ` の中に ` ``` ` が入っている本書のような文書では、
+単純に「``` で切って偶数番目を取る」やり方が破綻する (実測で偽陽性が 4 件出た)。
 
 **★ このクエリが 0 件でも安全とは限らない。** 検出できるのは**落ちる方の罠**
 (段落やセルが `$` で終わる) だけである。**2.3 のもう 1 つの罠 —
@@ -788,6 +855,8 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 金額や環境変数を書いたときは、HTML を目で見て確かめること。
 
 ### クエリを書くときの 2 つの制約
+
+**Type**: SECTION
 
 **1. 正規表現にバックスラッシュを使わない。** `\\[` のような**二重**バックスラッシュは
 `bash -c` に渡すと半分に減り、`Invalid escape` で落ちる (実測)。`[$]` `[|]` のような
@@ -803,10 +872,12 @@ jq -r -f <クエリを書いたファイル>.jq <json>
 
 ### 集計するときは解説文書を除くこと
 
+**Type**: SECTION
+
 **記法の解説を兼ねた文書がプロジェクトに混ざっていることがある。** その手の文書は
 図・数式・コード・表を説明のために抱えているので、「この一式に図はいくつか」のような
-集計が必ず狂う。この実例では `DOC-GUIDE` (人間向け解説書) がそれで、**用例 13 の出力は
-19 行のうち 15 行が `DOC-GUIDE` になる** (実測)。
+集計が必ず狂う。**この実例では解説文書が 3 つある** (`DOC-AI-GUIDE` = 本書、
+`DOC-AI-QUERIES`、`DOC-GUIDE`)。**用例 13 の出力 76 行のうち 72 行をこの 3 つが占める** (実測)。
 
 **該当する文書は「UID を持つノードが 1 つも無い文書」として機械で見つかる。**
 地の文と章しか入っていない文書、という意味である。
@@ -816,6 +887,8 @@ jq -r '.DOCUMENTS[] | select([recurse(.NODES[]?) | select(._NODE_TYPE != "DOCUME
 ```
 
 ```text
+DOC-AI-GUIDE  Markdown 形式の StrictDoc 仕様書 — AI 向け手引き
+DOC-AI-QUERIES  jq クエリ集 — AI 向け
 DOC-GUIDE  基本 - まずこれを読む
 DOC-FIG-STATE  大きい図 - 変換処理の状態遷移
 DOC-NOTE  用語の対応表
@@ -828,7 +901,7 @@ DOC-NOTE  用語の対応表
 図を数えたいなら図の文書は残す。
 
 ```bash
-jq -r '.DOCUMENTS[] | select(.UID != "DOC-GUIDE") | .UID' <json>
+jq -r '.DOCUMENTS[] | select(.UID | startswith("DOC-AI-") or . == "DOC-GUIDE" | not) | .UID' <json>
 ```
 
 **用例 13 から 15 も、集計に使うならこの `select` を足すこと。**
@@ -837,6 +910,8 @@ jq -r '.DOCUMENTS[] | select(.UID != "DOC-GUIDE") | .UID' <json>
 ---
 
 ## 3.1 既にある仕様書を書き換える
+
+**Type**: SECTION
 
 **JSON から `.md` へ機械的に戻すことはできない。** JSON にファイルパスが入っていないため、
 書き換えは `.md` を開いて行う。手順は決まっている。

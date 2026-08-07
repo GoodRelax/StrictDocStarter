@@ -48,18 +48,20 @@ from strictdoc.core.project_config import ProjectConfig
 def create_config() -> ProjectConfig:
     return ProjectConfig(
         project_title="Markdown basics, Japanese (StrictDocStarter sample)",
-        # 00-ai-guide.md is the brief handed to an AI; it is about this
-        # sample rather than part of it. Every .md in the folder is otherwise
-        # parsed as a document, and it would show up as a sixth one in the
-        # project index -- this sample's shape (3 upper, 4 lower, 4 tests,
-        # 2 findings) is itself the lesson, so a stray document blurs it.
-        # 02-guide-for-human.md stays a document: it is written for a reader
-        # browsing the sample in StrictDoc.
+        # No exclude_doc_paths here on purpose. 00-ai-guide.md and
+        # 01-ai-queries.md are written for an AI rather than for a human
+        # reader, and an earlier revision hid them from the document tree.
+        # They are now ordinary documents, because a visitor browsing this
+        # sample in StrictDoc should be able to see that AI-facing documents
+        # exist and read them in place. The cost is that every heading in
+        # them carries "**Type**: SECTION", which is what stops StrictDoc
+        # reading the text under a heading as an implicit requirement.
         #
-        # Named as a file on purpose. Excluding a folder ("_assets/**") would
-        # also stop the assets being copied, and the export still reports
-        # success while the images 404.
-        exclude_doc_paths=["00-ai-guide.md", "01-ai-queries.md"],
+        # If a future revision does need to hide a document, name it as a
+        # file. Excluding a folder ("_assets/**") would also stop the assets
+        # being copied, and the export still reports success while the images
+        # 404. StrictDoc feeds exclude_doc_paths to both the document finder
+        # and the asset-directory finder (core/file_system/document_finder.py).
         # Appearance. StrictDoc has no dark mode of its own, so StrictDocStarter
         # supplies one as an extra stylesheet. strictdoc-theme.css next to this file
         # is regenerated every time the project is opened, following the color_mode
