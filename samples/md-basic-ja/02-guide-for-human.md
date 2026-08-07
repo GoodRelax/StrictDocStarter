@@ -31,14 +31,18 @@
 
 ファイルの並びは次のとおり。
 
-- `ai-guide.md` — **AI に渡す手引き。** 本書の内容を、書き方の規則と JSON の
+**番号は読む順である。** `00` と `01` は AI に渡すもので文書にはならず、
+`02` 以降が StrictDoc の文書になる。
+
+- `00-ai-guide.md` — **AI に渡す手引き。** 本書の内容を、書き方の規則と JSON の
   引き方だけに絞って圧縮したもの。人間が読む必要は無い (`strictdoc_config.py` の
   `exclude_doc_paths` で文書としては除外してある)
-- `01-guide-for-human.md` — 本書。 読む順と書き方
-- `02-upper.md` — 上位要求 3 件。 何を作るか
-- `03-lower.md` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
-- `04-tests.md` — テストケース 4 件。 下位へ結ぶ
-- `05-review.md` — レビュー指摘 2 件。 対象の要求へ結ぶ
+- `01-ai-queries.md` — 上の詳細版。 jq のクエリ集。 これも AI 向けで除外してある
+- `02-guide-for-human.md` — 本書。 読む順と書き方
+- `03-upper.md` — 上位要求 3 件。 何を作るか
+- `04-lower.md` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
+- `05-tests.md` — テストケース 4 件。 下位へ結ぶ
+- `06-review.md` — レビュー指摘 2 件。 対象の要求へ結ぶ
 - `basic.sgra` — 全文書が共有する文法定義
 - `strictdoc_config.py` — プロジェクト設定。 **このフォルダ直下に無いと読まれない**
 - `_assets/` — 画像とリンク先の `.md`
@@ -141,11 +145,11 @@
 混ざっていても同じである。** この一式が実際にファイルをまたいでいる。
 
 ```text
-02-upper.md   SYS-001   SYS-002   SYS-003
+03-upper.md   SYS-001   SYS-002   SYS-003
                  |         |         |
-03-lower.md   SW-001    SW-002    SW-003 / SW-004
+04-lower.md   SW-001    SW-002    SW-003 / SW-004
                  |         |         |
-04-tests.md   TC-001    TC-002    TC-003 / TC-004
+05-tests.md   TC-001    TC-002    TC-003 / TC-004
 ```
 
 **`Role` を足すと関係に意味が付く。** 種類は `Parent` のままでよい。
@@ -157,7 +161,7 @@
   **Role**: `Verifies`
 ```
 
-`04-tests.md` は `Verifies`、 `05-review.md` は `Reviews` を使っている。
+`05-tests.md` は `Verifies`、 `06-review.md` は `Reviews` を使っている。
 **`Role` は使う前に文法側で宣言しておく。** 宣言していない値を書くと落ちる。
 
 繋がりの確認は画面で行う。 文書の上の **VIEWS** から
@@ -323,7 +327,7 @@ $$
 S_{need} = S_{out} + S_{tmp} = 2 \times S_{out}
 $$
 
-上は `03-lower.md` で使っている式で、 文の中に埋めるなら $S_{need}$ のように書く。
+上は `04-lower.md` で使っている式で、 文の中に埋めるなら $S_{need}$ のように書く。
 
 ### 数式で踏む罠
 

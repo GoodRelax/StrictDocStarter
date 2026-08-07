@@ -392,8 +392,8 @@ StrictDocStarter/
 │   │   ├── _assets/                     # fig-flow.sdoc (Mermaid 断片) / note.md (LINK 先) / flow.svg
 │   │   └── strictdoc_config.py          # (D-8) project_path 直下 (D-1/FR-1141)。 左ツールバー 3 画面 (FR-1146)
 │   ├── md-basic-ja/                     # (D-9h) 同内容を全部 .md で。 sd-basic-ja と UID 共通
-│   │   ├── ai-guide.md           # AI 向けの圧縮版。 exclude_doc_paths で文書からは除外
-│   │   ├── 01-guide-for-human.md 〜 05-review.md  # sd-basic-ja と同じ章立て (06-markdown は .md では不要)
+│   │   ├── 00-ai-guide.md           # AI 向けの圧縮版。 exclude_doc_paths で文書からは除外
+│   │   ├── 02-guide-for-human.md 〜 06-review.md  # sd-basic-ja と同じ章立て (06-markdown は .md では不要)
 │   │   ├── basic.sgra                   # sd-basic-ja と同一内容
 │   │   ├── _assets/                     # note.md (LINK 先) / flow.svg。 Mermaid は本文へ直書き
 │   │   └── strictdoc_config.py          # sd-basic-ja と project_title 以外同一
@@ -998,7 +998,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 > scaffold した新規プロジェクトと `sovd-automotive-*` が 5 個、 `sdoc-patterns` が 6 個となる。
 > (strictdoc 0.27.1 実測、 2026-08-05。)**
 - **D-9h basic サンプル 2 種 (2026-08-06)**: `samples/sd-basic-ja/` と `samples/md-basic-ja/` を新設した。 **「写して始める最小の例」の役目を `sdoc-patterns/00-hello.sdoc` から引き取るものである** (D-9 改の切り分けを更新)。 `00-hello.sdoc` は要求 3 件の単一文書であり、 **要求仕様書として成り立つ形 — 上位要求 → 下位要求 → テストケース → レビュー指摘が別ファイルに分かれて繋がっている形 — を示せていなかった**。 basic 2 種はそこを埋める。
-  - **文書構成 (両者共通)**: `01-guide-for-human` (目的を UID なしの地の文で書き、 基本/添付/表/出力の 4 章を入れ子セクションで持つ) + `02-upper` (SYS-001..003) + `03-lower` (SW-001..004、 Parent → SYS-) + `04-tests` (TEST_CASE TC-001..004、 ROLE `Verifies`) + `05-review` (FINDING RV-001..002、 ROLE `Reviews`)。 **UID は 2 サンプルで共通**にし、 同じ仕様書の 2 表記として直接見比べられるようにした。 **番号は 01 から始まる** — `00` は AI 向けの手引き (`md-basic-ja/ai-guide.md`) の枠であり、 `sd-basic-ja` 側は今のところ空けてある。
+  - **文書構成 (両者共通)**: `01-guide-for-human` (目的を UID なしの地の文で書き、 基本/添付/表/出力の 4 章を入れ子セクションで持つ) + `02-upper` (SYS-001..003) + `03-lower` (SW-001..004、 Parent → SYS-) + `04-tests` (TEST_CASE TC-001..004、 ROLE `Verifies`) + `05-review` (FINDING RV-001..002、 ROLE `Reviews`)。 **UID は 2 サンプルで共通**にし、 同じ仕様書の 2 表記として直接見比べられるようにした。 **番号は 01 から始まる** — `00` は AI 向けの手引き (`md-basic-ja/00-ai-guide.md`) の枠であり、 `sd-basic-ja` 側は今のところ空けてある。
   - **共有文法 `basic.sgra`**: `SECTION` / `REQUIREMENT` / `TEST_CASE` / `FINDING` の 4 型。 レビュー指摘の `SEVERITY` / `RESOLUTION` を `SingleChoice` で固定することが、 **文法ファイルを置く動機そのもの**として `05-review` に書いてある。 **個別文書へのフィールド追加は行わない** (文書ごとに形が変わり管理できないため)。
   - **`.md` 側で実測確認した事項 (0.27.1)**: 文書をまたぐ `Parent` 解決、 `**Type**: TEST_CASE` によるカスタムノード型、 `**Role**: Verifies`、 カスタムフィールド `**EXPECTED**:`、 上位→下位→テストの連鎖が DEEP-TRACE 1 画面に出ること、 `[LINK:]` が `_assets/*.md` へ解決すること、 Mermaid フェンス / パイプ表 / `![](_assets/flow.svg)`。 **すべて `.sdoc` と同一の結果**になる。
   - **文法に `TYPE` という名前のフィールドを作らないこと**: `.md` では `**Type**:` がノード型の指定子として先に解釈される (`backend/markdown/reader.py` の `_parse_markdown_node`)。 `sovd-grammar.sgra` は `TYPE` フィールドを持つため `.md` から書けない — basic の文法はこれを避けている。

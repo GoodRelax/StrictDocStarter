@@ -16,16 +16,20 @@ Markdown 形式の StrictDoc プロジェクトにも当てはまる。**
 
 | ファイル | 中身 | 文書になるか |
 |---|---|---|
-| `basic.sgra` | 文法定義。ノード型・フィールド・`Role` はここで宣言する | — |
-| `02-upper.md` | 上位要求 3 件 | `DOC-UPPER` |
-| `03-lower.md` | 下位要求 4 件。上位要求へ繋がる | `DOC-LOWER` |
-| `04-tests.md` | テストケース 4 件。下位要求へ繋がる | `DOC-TESTS` |
-| `05-review.md` | レビュー指摘 2 件。対象の要求へ繋がる | `DOC-REVIEW` |
-| `01-guide-for-human.md` | 人間向けの解説書。**AI は読まなくてよい** | `DOC-GUIDE` (要求は無い) |
+| `00-ai-guide.md` | 本書 | **ならない** (`exclude_doc_paths`) |
+| `01-ai-queries.md` | 本書のクエリの詳細版 | **ならない** (`exclude_doc_paths`) |
+| `02-guide-for-human.md` | 人間向けの解説書。**AI は読まなくてよい** | `DOC-GUIDE` (要求は無い) |
+| `03-upper.md` | 上位要求 3 件 | `DOC-UPPER` |
+| `04-lower.md` | 下位要求 4 件。上位要求へ繋がる | `DOC-LOWER` |
+| `05-tests.md` | テストケース 4 件。下位要求へ繋がる | `DOC-TESTS` |
+| `06-review.md` | レビュー指摘 2 件。対象の要求へ繋がる | `DOC-REVIEW` |
 | `_assets/note.md` | 用語表。リンク先 | `DOC-NOTE` (要求は無い) |
 | `_assets/fig-state.md` | 大きい図 1 つ。リンク先 | `DOC-FIG-STATE` (要求は無い) |
-| `ai-guide.md` / `ai-queries.md` | 本書と詳細版 | **ならない** (`exclude_doc_paths`) |
+| `basic.sgra` | 文法定義。ノード型・フィールド・`Role` はここで宣言する | — |
 | `strictdoc_config.py` | プロジェクト設定。`exclude_doc_paths` などを書く | — |
+
+**番号は読む順である。** `00` と `01` は AI 向けなので文書にならず、`02` 以降が
+StrictDoc の文書になる。`_assets/` の中は番号を持たない。
 
 **後の用例 1 は文書を 7 件返す。** 上表のうち「文書になる」もの全部である。
 `DOC-GUIDE` / `DOC-NOTE` / `DOC-FIG-STATE` は要求を持たないので、要求を数えるときは混ざらない。
@@ -149,8 +153,8 @@ error: A process in the process pool was terminated abruptly while the future wa
 ```text
 <プロジェクトフォルダ>/
   basic.sgra        ← 文書と同じフォルダに置く。**Grammar**: basic.sgra はここを指す
-  02-upper.md
-  03-lower.md
+  03-upper.md
+  04-lower.md
 ```
 
 **`strictdoc_config.py` は無くても export は通る。** `exclude_doc_paths` や画面の設定が
@@ -372,7 +376,7 @@ def convert(src: str, dst: str) -> None:
 
 **それでも言語名は必ず書く。** 言語名は JSON にも原文のまま残るため、後から読む側が
 これが何のコードかを判別できる唯一の手掛かりになる。言語名の無いフェンスは
-`ai-queries.md` の G31 で拾えない。
+`01-ai-queries.md` の G31 で拾えない。
 
 ### 2.5 フェンスの中は StrictDoc が一切解釈しない
 
@@ -412,7 +416,7 @@ def convert(src: str, dst: str) -> None:
 
 **仕様書の一部だけが必要なとき、`.md` ファイルを読んではならない。**
 このフォルダの仕様書 (`02` 〜 `05` と `_assets/`) を全部読むと約 4,100 tokens、
-`01-guide-for-human.md` まで含めると約 11,900 tokens を消費する。
+`02-guide-for-human.md` まで含めると約 11,900 tokens を消費する。
 JSON に変換して `jq` で取り出せば、要求の一覧は 91 tokens で済む。
 
 ### 手順 1 — JSON に変換する
@@ -623,7 +627,7 @@ grep -rlF '**UID**: DOC-FIG-STATE' <仕様書のフォルダ> --include=*.md
 ファイルも一緒に出る (実測で 5 件出た)。`-F` は `**` を正規表現と解釈させないために要る。
 
 **それでも複数出ることがある。** このフォルダで実行すると 3 件出る — 本当の定義は
-`_assets/fig-state.md` だけで、残る 2 件は本書と `ai-queries.md` が**この書き方を
+`_assets/fig-state.md` だけで、残る 2 件は本書と `01-ai-queries.md` が**この書き方を
 例として載せているから**である。**解説文書は自分が説明している文字列を含む。**
 返ってきたファイルが仕様書なのか手引きなのかは、冒頭の対応表で見分ける。
 
@@ -657,7 +661,7 @@ jq -r -f <クエリを書いたファイル>.jq <json>
 
 ### 集計するときは `DOC-GUIDE` を除くこと
 
-**`01-guide-for-human.md` は「読まなくてよい」が、JSON には全部入る。**
+**`02-guide-for-human.md` は「読まなくてよい」が、JSON には全部入る。**
 記法の解説書なので、図・数式・コード・表がどっさり入っている。**用例 13 の出力は
 20 行のうち 15 行が `DOC-GUIDE` になる** (実測)。「この一式に図はいくつか」のような
 集計は必ず狂うので、仕様書だけを数えるなら先頭に 1 段挟んで除外する。
@@ -669,7 +673,7 @@ jq -r '.DOCUMENTS[] | select(.UID != "DOC-GUIDE") | .UID' <json>
 **用例 13 から 15 も、集計に使うならこの `select` を足すこと。**
 場所を突き止めるために使うだけなら、足さなくてよい。
 
-上で足りないときだけ `ai-queries.md` を読む。34 本を用途別に分類し、出力例を付けてある
+上で足りないときだけ `01-ai-queries.md` を読む。34 本を用途別に分類し、出力例を付けてある
 (約 6,800 tokens)。目次・章単位の絞り込み・推移的な子・ROLE での絞り込み・孤立要求の検出・
 UID の重複検出のほか、**図の定義の取り出し・15 行規則の監査・数式やコードの抽出・
 図を書き換えて `.md` に戻す手順** (G 節) が載っている。

@@ -1,7 +1,8 @@
 @echo off
 rem StrictDocStarter - try-json-query-ja.bat
 rem
-rem A guided trial of chapter 4 of samples\md-basic-ja\01-guide-for-human.md: export the
+rem A guided trial of the "JSON de hiku" chapter of
+rem samples\md-basic-ja\02-guide-for-human.md: export the
 rem whole project to JSON, then pull answers out of it with jq. Each step prints
 rem an explanation, waits for Enter, and runs the command it just showed. Type q
 rem at any prompt to stop.

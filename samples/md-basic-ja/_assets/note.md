@@ -3,17 +3,17 @@
 **UID**: DOC-NOTE
 
 このファイルは `_assets/` の中にあるが、 **StrictDoc は 1 個の文書として扱う。**
-`01-guide-for-human.md` の「リンク」の節から `[LINK: DOC-NOTE]` で飛んでくる。
+`02-guide-for-human.md` の「リンク」の節から `[LINK: DOC-NOTE]` で飛んでくる。
 
 リンクの宛先になるために必要なのは、 見出しの直下に `**UID**:` を宣言することだけ
 である。 出力先のパスは書かない。 StrictDoc が UID から解決する。
 
 | 本サンプルの言い方 | StrictDoc の言い方 | 実体 |
 | --- | --- | --- |
-| 上位要求 | REQUIREMENT | `02-upper.md` の `SYS-*` |
-| 下位要求 | REQUIREMENT | `03-lower.md` の `SW-*` |
-| テストケース | TEST_CASE | `04-tests.md` の `TC-*` |
-| レビュー指摘 | FINDING | `05-review.md` の `RV-*` |
+| 上位要求 | REQUIREMENT | `03-upper.md` の `SYS-*` |
+| 下位要求 | REQUIREMENT | `04-lower.md` の `SW-*` |
+| テストケース | TEST_CASE | `05-tests.md` の `TC-*` |
+| レビュー指摘 | FINDING | `06-review.md` の `RV-*` |
 | 地の文 | TEXT | UID を持たない段落 |
 | 章 | SECTION | `**Type**: SECTION` を書いた見出し |
 

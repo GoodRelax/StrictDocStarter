@@ -481,7 +481,7 @@ STATEMENT: >>>
 **`.md` で新規作成すれば、 ブラウザの編集画面だけで Markdown 記法が使える。**
 `.sdoc` で作った文書をブラウザから Markdown に切り替える手段は無いので、
 これは `.md` を選ぶ実際的な理由の 1 つである。 `.md` 側の一式と、 変換のときに
-気をつけることは `samples/md-basic-ja/01-guide-for-human.md` に書いてある。
+気をつけることは `samples/md-basic-ja/02-guide-for-human.md` に書いてある。
 <<<
 
 [[/SECTION]]
