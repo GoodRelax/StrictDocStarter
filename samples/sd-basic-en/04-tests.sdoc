@@ -1,0 +1,83 @@
+[DOCUMENT]
+TITLE: Basics - test cases
+UID: DOC-TESTS
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+A test case is **not a standard StrictDoc concept.** We added the `TEST_CASE`
+node type ourselves in `basic.sgra`. Because we added it, it can also carry our
+own field `EXPECTED`.
+
+**Keep the relation type as `Parent` and change the meaning with `ROLE`.** Here
+we attached `ROLE: Verifies`. That gives both the screen and the JSON a
+direction that reads "verifies". You must declare a `ROLE` in the grammar before
+you use it.
+
+These four test cases cover the four software requirements in `03-lower.sdoc`
+one to one. The **traceability matrix** screen in the left toolbar shows you at
+a glance whether the coverage holds.
+<<<
+
+[TEST_CASE]
+UID: TC-001
+TITLE: The conversion succeeds
+STATEMENT: >>>
+Give the tool an input file in the expected format and run it while no file with
+the same name exists at the output destination.
+<<<
+EXPECTED: >>>
+The tool exits normally and has created the output file in the format that you
+specified.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-001
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-002
+TITLE: An unexpected format is rejected
+STATEMENT: >>>
+Give the tool an input file that is not in the specified format and run it.
+<<<
+EXPECTED: >>>
+The tool exits with an error and creates no output file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-002
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-003
+TITLE: An existing file is not overwritten
+STATEMENT: >>>
+Place a file with the same name at the output destination, run the tool, and
+compare the contents of that file before and after the run.
+<<<
+EXPECTED: >>>
+The tool exits with an error, and the contents of the existing file stay the
+same.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-003
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-004
+TITLE: An interruption leaves no partial file
+STATEMENT: >>>
+Kill the process in the middle of the write and inspect the output destination.
+<<<
+EXPECTED: >>>
+No incomplete file remains at the output destination.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-004
+  ROLE: Verifies

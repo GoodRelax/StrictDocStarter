@@ -1,0 +1,19 @@
+[DOCUMENT]
+TITLE: Figure - conversion flow
+UID: FIG-FLOW
+OPTIONS:
+  MARKUP: Markdown
+
+[TEXT]
+STATEMENT: >>>
+```mermaid
+flowchart LR
+    IN["Input file"] --> CHK{"Is the format as expected?<br/>SW-002"}
+    CHK -- "no" --> STOP1["Failure"]
+    CHK -- "yes" --> CONV["Convert the file<br/>SW-001"]
+    CONV --> EXIST{"Does an output of the same name exist?<br/>SW-003"}
+    EXIST -- "yes" --> STOP2["Failure"]
+    EXIST -- "no" --> WRITE["Write the output<br/>SW-004"]
+    WRITE --> OUT["Output file"]
+```
+<<<
