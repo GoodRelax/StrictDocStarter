@@ -301,7 +301,7 @@ host テストとして以下を最低限カバーする (詳細手順は §5 Te
 | NFR-007 | 互換 | `server.config.json` は標準 JSON パーサで読めること (拡張記法なし、 `_comment_*` のみ慣習)。 PowerShell 5.1 の `ConvertFrom-Json` を前提に BOM strip を FR-204 で要求 |
 | NFR-008 | 独立性 | launch-strictdoc は setup-strictdoc が生成する `setup.log` / `setup.config.json` / `env-report.json` を読まない / 書かないこと (= 独立稼働) |
 | NFR-009 | 機密 | パスワード / PAT / トークンを `server.config.json` および log file に保存しないこと (strictdoc 自体が認証機能なし、 そもそも該当情報なし) |
-| NFR-010 | 可搬性 | `.bat` / `.ps1` / `.psm1` / `.js` / `.json` / `.py` / `.sgra` / `.svg` は、 **コメントと利用者向けメッセージを含め英語 ASCII のみ**で記述すること。 多言語化の対象は**利用者が編集する `.sdoc` / `.md` に限る** (仕様書・README 等の `.md` は文書であり対象外)。 理由: 本ランチャの動作環境のコンソールは cp932 であり、 非 ASCII の出力やソースは文字化け・encoding 依存の不具合を招く (§7 環境メモの `print` 落ちが実例)。 CI 相当の確認として、 上記拡張子を再帰走査し非 ASCII 文字を報告するスクリプトを検証パスに含めること (`output/` `temp/` `__pycache__/` `.git/` は除外) |
+| NFR-010 | 可搬性 | `.bat` / `.ps1` / `.psm1` / `.js` / `.json` / `.py` / `.sgra` / `.svg` は、 **コメントと利用者向けメッセージを含め英語 ASCII のみ**で記述すること。 多言語化の対象は**利用者が編集する `.sdoc` / `.md` に限る** (仕様書・README 等の `.md` は文書であり対象外)。 理由: 本ランチャの動作環境のコンソールは cp932 であり、 非 ASCII の出力やソースは文字化け・encoding 依存の不具合を招く (§7 環境メモの `print` 落ちが実例)。 CI 相当の確認として、 上記拡張子を再帰走査し非 ASCII 文字を報告するスクリプトを検証パスに含めること (`.git/` `.venv/` `venv/` `__pycache__/` `exported-json/` `node_modules/` `output/` `temp/` は除外)。 **ランチャが自動生成するローカル設定 (`server.config.json` / `setup.config.json`) も走査対象から外すこと。** これらの中身は人が書いたソースではなく利用者データである — ランチャは起動が成功するたびに利用者が選んだフォルダの絶対パスを `project_path` へ書き戻す (FR-1155) ため、 利用者が日本語名のフォルダを開けばこの門番は必ず赤くなり、 門番の赤が常態になれば本物の違反を見落とす。 どちらも gitignore 済みで公開しない。 非 ASCII のパスを許す根拠は FR-1167 (`project_title` は利用者に見せる文字列であり本要求の対象外) と同じである。 **commit する `*.template.json` は走査対象のまま残すこと** — テンプレートは人が書くファイルであり、 本要求が守る対象そのものである |
 
 ---
 

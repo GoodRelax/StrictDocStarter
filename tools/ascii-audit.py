@@ -9,6 +9,14 @@ class of problem.
 Documents are exempt on purpose: .sdoc and .md are what the user writes and
 translates, and the specs under docs/ are documents too.
 
+The local configuration the launcher generates is exempt for the same reason.
+launch-strictdoc writes the absolute path of the folder the user picked back
+into server.config.json after every successful run (FR-1155), so opening a
+folder whose name is not ASCII turns this gate red through no fault of anyone's
+source. That content is user data, not something a person authored here, and
+.gitignore keeps both files out of the repository. The committed templates stay
+in scope: a template is a file a person writes.
+
 Usage:
     python tools/ascii-audit.py [path]
 
@@ -31,13 +39,22 @@ SKIP_DIRS = {
     "temp",
     "venv",
 }
+# Launcher-generated local configuration, by path relative to the scanned root.
+# Matched exactly, so a file of the same name somewhere else stays in scope.
+SKIP_FILES = {
+    "server.config.json",
+    "setup.config.json",
+}
 
 
 def audit(root: pathlib.Path) -> list:
     findings = []
     for pattern in PATTERNS:
         for path in sorted(root.rglob(pattern)):
-            if SKIP_DIRS & set(path.relative_to(root).parts):
+            relative = path.relative_to(root)
+            if SKIP_DIRS & set(relative.parts):
+                continue
+            if relative.as_posix() in SKIP_FILES:
                 continue
             try:
                 text = path.read_text(encoding="utf-8")
