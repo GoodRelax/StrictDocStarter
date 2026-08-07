@@ -807,50 +807,6 @@ function Save-ConfigUpgradeDecline {
     }
 }
 
-function Test-ProjectTitleDeclined {
-    # FR-1168: a project that said no is never asked again. Unlike the generation
-    # update this question does not change from release to release, so the answer
-    # is recorded once and for good; deleting the entry by hand asks again. That
-    # is also why it is kept apart from config_upgrade_declined, which is keyed by
-    # scaffold version.
-    param(
-        [Parameter(Mandatory)] [string]$ConfigPath,
-        [Parameter(Mandatory)] [string]$ProjectPath
-    )
-    try {
-        if (-not (Test-Path -LiteralPath $ConfigPath)) { return $false }
-        $obj = (Read-FileNoBom -Path $ConfigPath) | ConvertFrom-Json -ErrorAction Stop
-        $map = $obj.PSObject.Properties['project_title_declined']
-        if (-not $map -or $null -eq $map.Value) { return $false }
-        $key = Get-DeclineKey -ProjectPath $ProjectPath
-        $entry = $map.Value.PSObject.Properties | Where-Object { $_.Name.ToLowerInvariant() -eq $key }
-        if (-not $entry) { return $false }
-        return [bool]$entry.Value
-    } catch {
-        return $false
-    }
-}
-
-function Save-ProjectTitleDecline {
-    param(
-        [Parameter(Mandatory)] [string]$ConfigPath,
-        [Parameter(Mandatory)] [string]$ProjectPath
-    )
-    try {
-        $obj = (Read-FileNoBom -Path $ConfigPath) | ConvertFrom-Json -ErrorAction Stop
-        if (-not $obj.PSObject.Properties['project_title_declined'] -or $null -eq $obj.project_title_declined) {
-            $obj | Add-Member -NotePropertyName project_title_declined -NotePropertyValue (New-Object PSObject) -Force
-        }
-        $key = Get-DeclineKey -ProjectPath $ProjectPath
-        $obj.project_title_declined | Add-Member -NotePropertyName $key -NotePropertyValue $true -Force
-        $json = $obj | ConvertTo-Json -Depth 10
-        $json = $json -replace '\\u003e', '>' -replace '\\u003c', '<' -replace '\\u0027', "'" -replace '\\u0026', '&'
-        Write-FileUtf8NoBom -Path $ConfigPath -Content $json
-    } catch {
-        Write-Host "[WARN]  Could not remember your answer: $($_.Exception.Message)" -ForegroundColor Yellow
-    }
-}
-
 function Add-ProjectTitleLine {
     # Return $Text with one project_title line added inside the ProjectConfig(...)
     # call, or $null when there is no place to put it that is certainly safe.
@@ -909,16 +865,11 @@ function Invoke-ProjectTitlePrompt {
     # regex and answers HTTP 400 when there is none to rewrite.
     param(
         [Parameter(Mandatory)] [string]$ProjectConfigPath,
-        [Parameter(Mandatory)] [AllowEmptyString()] [string]$ServerConfigPath,
         [Parameter(Mandatory)] [string]$ProjectPath,
         [Parameter(Mandatory)] [AllowEmptyString()] [string]$CurrentText
     )
 
     if (Test-ConfigDeclaresProjectTitle -Text $CurrentText) { return }
-    # Without a server config there is nowhere to record a "no", and asking every
-    # single launch would be worse than never asking.
-    if ([string]::IsNullOrWhiteSpace($ServerConfigPath) -or -not (Test-Path -LiteralPath $ServerConfigPath)) { return }
-    if (Test-ProjectTitleDeclined -ConfigPath $ServerConfigPath -ProjectPath $ProjectPath) { return }
 
     $title = Get-ProjectTitleFromPath -ProjectPath $ProjectPath
     $newText = Add-ProjectTitleLine -Text $CurrentText -Title $title
@@ -956,10 +907,22 @@ function Invoke-ProjectTitlePrompt {
         return
     }
 
-    $reply = Read-Host "Add that line now? [y/N]"
-    if (-not $reply -or $reply.Trim() -notmatch '^(y|yes)$') {
-        Write-Host "[INFO]  Nothing was changed. This will not be asked again for this project."
-        Save-ProjectTitleDecline -ConfigPath $ServerConfigPath -ProjectPath $ProjectPath
+    # Two answers, and only one of them writes. This file is not the launcher's to
+    # change, so pressing Enter -- or typing anything else -- must be completely
+    # safe. There is no third "stop asking" answer on purpose: anyone who wants
+    # the question to go away can put any project_title of their own in the file,
+    # and FR-1167 then leaves it alone for good without reading the value. The
+    # message below says so, so the way out is on screen rather than in a setting.
+    Write-Host "        Type  yes  and press Enter to add the line."
+    Write-Host "        Press Enter on its own to leave the file alone."
+    Write-Host ""
+    $reply = "$(Read-Host 'Add that line now?')".Trim().ToLowerInvariant()
+
+    if ($reply -ne 'yes' -and $reply -ne 'y') {
+        Write-Host "[INFO]  Nothing was changed."
+        Write-Host "        Prefer to pick the title yourself? Put any project_title line inside"
+        Write-Host "        ProjectConfig(...) -- once one is there, this is never asked again:"
+        Write-Host ('            project_title="{0}",' -f (ConvertTo-PythonStringLiteral -Text $title))
         return
     }
 
@@ -1188,8 +1151,7 @@ function Initialize-StrictDocProjectConfig {
         # FR-1168: still offer to name the project, since a file with no
         # project_title at all is titled 'Untitled Project' by strictdoc and
         # cannot be renamed from the browser either.
-        Invoke-ProjectTitlePrompt -ProjectConfigPath $cfgPy -ServerConfigPath $ServerConfigPath `
-            -ProjectPath $ProjectPath -CurrentText $currentText
+        Invoke-ProjectTitlePrompt -ProjectConfigPath $cfgPy -ProjectPath $ProjectPath -CurrentText $currentText
         return
     }
 
