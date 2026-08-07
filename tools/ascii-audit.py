@@ -25,6 +25,7 @@ SKIP_DIRS = {
     ".git",
     ".venv",
     "__pycache__",
+    "exported-json",
     "node_modules",
     "output",
     "temp",

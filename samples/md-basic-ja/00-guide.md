@@ -253,28 +253,163 @@ StrictDoc が自動でコピーするので、 設定に何も足さなくてよ
 `.sdoc` でパイプ表を使いたい場合は `MARKUP: Markdown` を宣言する。 例は
 `samples/sd-basic-ja/05-markdown.sdoc` にある。
 
-## 出力と JSON クエリ
+## JSON で引く
 
 **Type**: SECTION
 
-**HTML は人が読むため、 JSON は機械が引くため、 `.sdoc` への変換は書式を
-乗り換えるためのものである。**
+**仕様書の全量を JSON に出し、 そこから `jq` で欲しい部分だけを引く。**
+これが本章のすべてである。 絞り込みは JSON を出した**後**に行う。
+
+**StrictDoc 自身にも問い合わせ言語があるが、 JSON には効かない。** `--filter-nodes`
+は `.sdoc` と HTML の出力しか絞らず、 `--formats=json` に付けても**エラーも警告も
+出さないまま全件が出る** (0.27.1 で実測)。 **だから「全量を出してから引く」以外の
+道は無い。** 絞るのは `jq` の仕事である。
+
+### 全量 JSON を出す
+
+**Type**: SECTION
+
+**出力は 3 種類ある。 HTML は人が読むため、 JSON は機械が引くため、
+`.sdoc` への変換は書式を乗り換えるためのものである。**
 
 ```bash
-strictdoc export --formats=html --output-dir out .
 strictdoc export --formats=json --output-dir out .
-strictdoc export --formats=sdoc --output-dir out .
 ```
 
-HTML を読むだけなら export は要らない。 **このフォルダを
-`launch-strictdoc.bat` にドラッグすればサーバが立ち上がる。** 編集して保存すれば
-約 0.6 秒で画面に反映される。
+JSON は `out/json/index.json` に出る。 **要求を直したら毎回出し直す。**
+`--formats=json` に絞り込みの指定は無い。 **常に全量が出る。**
 
-**`.md` で新規作成すれば、 ブラウザの編集画面だけで Markdown 記法が使える。**
-`.sdoc` で作った文書をブラウザから Markdown に切り替える手段は無いので、
-これは `.md` を選ぶ実際的な理由の 1 つである。
+**HTML を読むだけなら export は要らない。** このフォルダを
+`launch-strictdoc.bat` にドラッグすればサーバが立ち上がり、 編集して保存すれば
+約 0.6 秒で画面に反映される。 書式の乗り換えは次の章にまとめてある。
 
-### .md から .sdoc へ移る
+### jq で引く
+
+**Type**: SECTION
+
+**`jq` は JSON 専用の小さなコマンドである。** StrictDoc とは無関係の道具で、
+`setup-strictdoc.bat` が既定で入れている。 JSON を読み込み、 書いた条件に合うものだけを
+出す。
+
+```bash
+jq -r -f q-open-findings.jq out/json/index.json
+```
+
+`q-open-findings.jq` の中身は、 例えば未対処の指摘を出すならこうなる。
+
+```text
+.DOCUMENTS[] | recurse(.NODES[]?)
+| select(._NODE_TYPE == "FINDING" and .RESOLUTION == "Open")
+| .UID + "  " + .SEVERITY + "  " + .TITLE
+```
+
+**先頭の `.` は「入力そのもの」を指す。** そこから `.名前` で下へ降り、 `[]` で配列を
+バラす。 `.DOCUMENTS[]` は「入力の `DOCUMENTS` を 1 個ずつ」の意味である。
+`.` はオプションではなくフィルタ本体で、 `jq [オプション] <フィルタ> [ファイル]`
+の真ん中に来る。
+
+**ノード型を引くキーは `_NODE_TYPE` である。** 文法に書いた `FINDING` という名前が
+そこに入る。 先頭に下線が付くので**書き間違えやすい。** この一式に当てた実際の
+出力はこうなる。
+
+```text
+RV-001  Major  SW-002 の検査方法が決まっていない
+RV-002  Question  SYS-003 に上書きを許す手段が無い
+```
+
+**同じフィルタを `samples/sd-basic-ja/` の JSON に当てても出力は 1 文字も
+変わらない。** これが「どちらで書いても JSON は同じ」の実物である。
+
+**フィルタを文字列で渡さずファイルに書くのは PowerShell のためである。**
+PowerShell はクォートの中の二重引用符を落とすので、 フィルタを直接引数に書く形が
+壊れる。 `-f` ならどの shell でも同じに動く。
+
+**cmd.exe で日本語を渡すときは、 先に `chcp 65001` を打つ。** 既定の cp932 のままだと
+`jq -r --arg kw 変換 -f ...` は**エラーも出さずに 0 件**を返す。 PowerShell では要らない。
+
+クエリの実例は `docs/03-sdoc-json-queries.md` に 7 本ある。
+
+### 答えを JSON のまま受け取る
+
+**Type**: SECTION
+
+**`-r` を付けなければ、 答えは JSON のまま出る。** 上の例は `-r` を付けて人が読む行を
+作っていた。 プログラムに渡すなら付けない。
+
+```bash
+jq -f q-findings-json.jq out/json/index.json
+```
+
+```text
+[ .DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE == "FINDING") ]
+| map({UID, SEVERITY, RESOLUTION, TITLE})
+```
+
+```json
+[
+  {
+    "UID": "RV-001",
+    "SEVERITY": "Major",
+    "RESOLUTION": "Open",
+    "TITLE": "SW-002 の検査方法が決まっていない"
+  },
+  {
+    "UID": "RV-002",
+    "SEVERITY": "Question",
+    "RESOLUTION": "Open",
+    "TITLE": "SYS-003 に上書きを許す手段が無い"
+  }
+]
+```
+
+**外側の `[ ... ]` は、 1 個ずつ出てくる結果を 1 つの配列にまとめるためのものである。**
+これが無いと JSON の値が縦に並ぶだけで、 配列にはならない。
+`map({UID, SEVERITY, RESOLUTION, TITLE})` は欲しい欄だけを残す書き方で、 全部の欄が
+要るなら `| map(...)` の行ごと外す。
+
+### 日本語について
+
+**Type**: SECTION
+
+**`index.json` の中で日本語は `\uXXXX` に化けている。** この文書のタイトルは、
+ファイルの中ではこう書かれている。
+
+```text
+"TITLE": "\u57fa\u672c - \u307e\u305a\u3053\u308c\u3092\u8aad\u3080",
+```
+
+StrictDoc が `json.dumps(..., indent=4)` をそのまま呼んでおり、 Python の既定で
+非 ASCII がすべてエスケープされるためである。 **これを変える設定もオプションも
+StrictDoc 側に無い。**
+
+**`jq` で引いている限り、 これは目に入らない。** jq が読み込むときに元の文字へ戻すので、
+上の出力例はどれも読める形で出ている。 **効くのは JSON ファイルそのものを人や機械へ
+渡す場面だけである。** その場合は jq を 1 回通せば直る。
+
+```bash
+jq . out/json/index.json > readable.json
+```
+
+**`.` は何も絞り込まないので中身は 1 文字も変わらない。** 変わるのは表記だけで、
+**しかも小さくなる。**
+
+| ファイル | バイト | `.md` 一式 (26,273 バイト) 比 |
+|---|---:|---:|
+| `index.json` (そのまま) | 84,932 | 3.23 |
+| `jq .` を通したもの | 53,242 | 2.03 |
+| `jq -c .` を通したもの | 35,035 | 1.33 |
+
+日本語 1 文字が `検` の 6 バイトから UTF-8 の 3 バイトに戻り、 字下げも
+4 スペースから 2 スペースになる。 `-c` は字下げと改行そのものを外す。
+
+**この書き出しを PowerShell でやってはならない。** PowerShell の `>` は UTF-16 で
+書くため、 jq が読めないファイルができる。 cmd.exe で打つか、
+`cmd /c 'jq . out/json/index.json > readable.json'` の形にする。
+
+**JSON を「軽いから」と説明してはならない。** 上表のとおり、 一番縮めても元の文書より
+大きい。 値打ちは小ささではなく、 **全文を読まずに答えだけを引けること**の側にある。
+
+## .md と .sdoc を行き来する
 
 **Type**: SECTION
 
@@ -287,6 +422,10 @@ strictdoc export --formats=sdoc --output-dir out .
 
 **`strictdoc convert` はこれには使えない。** あちらは Excel と ReqIF 専用で、
 `.md` を受け付けない。
+
+**`.md` で新規作成すれば、 ブラウザの編集画面だけで Markdown 記法が使える。**
+`.sdoc` で作った文書をブラウザから Markdown に切り替える手段は無いので、
+これは `.md` を選ぶ実際的な理由の 1 つである。
 
 変換のときに知っておくことが 3 つある。
 
@@ -310,46 +449,3 @@ UID → STATUS → TITLE → カスタムの単一行フィールド → STATEME
 **`basic.sgra` はこの順に宣言してある。** だからこの一式は往復できる —
 `--formats=sdoc` で変換した 5 文書をそのまま export し直せることを 0.27.1 で
 確認済みである。 自分の文法を作るときは、 この順序を崩さないこと。
-
-### JSON から引く
-
-**Type**: SECTION
-
-JSON は `out/json/index.json` に出る。 **要求を直したら毎回出し直す。**
-問い合わせは `jq` で行う。
-
-```bash
-strictdoc export --formats=json --output-dir out .
-jq -r -f q-open-findings.jq out/json/index.json
-```
-
-`q-open-findings.jq` の中身は、 例えば未対処の指摘を出すならこうなる。
-
-```text
-.DOCUMENTS[] | recurse(.NODES[]?)
-| select(._NODE_TYPE == "FINDING" and .RESOLUTION == "Open")
-| .UID + "  " + .SEVERITY + "  " + .TITLE
-```
-
-**ノード型を引くキーは `_NODE_TYPE` である。** 文法に書いた `FINDING` という名前が
-そこに入る。 先頭に下線が付くので**書き間違えやすい。** この一式に当てた実際の
-出力はこうなる。
-
-```text
-RV-001  Major  SW-002 の検査方法が決まっていない
-RV-002  Question  SYS-003 に上書きを許す手段が無い
-```
-
-**同じフィルタを `samples/sd-basic-ja/` の JSON に当てても出力は 1 文字も
-変わらない。** これが「どちらで書いても JSON は同じ」の実物である。
-
-**フィルタを文字列で渡さずファイルに書くのは PowerShell のためである。**
-PowerShell はクォートの中の二重引用符を落とすので、 フィルタを直接引数に書く形が
-壊れる。 `-f` ならどの shell でも同じに動く。
-
-クエリの実例は `docs/03-sdoc-json-queries.md` に 7 本ある。
-
-**JSON を「軽いから」と説明してはならない。** StrictDoc の JSON は元の文書より
-**大きい。** 4 スペースで整形され、 かつ非 ASCII が `\uXXXX` に展開されるため
-である。 値打ちは小ささではなく、 **全文を読まずに答えだけを引けること**の側に
-ある。
