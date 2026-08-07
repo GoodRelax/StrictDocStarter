@@ -48,7 +48,7 @@ from strictdoc.core.project_config import ProjectConfig
 def create_config() -> ProjectConfig:
     return ProjectConfig(
         project_title="Markdown basics, Japanese (StrictDocStarter sample)",
-        # 00-guide-for-AI.md is the brief handed to an AI; it is about this
+        # ai-guide.md is the brief handed to an AI; it is about this
         # sample rather than part of it. Every .md in the folder is otherwise
         # parsed as a document, and it would show up as a sixth one in the
         # project index -- this sample's shape (3 upper, 4 lower, 4 tests,
@@ -59,7 +59,7 @@ def create_config() -> ProjectConfig:
         # Named as a file on purpose. Excluding a folder ("_assets/**") would
         # also stop the assets being copied, and the export still reports
         # success while the images 404.
-        exclude_doc_paths=["00-guide-for-AI.md", "00-queries-for-AI.md"],
+        exclude_doc_paths=["ai-guide.md", "ai-queries.md"],
         # Appearance. StrictDoc has no dark mode of its own, so StrictDocStarter
         # supplies one as an extra stylesheet. strictdoc-theme.css next to this file
         # is regenerated every time the project is opened, following the color_mode
