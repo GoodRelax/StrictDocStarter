@@ -51,6 +51,33 @@ Markdown 形式の StrictDoc プロジェクトにも当てはまる。**
 
 コマンド例は Git Bash で実行する前提で書いてある。
 
+## ★ 他のプロジェクトで使うときに置き換えるもの
+
+**Type**: SECTION
+
+**本書の規則はどの Markdown 形式の StrictDoc プロジェクトにも当てはまる。**
+一方、**本書に出てくる固有名詞はこの実例のものである。** 他のプロジェクトで使うときは
+下の表のとおり読み替える。**規則そのものは読み替えなくてよい。**
+
+| 本書に出る名前 | 何を表すか | 相手のプロジェクトでは |
+|---|---|---|
+| `samples/md-basic-ja` | 仕様書のフォルダ | 相手のフォルダ |
+| `basic.sgra` | 文法ファイル | **名前は自由。** 拡張子だけ `.sgra` |
+| `DOC-UPPER` / `DOC-LOWER` など | 文書の UID | 相手が決めている。**用例 1 で調べる** |
+| `SYS-*` / `SW-*` / `TC-*` / `RV-*` | 要求・テスト・指摘の UID | 相手の採番。**用例 3 で調べる** |
+| `DOC-FIG-` | **図の文書の UID の接頭辞** | **自分で決める。** 監査クエリに `--arg figprefix` で渡す |
+| `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` | **解説文書の UID** | 相手の解説文書。集計時に `--arg skip` で除く |
+| `03-upper.md` などのファイル名 | 文書のファイル名 | **JSON には入らない。** 用例 16 の `grep` で調べる |
+| `_assets` | 添付ファイル置き場 | **固定。変えられない** (2.8) |
+| `strictdoc-quirks.tsv` | 癖の記録 | 同じ名前で作る (0.1) |
+
+**この 2 つだけは自分で決める取り決めであり、StrictDoc の仕様ではない。**
+
+- **図の文書の UID の接頭辞** — 監査クエリが「既に外に出した図」を見分けるために要る (2.1)
+- **解説文書をどれと見なすか** — 記法を数えるクエリから除くために要る (3 章)
+
+**どちらもクエリへ引数で渡す。** クエリ本体を書き換えないこと。
+
 ---
 
 ## 0. 本書に無いエラーに当たったとき
@@ -187,6 +214,7 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 | 規則 | 違反時のエラーメッセージ |
 |---|---|
 | ファイルの先頭を H1 で始める。1 ファイルに 1 つだけ | `the document must start with an H1 heading` |
+| **見出しのレベルを飛ばさない。** `#` の次に `###` を置いてはならない | `heading level forward jumps are not allowed: L1 -> L3` |
 | 見出しの直後に空行を 2 つ以上置かない | `two or more consecutive empty lines are not allowed` |
 | フィールド名は文法どおりの綴りで書く | `Invalid requirement field` |
 | 文法に `TYPE` という名前のフィールドを作らない | 型の指定に使う名前なので `.md` から書けなくなる |
@@ -211,9 +239,25 @@ Semantic error: Invalid node type: SECTION.
 error: A process in the process pool was terminated abruptly while the future was running or pending.
 ```
 
-行継続の `\` が壊れているときなどに出る。`strictdoc --debug export ...` を付け直すと
-stack trace が出るので、そこから当たる。**これと 2.3 の `string index out of range` の
-2 つだけが「場所を教えないエラー」である。** ほかは 1 行目を読めば場所が分かる。
+**★ このエラーが出たら `--no-parallelization` を付けて出し直す。本当のエラーが出る** (実測)。
+
+```bash
+strictdoc export <仕様書のフォルダ> --formats=json --output-dir <出力先> --no-parallelization
+```
+
+```text
+error: could not parse file: C:\...\00-ai-guide.md.
+Semantic error: Markdown parsing error: heading level forward jumps are not allowed: L1 -> L3.
+Location: C:\...\00-ai-guide.md:54:1
+```
+
+**ファイル名も行番号も出る。** 並列で走らせているときだけ、StrictDoc が本当のエラーを
+子プロセスから運べずに握り潰している (strictdoc 0.27.1 の不具合。例外クラスの生成に
+失敗している)。**`--debug` は stack trace を出すだけで場所は出さない。
+`--no-parallelization` のほうが速い。**
+
+**これと 2.3 の `string index out of range` の 2 つだけが「そのままでは場所を教えないエラー」である。**
+ほかは 1 行目を読めば場所が分かる。
 
 ### 実例を見ても分からない規則
 
@@ -481,19 +525,27 @@ stateDiagram-v2
 StrictDoc は図を本文へ展開しない。`[LINK:]` の文字も StrictDoc がリンク先のタイトルから
 自動で作るので、**書き手はその文字を指定できない。**
 
-**★ 名前の規則を 2 つとも守ること。ただし機械で効くのは UID のほうだけである。**
-監査クエリ (用例 14b) は**文書の UID が `DOC-FIG-` で始まるか**で「既に外に出した図」を
-判定する。**ファイル名は JSON に入らないので、どのクエリからも見えない** —
-`fig-` の規則は人がファイル一覧を見たときに図だと分かるための取り決めである。
-**UID を間違えると監査が壊れる。ファイル名を間違えても壊れない。**
+**★ 規則: 図の文書には、ファイル名にも UID にも共通の接頭辞を付ける。**
+接頭辞そのものは StrictDoc が決めるものではなく、**プロジェクトごとの取り決めである。**
 
-| | 規則 | 例 |
+| | 規則 | この実例での取り決め |
 |---|---|---|
-| ファイル名 | **`fig-` で始める** | `_assets/fig-state.md` |
-| `**UID**:` | **`DOC-FIG-` で始める** | `DOC-FIG-STATE` |
+| ファイル名 | 図だと分かる接頭辞で始める | **`fig-`** — `_assets/fig-state.md` |
+| `**UID**:` | 図だと分かる接頭辞で始める | **`DOC-FIG-`** — `DOC-FIG-STATE` |
 
-**副作用**: `_assets/*.md` も文書一覧に出る。このサンプルでは `DOC-NOTE` と
-`DOC-FIG-STATE` が該当する。**これは許容する方針である。**
+**機械で効くのは UID のほうだけである。** 監査クエリ (用例 14b) は
+`--arg figprefix` で渡した接頭辞で「既に外に出した図」を判定する。
+**ファイル名は JSON に入らないので、どのクエリからも見えない** —
+ファイル名の接頭辞は、人がファイル一覧を見たときに図だと分かるための取り決めである。
+
+**UID の接頭辞を間違えると監査が壊れる。ファイル名を間違えても壊れない。**
+
+**既にあるプロジェクトに図を足すときは、相手の接頭辞に合わせる。** 用例 1 で文書を
+一覧すれば、図の文書がどんな UID を使っているかが分かる。**接頭辞が無いプロジェクトなら、
+自分で決めて 0.1 の記録ではなく `02-guide-for-human.md` に当たる文書へ書き残す。**
+
+**副作用**: `_assets/*.md` は文書一覧に出る。この実例では `DOC-NOTE` と `DOC-FIG-STATE`
+が該当する。**これは許容する方針である** (隠す方法は無い。下記)。
 
 **本文から図を外に出すときは、前後の地の文も直すこと。** 「下の図のとおり」「上の流れで」
 のような文は、図が消えた瞬間に宙に浮く。**リンクの 1 行に差し替えるだけでは足りない。**
@@ -883,28 +935,36 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")] 
 
 **13. どこに図・数式・コード・表・画像があるか。** 2 列目は `UID`、無ければ `_TOC`。
 
+**`--arg skip` に解説文書の UID をコンマ区切りで渡す。** 渡さないと解説文書の中身が
+大量に混ざる (下記)。
+
 ````bash
-jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT as $s
-| [$s | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0]] as $lang
+jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE' '($skip | split(",")) as $s
+| .DOCUMENTS[] | select(.UID | IN($s[]) | not) | .UID as $doc
+| recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT as $t
+| [$t | split("```") | to_entries[] | select(.key % 2 == 1) | .value | split("\n")[0]] as $lang
 | [ (if ($lang | index("mermaid")) then "図" else empty end),
-    (if ($s | contains("$$")) then "数式" else empty end),
+    (if ($t | contains("$$")) then "数式" else empty end),
     (if ($lang | map(select(. != "mermaid" and . != "")) | length) > 0 then "コード" else empty end),
-    (if ($s | test("(?m)^[|]")) then "表" else empty end),
-    (if ($s | contains("![")) then "画像" else empty end) ] as $k
+    (if ($t | test("(?m)^[|]")) then "表" else empty end),
+    (if ($t | contains("![")) then "画像" else empty end) ] as $k
 | select(($k | length) > 0) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($k | join(","))' <json>
 ````
 
 ```text
-DOC-GUIDE  3.2.1  図,画像
-DOC-LOWER  6.1  図,数式,コード
+DOC-LOWER  6.1  図,数式,コード,表
+DOC-TESTS  1  コード
 DOC-FIG-STATE  1  図
-（この実例では 76 行返る。上は代表を 3 行だけ抜いたもの）
+DOC-NOTE  1  表
 ```
 
-**返る行数の多さに驚かないこと。** この実例では 76 行のうち **72 行が解説文書**である
-(本書が 21 行、`01-ai-queries.md` が 36 行、`02-guide-for-human.md` が 15 行)。
-解説書は説明のために記法を大量に抱えるためで、壊れてはいない。**仕様書側は 4 行しかない。**
-集計に使うときは必ず後述の「集計するときは解説文書を除くこと」を読むこと。
+**`--arg skip` に何を渡すかは実例ごとに違う。** この実例の解説文書は 3 つ
+(`DOC-AI-GUIDE` = 本書、`DOC-AI-QUERIES`、`DOC-GUIDE`) である。**相手のプロジェクトでは
+まず用例 1 で文書を一覧し、記法の解説を兼ねた文書を見つけて渡す** (探し方は 3 章の
+「集計するときは解説文書を除くこと」)。
+
+**渡さないと 76 行返り、そのうち 72 行が解説文書になる** (実測)。解説書は説明のために
+記法を大量に抱えるためで、壊れてはいない。**渡せば 4 行になる。**
 
 **言語名はフェンス 1 個ずつ見ること。** ` ``` ` で切ると奇数番目が必ずフェンスの中身に
 なるので、その 1 行目が言語名である。**ノード全体に対して「`mermaid` を含むか」で
@@ -934,8 +994,11 @@ DOC-FIG-STATE  19 行  外に出す
 **14b. 規則違反だけを出す。0 件が正常。** 既に外に出した図 (`DOC-FIG-` で始まる文書) を
 除くので、**これが 1 行でも返ったら直す仕事がある**という意味になる。
 
+**`--arg figprefix` に図の文書の UID の接頭辞を渡す。** この実例では `DOC-FIG-` である。
+**相手のプロジェクトでは相手の接頭辞を渡す。クエリ本体は書き換えない。**
+
 ````bash
-jq -r '.DOCUMENTS[] | select(.UID | startswith("DOC-FIG-") | not) | .UID as $doc
+jq -r --arg figprefix 'DOC-FIG-' '.DOCUMENTS[] | select(.UID | startswith($figprefix) | not) | .UID as $doc
 | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
 | ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c

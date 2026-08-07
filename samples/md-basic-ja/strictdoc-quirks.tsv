@@ -4,3 +4,5 @@ date	sd_version	step	symptom	workaround	where
 2026-08-07	0.27.1	export-html	asset outside _assets was not copied	moved the file into _assets	00-ai-guide.md 2.8
 2026-08-07	0.27.1	jq	Invalid escape from a doubled backslash	rewrote the regex with character classes	00-ai-guide.md 3
 2026-08-07	0.27.1	server	config edit had no effect	restarted the server	00-ai-guide.md 1
+2026-08-07	0.27.1	export-json	heading level forward jumps are not allowed: L1 -> L3	used ## instead of ### under the H1	00-ai-guide.md
+2026-08-07	0.27.1	export-json	pool died with no message; StrictDocSemanticError takes 1 arg but 6 given	re-ran with --no-parallelization to see the real error	00-ai-guide.md

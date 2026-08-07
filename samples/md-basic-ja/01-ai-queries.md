@@ -9,11 +9,16 @@
 以下はすべて `samples/md-basic-ja` を `strictdoc export --formats=json` した結果に対して
 実行し、出力を確認したものである。`<json>` は `<出力先>/json/index.json` を指す。
 
-このサンプルの中身: 上位要求 `SYS-001..003` / 下位要求 `SW-001..004` /
+**★ 本書に出てくる `DOC-*` や `SW-*` はこの実例の名前である。**
+他のプロジェクトで使うときの読み替えは、`00-ai-guide.md` の
+「★ 他のプロジェクトで使うときに置き換えるもの」に表でまとめてある。
+**クエリの形は読み替えなくてよい。** 実例に依存する値は `--arg` で外から渡す作りにしてある。
+
+この実例の中身: 上位要求 `SYS-001..003` / 下位要求 `SW-001..004` /
 テストケース `TC-001..004` / レビュー指摘 `RV-001..002`。
 **本書と `00-ai-guide.md` も文書である** (`DOC-AI-QUERIES` / `DOC-AI-GUIDE`)。
 記法を説明するために図やコードを大量に抱えているので、**集計するクエリでは必ず除くこと**。
-図・数式・コードは `DOC-LOWER` の末尾の章と、`_assets/fig-state.md` (`DOC-FIG-STATE`) にある。
+図・数式・コード・表は `DOC-LOWER` の末尾の章と、`_assets/fig-state.md` (`DOC-FIG-STATE`) にある。
 
 ---
 
@@ -515,7 +520,7 @@ DOC-FIG-STATE  19 行  外に出す
 0 行が正常である。**
 
 ````bash
-jq -r '.DOCUMENTS[] | select(.UID | startswith("DOC-FIG-") | not) | .UID as $doc
+jq -r --arg figprefix 'DOC-FIG-' '.DOCUMENTS[] | select(.UID | startswith($figprefix) | not) | .UID as $doc
 | recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
 | ltrimstr("mermaid") | split("\n") | map(select(. != "")) | length as $c
