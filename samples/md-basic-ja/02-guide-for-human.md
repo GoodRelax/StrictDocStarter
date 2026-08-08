@@ -133,7 +133,7 @@
 | H1 が無い / `##` から始まる / 空 | `the document must start with an H1 heading` |
 | 見出しの直後に空行が 2 つ以上 | `two or more consecutive empty lines are not allowed` |
 | カスタムフィールドの綴りが文法と違う | `Invalid requirement field` |
-| 文法に `TYPE` という名前のフィールドを作る | StrictDoc が型の指定にこの名前を使うので書けなくなる |
+| `TYPE` というフィールドを `**Type**:` と書く | StrictDoc がノード型の指定と解釈する。 `**TYPE**:` と大文字で書けば通る |
 
 3 つめには**非対称がある。** `Statement` `Title` `Status` `Rationale` `Comment`
 `Level` `Tags` `Prefix` の 8 語だけは大文字小文字を問わない。 それ以外は

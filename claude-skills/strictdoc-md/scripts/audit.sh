@@ -142,7 +142,11 @@ report "review comment missing" "$TMP/review"
 #    6a. Japanese.
 #    ears-shape     the sentence does not end in the shall-form 「こと。」
 #    ears-order     a condition marker sits after the subject; EARS puts the
-#                   condition first
+#                   condition first. 「時」 counts only when a particle follows
+#                   it (時に / 時は / 時、) and the character before it does not
+#                   turn it into a noun - 同時 / 時刻 / 時間 / 24 時間 are not
+#                   conditions, and counting them flagged 9 requirements of the
+#                   SOVD sample that were fine (measured)
 #    passive        される / された / られる appears
 #    no-subject     no は before the first comma
 #    negative       ない / ません appears. The EARS unwanted-behaviour pattern
@@ -154,7 +158,7 @@ jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
 | . as $n | ($n.STATEMENT | gsub("\r"; "")) as $t
 | select($t | test("[぀-ヿ一-鿿]"))
 | [ (if ($t | test("こと。\\s*$") | not) then "ears-shape" else empty end),
-    (if ($t | test("は、?[^。]*(もし|場合|とき|時|の間)")) then "ears-order" else empty end),
+    (if ($t | test("は、?[^。]*(もし|場合|とき|の間|[^同日瞬常一分秒何]時(に|は|、))")) then "ears-order" else empty end),
     (if ($t | test("される|された|されて|られる|られた")) then "passive" else empty end),
     (if ($t | test("^[^。]*は")     | not) then "no-subject" else empty end),
     (if ($t | test("ない|ません")) then "negative" else empty end) ] as $why

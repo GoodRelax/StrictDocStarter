@@ -224,7 +224,7 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 | **見出しのレベルを飛ばさない。** `#` の次に `###` を置いてはならない | `heading level forward jumps are not allowed: L1 -> L3` |
 | 見出しの直後に空行を 2 つ以上置かない | `two or more consecutive empty lines are not allowed` |
 | フィールド名は文法どおりの綴りで書く | `Invalid requirement field` |
-| 文法に `TYPE` という名前のフィールドを作らない | 型の指定に使う名前なので `.md` から書けなくなる |
+| `TYPE` という名前のフィールドは `**TYPE**:` と大文字で書く | `**Type**:` はノード型の指定子として先に抜き取られる |
 | 宣言されていない `Role` を書かない | `Semantic error: Requirement relation type/role is not registered: Parent / Verifies` |
 | **文法を自分で起こすなら `SECTION` を宣言する** | `Semantic error: Invalid node type: SECTION.` |
 | **`SECTION` には `PROPERTIES: IS_COMPOSITE: True` を付ける** | `The SECTION grammar element must be declared as composite.` (Hint に修正例が出る) |
@@ -288,8 +288,12 @@ Location: C:\...\00-ai-guide.md:54:1
   | `TEST_CASE` | `Parent` + `Role: Verifies` |
 - **関係の中だけ `**ID**:` である。** ノードの識別子は `**UID**:` だが、`**Relations**:`
   ブロックの中で相手を指すキーは `**ID**:` になる。`**UID**:` と書くと通らない
-- **`Type` は `.md` 上でノード型を選ぶための予約語であり、文法のフィールドではない。**
-  だから `**Type**: TEST_CASE` は書けるのに、文法に `TYPE` という名前のフィールドは作れない
+- **`Type` は `.md` 上でノード型を選ぶための予約語である。** 予約されているのは
+  **`Type` という綴りだけ**で、reader は `field_.name == "Type"` と完全一致で比べる
+  (0.27.1 の `backend/markdown/reader.py`)。**だから文法に `TYPE` という名前の
+  フィールドを作ってよい** — `**TYPE**:` と大文字で書けば通常のフィールドとして通り、
+  同じノードに `**Type**: COMPONENT` と併記もできる (実測)。
+  ただし単一行のカスタムフィールドなので、**宣言は `TITLE` の後ろに置く**
 - **`.sgra` の `FIELDS` は必ずこの順で宣言する** (`.md` に書く順ではない)。
   `UID → STATUS → TITLE → カスタムの単一行フィールド → STATEMENT →
   RATIONALE などの複数行フィールド`。違反しても json / html の export は通ってしまうが、
@@ -427,7 +431,8 @@ ELEMENTS:
 - **`SECTION` は宣言が要る。`TEXT` は要らない** (組み込み)
 - **`TAG` と `TITLE` の名前は、`.md` 側の綴りとそのまま一致させる。** `GIVEN` と
   宣言したら `.md` にも `**GIVEN**:` と書く。`**Given**:` は停止する
-- **`TYPE` という名前のフィールドを宣言してはならない。** ノード型の指定に使う予約語である
+- **`TYPE` という名前のフィールドは宣言してよい。** 予約語は `Type` という綴りだけである。
+  `.md` には `**TYPE**:` と大文字で書き、宣言は `TITLE` の後ろに置く
 - **フィールドの宣言順が `.md` 側の制約になる。** `UID → STATUS → TITLE →
   カスタムの単一行フィールド → STATEMENT → RATIONALE などの複数行フィールド` の順に宣言する。
   この順でないと **json / html / sdoc のすべてが即座に停止する** (実測)。

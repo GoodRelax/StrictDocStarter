@@ -237,7 +237,7 @@ consecutive lines into a single line, and this character stops them.
 | **Do not skip a heading level.** Never put `###` right after `#` | `heading level forward jumps are not allowed: L1 -> L3` |
 | Do not put two or more empty lines right after a heading | `two or more consecutive empty lines are not allowed` |
 | Spell a field name exactly as the grammar declares it | `Invalid requirement field` |
-| Do not create a field named `TYPE` in the grammar | StrictDoc uses that name to pick a node type, so you can no longer write the field from `.md` |
+| Write a field named `TYPE` as `**TYPE**:`, in capitals | `**Type**:` is taken as the node-type selector before anything else |
 | Do not write a `Role` that the grammar does not declare | `Semantic error: Requirement relation type/role is not registered: Parent / Verifies` |
 | **Declare `SECTION` when you write your own grammar** | `Semantic error: Invalid node type: SECTION.` |
 | **Give `SECTION` a `PROPERTIES: IS_COMPOSITE: True`** | `The SECTION grammar element must be declared as composite.` (the Hint shows you the fix) |
@@ -304,9 +304,12 @@ For every other error, the first line tells you where it is.
 - **Only inside a relation does the key become `**ID**:`.** A node's identifier is `**UID**:`, but
   the key that points at the other node inside a `**Relations**:` block is `**ID**:`. `**UID**:`
   does not pass there
-- **`Type` is a reserved word that picks a node type in `.md`, not a field of the grammar.**
-  That is why you can write `**Type**: TEST_CASE` and yet cannot create a field named `TYPE` in
-  the grammar
+- **`Type` is the reserved word that picks a node type in `.md`.** What is reserved is
+  **the spelling `Type` alone** - the reader compares `field_.name == "Type"` exactly
+  (`backend/markdown/reader.py`, 0.27.1). **So you may declare a grammar field named `TYPE`**:
+  write it as `**TYPE**:` in capitals and it passes through as an ordinary field, even on a node
+  that also carries `**Type**: COMPONENT` (measured). It is a single-line custom field, so
+  **declare it after `TITLE`**
 - **Declare `FIELDS` in `.sgra` in this order** (it is not the order you write them in `.md`).
   `UID → STATUS → TITLE → your own single-line fields → STATEMENT →
   multi-line fields such as RATIONALE`. **Break the order and json, html and sdoc all stop on the
@@ -449,7 +452,8 @@ How to read it:
 - **`SECTION` needs a declaration. `TEXT` does not** (it is built in)
 - **Match the names you give `TAG` and `TITLE` to the spelling on the `.md` side exactly.** Once you
   declare `GIVEN`, write `**GIVEN**:` in the `.md` too. `**Given**:` stops the export
-- **Never declare a field named `TYPE`.** It is the reserved word that picks a node type
+- **You may declare a field named `TYPE`.** Only the spelling `Type` is reserved.
+  Write it as `**TYPE**:` in the `.md`, and declare it after `TITLE`
 - **The order in which you declare the fields constrains the `.md` side.** Declare them in the order
   `UID → STATUS → TITLE → your own single-line fields → STATEMENT →
   multi-line fields such as RATIONALE`. **In any other order json, html and sdoc all stop on the

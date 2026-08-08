@@ -141,7 +141,7 @@ and no one could tell where anything is. When you need a new field, add it to
 | The file has no H1 / starts with `##` / is empty | `the document must start with an H1 heading` |
 | Two or more empty lines follow a heading | `two or more consecutive empty lines are not allowed` |
 | A custom field spells its name differently from the grammar | `Invalid requirement field` |
-| The grammar declares a field named `TYPE` | StrictDoc uses that name to set the type, so you can never write it |
+| You write a `TYPE` field as `**Type**:` | StrictDoc reads it as the node type. Write `**TYPE**:` in capitals instead |
 
 The third trap hides an **asymmetry.** Only the eight words `Statement` `Title` `Status`
 `Rationale` `Comment` `Level` `Tags` `Prefix` ignore case. You spell everything else

@@ -28,9 +28,9 @@ To use a grammar type from `.md`, you write the name of the type in `Type` direc
 
 **Four traps specific to `.md` wait for you here.**
 
-1. **StrictDoc uses the name `Type` for the type itself, so never declare a field
-   named `TYPE` in the grammar.** If you declare one, you can no longer write it
-   from `.md`.
+1. **The only spelling StrictDoc reserves for the type itself is `Type`.** You may
+   declare a grammar field named `TYPE` and write it as `**TYPE**:` in capitals
+   (measured). It becomes the node-type selector only when you spell it `**Type**:`.
 2. **Write the key of a custom field in the uppercase the grammar declares.**
    `GIVEN` passes but `Given` fails. The eight built-in words such as
    `Statement` and `Title` ignore case, on the other hand. **You can only memorize
