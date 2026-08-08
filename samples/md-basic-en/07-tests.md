@@ -4,11 +4,11 @@
 **UID**: DOC-TESTS \
 **Version**: 1.0
 
-A test case is **not a standard StrictDoc concept.** We added a node type named
+A test case is not a standard StrictDoc concept. We added a node type named
 `TEST_CASE` ourselves in `basic.sgra`. Because we added it, we could take the
 three Gherkin words `GIVEN`, `WHEN` and `THEN` straight into it as fields.
-**The heading doubles as the scenario name, so this grammar carries no `SCENARIO`
-field.**
+The heading doubles as the scenario name, so this grammar carries no `SCENARIO`
+field.
 
 To use a grammar type from `.md`, you write the name of the type in `Type` directly under the heading.
 
@@ -28,20 +28,20 @@ To use a grammar type from `.md`, you write the name of the type in `Type` direc
 
 **Four traps specific to `.md` wait for you here.**
 
-1. **The only spelling StrictDoc reserves for the type itself is `Type`.** You may
+1. The only spelling StrictDoc reserves for the type itself is `Type`. You may
    declare a grammar field named `TYPE` and write it as `**TYPE**:` in capitals
    (measured). It becomes the node-type selector only when you spell it `**Type**:`.
-2. **Write the key of a custom field in the uppercase the grammar declares.**
+2. Write the key of a custom field in the uppercase the grammar declares.
    `GIVEN` passes but `Given` fails. The eight built-in words such as
-   `Statement` and `Title` ignore case, on the other hand. **You can only memorize
-   this asymmetry.**
-3. **Order the fields the way the grammar declares them.** Once the two orders
+   `Statement` and `Title` ignore case, on the other hand. You can only memorize
+   this asymmetry.
+3. Order the fields the way the grammar declares them. Once the two orders
    differ, StrictDoc stops with `Wrong field order for requirement`. Put the
    fields that fit on one line in the block directly under the heading, and put
    the fields that become paragraphs after that block. Both sides follow the
    declared order.
-4. **`TEST_CASE` in this grammar carries no `STATEMENT`, so you cannot write free
-   text inside one.** StrictDoc reads free text in `.md` as `Statement`, so free
+4. `TEST_CASE` in this grammar carries no `STATEMENT`, so you cannot write free
+   text inside one. StrictDoc reads free text in `.md` as `Statement`, so free
    text inside a `TEST_CASE` stops the export with
    `Semantic error: Invalid requirement field: STATEMENT` (measured on 0.27.1).
    Write the explanation in `TEST_REMARK` instead.
@@ -50,11 +50,11 @@ To use a grammar type from `.md`, you write the name of the type in `Type` direc
 `Blocked`.** `ISSUE_KEY` and `TEST_REMARK` are optional, so you write them only on
 the scenarios that need them.
 
-**The relation type stays `Parent`, and `Role` changes what it means.** Here we
+The relation type stays `Parent`, and `Role` changes what it means. Here we
 attached `Verifies`. You must declare a `Role` in the grammar before you use it.
 
 These four test cases cover the four software requirements of `06-lower.md` one
-for one. The **traceability matrix** screen in the left toolbar shows you at a
+for one. The traceability matrix screen in the left toolbar shows you at a
 glance whether the coverage holds.
 
 The same four also verify `UC-001` in `03-usecases.md`. Each `GIVEN` / `WHEN` /
@@ -65,31 +65,31 @@ four line up one for one with the four threads of the use case.
 
 **Type**: SECTION
 
-**Gherkin is a language for writing down behaviour split three ways.** It spread
+Gherkin is a language for writing down behaviour split three ways. It spread
 as the format that Cucumber, a test automation tool, reads. The official
 reference defines the three words like this.
 
 | Word | What you write |
 | --- | --- |
-| `Given` | **The precondition.** The state the system sits in before anything happens |
-| `When` | **The event.** The operation a person or another system performs |
-| `Then` | **The expected outcome.** What ought to happen |
+| `Given` | The precondition. The state the system sits in before anything happens |
+| `When` | The event. The operation a person or another system performs |
+| `Then` | The expected outcome. What ought to happen |
 
-**The reason for the split is that nobody can verify a sentence that mixes
-precondition, operation and outcome.** Write "handing it a broken file makes it
+The reason for the split is that nobody can verify a sentence that mixes
+precondition, operation and outcome. Write "handing it a broken file makes it
 exit with an error" as one sentence, and a reader cannot tell what to prepare in
 order to try it. Split it three ways and what to prepare, what to press and what
 to look at each become decided.
 
 **A StrictDoc field cannot repeat.** Gherkin's `And` and `But` cannot become
-fields of their own, so **you write the extra lines inside `GIVEN`.**
+fields of their own, so you write the extra lines inside `GIVEN`.
 
 ```text
 **GIVEN**: An input file the tool can convert exists.
 No file of the same name sits at the destination.
 ```
 
-**This set uses the three words `Given`, `When` and `Then` and nothing else.**
+This set uses the three words `Given`, `When` and `Then` and nothing else.
 Gherkin also has `Feature`, `Rule`, `Scenario Outline`, `Examples` and
 `Background`. We take none of them, because StrictDoc's own document structure
 fills the same role: `Feature` maps to a document and a chapter, `Scenario` to a
@@ -99,9 +99,9 @@ heading.
 
 **Type**: SECTION
 
-- **The official Gherkin reference** - <https://cucumber.io/docs/gherkin/reference/>
+- The official Gherkin reference - <https://cucumber.io/docs/gherkin/reference/>
   It lists the keywords and defines `Given`, `When` and `Then` one by one.
-  **The description of the three words above follows the definitions on that page.**
+  The description of the three words above follows the definitions on that page.
 
 ## The conversion succeeds
 

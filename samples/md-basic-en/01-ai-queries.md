@@ -3,13 +3,13 @@
 **UID**: DOC-AI-QUERIES \
 **Version**: 1.0
 
-**This document expands "Pull only the part of the specification you need" of `00-ai-guide.md`.**
-`00-ai-guide.md` already carries the main queries. **If those are enough, skip this document.**
+This document expands "Pull only the part of the specification you need" of `00-ai-guide.md`.
+`00-ai-guide.md` already carries the main queries. If those are enough, skip this document.
 
 We ran every query below against the JSON that `strictdoc export --formats=json` produced
 from `samples/md-basic-en`, and we checked each output. `<json>` means `<output dir>/json/index.json`.
 
-**The `DOC-*` and `SW-*` names in this document belong to this worked example.**
+The `DOC-*` and `SW-*` names in this document belong to this worked example.
 `00-ai-guide.md` collects the substitutions for another project in a table under
 "What to replace when you use this in another project".
 **You do not need to rewrite the shape of a query.** Each query takes the values that
@@ -18,9 +18,9 @@ depend on this worked example from outside through `--arg`.
 What this worked example holds: system requirements `SYS-001..003` / software requirements
 `SW-001..004` / test cases `TC-001..004`. The review results sit in the `REVIEW_STATUS` of
 the requirements themselves.
-**This document and `00-ai-guide.md` are documents too** (`DOC-AI-QUERIES` / `DOC-AI-GUIDE`).
+This document and `00-ai-guide.md` are documents too (`DOC-AI-QUERIES` / `DOC-AI-GUIDE`).
 A document that explains the notation carries figures and code in bulk, so **always exclude
-one from a query that aggregates**. The six to exclude are `DOC-AI-GUIDE`,
+one from a query that aggregates.** The six to exclude are `DOC-AI-GUIDE`,
 `DOC-AI-QUERIES`, `DOC-GUIDE`, `DOC-REVIEW`, `DOC-BROWSER` and `DOC-COWORK` (measured
 with G27).
 The one place that carries figures, math, code and tables together is the last chapter of
@@ -56,12 +56,12 @@ DOC-FIG-STATE  Large figure - conversion state machine
 DOC-NOTE  Terminology map
 ```
 
-**The query prints 13 entries.** `DOC-AI-GUIDE` and `DOC-AI-QUERIES` are guides for AI,
+The query prints 13 entries. `DOC-AI-GUIDE` and `DOC-AI-QUERIES` are guides for AI,
 `DOC-GUIDE` is an explanatory document for humans, `DOC-ARCH` is the map of the system
 structure, `DOC-REVIEW` explains how the review runs, `DOC-BROWSER` is the guide to the
 browser, `DOC-COWORK` is how to write alongside an AI, `DOC-NOTE` is the terminology table
 in `_assets/note.md`, and `DOC-FIG-STATE` is the large figure in `_assets/fig-state.md`.
-**None of these 9 holds a requirement.** StrictDoc parses every `.md` file as a document
+None of these 9 holds a requirement. StrictDoc parses every `.md` file as a document
 no matter where the file sits.
 
 ### A2. Counts by node type
@@ -90,7 +90,7 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="SECTION") | ._TO
 
 **Type**: SECTION
 
-**This query tells you the schema of an existing project from its JSON.** When you write a
+This query tells you the schema of an existing project from its JSON. When you write a
 specification from scratch, no JSON exists yet, so this query does not work. Read
 `basic.sgra` directly instead.
 
@@ -161,7 +161,7 @@ apply `contains`.
 
 **Type**: SECTION
 
-**`test()` takes flags as its second argument. `"i"` ignores case. It handles Japanese too.**
+`test()` takes flags as its second argument. `"i"` ignores case. It handles Japanese too.
 
 ```bash
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.TITLE? and (.TITLE | test("convert|check"; "i"))) | (.UID // "-") + "  " + .TITLE' <json>
@@ -295,7 +295,7 @@ SYS-003  Protecting an existing file
 
 In this set the tests cover the software requirements `SW-*`, and nothing covers the system
 requirements `SYS-*` directly.
-**This is design, not a defect** - the software requirements underneath cover them.
+This is design, not a defect - the software requirements underneath cover them.
 
 ### D17. Requirements with no parent
 
@@ -362,7 +362,7 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE" or .R
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID? and (._NODE_TYPE=="REQUIREMENT" | not)) | ._NODE_TYPE + " " + .UID' <json>
 ```
 
-**Put `not` at the end.** You cannot write `select(not(...))`.
+Put `not` at the end. You cannot write `select(not(...))`.
 
 ### E23. Find nodes that lack a field
 
@@ -423,15 +423,15 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS? and .REVIEW_S
 
 **Type**: SECTION
 
-**`STATEMENT` holds every figure, formula, and code block verbatim.** So `jq` can pull them
+`STATEMENT` holds every figure, formula, and code block verbatim. So `jq` can pull them
 out, and you can count what sits inside them. The queries in this chapter build on that.
 
-**The queries in this chapter follow two rules.**
+The queries in this chapter follow two rules.
 
-- **They use no double backslash in a regular expression.** They use the character classes
+- They use no double backslash in a regular expression. They use the character classes
   `[$]` and `[[]` in place of `\\$` and `\\[`, and they use `contains()` / `split()` even
   where a regular expression would do. G0 explains why
-- **They wrap their code fences in four backticks.** The query body itself contains ` ``` `,
+- They wrap their code fences in four backticks. The query body itself contains ` ``` `,
   so three backticks would close the fence halfway. StrictDoc reads a four-backtick fence
   correctly too (measured)
 
@@ -439,22 +439,22 @@ out, and you can count what sits inside them. The queries in this chapter build 
 
 **Type**: SECTION
 
-**When you hand a query to Git Bash as `bash -c "..."`, Git Bash cuts every double
-backslash in half.** We measured this on strictdoc 0.27.1 / jq 1.8.1 / Windows 11.
+When you hand a query to Git Bash as `bash -c "..."`, Git Bash cuts every double
+backslash in half. We measured this on strictdoc 0.27.1 / jq 1.8.1 / Windows 11.
 
 | How you pass it | Result of `scan("!\\[...")` |
 |---|---|
 | `jq -f query.jq` | passes |
 | You put it in a shell script and run `bash script.sh` | passes |
-| **`bash -c 'jq -r ...'`** | **fails with `Invalid escape`** |
+| `bash -c 'jq -r ...'` | fails with `Invalid escape` |
 
 An AI usually runs its commands in the `bash -c` form. **So do not write a query that
 contains a double backslash.** String operations give you the same result.
 
-**A single backslash survives.** `split("\n")` passes in every form above (measured).
+A single backslash survives. `split("\n")` passes in every form above (measured).
 Git Bash halves only a doubled backslash, so you can use `\n` and `\t` normally.
 
-**When a query has to get complicated, put it in a file.** It never passes through the
+When a query has to get complicated, put it in a file. It never passes through the
 shell, so nothing breaks it.
 
 ```bash
@@ -465,7 +465,7 @@ jq -r -f <query file>.jq <json>
 
 **Type**: SECTION
 
-**Run this one first.** It lists which node of which document holds a figure, a formula,
+Run this one first. It lists which node of which document holds a figure, a formula,
 code, a table, or an image.
 
 ````bash
@@ -491,7 +491,7 @@ DOC-FIG-STATE  1  figure
 DOC-NOTE  1  table
 ```
 
-(9 representative rows out of 91. **Four explanatory documents take up 84 of them** -
+(9 representative rows out of 91. Four explanatory documents take up 84 of them -
 this document, `00-ai-guide.md`, `02-guide-for-human.md` and `08-review.md`. A document
 that explains the notation carries that notation in bulk, so pass `--arg skip` as
 `00-ai-guide.md` example 13 does when you count. The specification itself produces only
@@ -499,13 +499,13 @@ that explains the notation carries that notation in bulk, so pass `--arg skip` a
 above - and the other 2 rows above are samples lifted out of an explanatory document)
 
 The second column shows the `UID` when the node has one and the `_TOC` hierarchical number
-when it does not. **Free text carries no UID**, so use `_TOC` to point at a position.
+when it does not. Free text carries no UID, so use `_TOC` to point at a position.
 
-**Read the language name one fence at a time.** When you cut the text on ` ``` `, every
+Read the language name one fence at a time. When you cut the text on ` ``` `, every
 odd-numbered piece is fence content, so its first line is the language name. **Never decide
 by asking whether the whole node contains `mermaid`.** When a figure and code share one
 node, that test drops the code. `DOC-LOWER 6.1` has exactly that shape (a figure, math, and
-code together), so **always try your own query of this kind on that line.**
+code together), so always try your own query of this kind on that line.
 
 ### G28. Extract a figure definition
 
@@ -524,8 +524,8 @@ stateDiagram-v2
 ```
 
 `split("```")` cuts the text at every fence boundary, keeps only the pieces that start with
-`mermaid`, and drops the leading `mermaid` (7 characters). **The JSON holds the fence
-content verbatim**, so this hands you the whole Mermaid definition.
+`mermaid`, and drops the leading `mermaid` (7 characters). The JSON holds the fence
+content verbatim, so this hands you the whole Mermaid definition.
 
 Change the language name and the same shape pulls out code as well (G31).
 
@@ -533,8 +533,8 @@ Change the language name and the same shape pulls out code as well (G31).
 
 **Type**: SECTION
 
-**This project's rule says: when a Mermaid fence holds 16 lines or more, move it into
-`_assets/fig-*.md` as its own document.** Check by machine whether the specification obeys it.
+This project's rule says: when a Mermaid fence holds 16 lines or more, move it into
+`_assets/fig-*.md` as its own document. Check by machine whether the specification obeys it.
 
 First, measure every figure:
 
@@ -566,13 +566,13 @@ DOC-BROWSER  1 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
 
-All 16 rows are above. **The run of `1 lines` rows holds no figure.** An explanatory
+All 16 rows are above. The run of `1 lines` rows holds no figure. An explanatory
 document writes the fence marker and the language name `mermaid` inside the body of a
 query, and this query picks that up as a fragment of a figure. Measure a document that
 explains the notation and self-reference of this kind always mixes in.
 
-The next form prints only the violations. **It skips a document whose UID starts with
-`DOC-FIG-`, because you already moved that one out. 0 rows is the normal result.**
+The next form prints only the violations. It skips a document whose UID starts with
+`DOC-FIG-`, because you already moved that one out. 0 rows is the normal result.
 
 ````bash
 jq -r --arg figprefix 'DOC-FIG-' '.DOCUMENTS[] | select(.UID | startswith($figprefix) | not) | .UID as $doc
@@ -600,11 +600,11 @@ S_{need} = S_{out} + S_{tmp} = 2 \times S_{out}
 `[$][$]` is a character class that stands for `$$` (G0). `scan()` returns one array per
 capture, so `.[][]` flattens them.
 
-**Narrow to one document.** Run it across everything and it also picks up the `$$`
+Narrow to one document. Run it across everything and it also picks up the `$$`
 description in the notation guide inside `02-guide-for-human.md`, and then you cannot tell
 which formula is real.
 
-**Give up on extracting an inline `$...$` mechanically.** You cannot tell it apart from a
+Give up on extracting an inline `$...$` mechanically. You cannot tell it apart from a
 `$` that sits in free text (an amount of money or an environment variable), so the query
 misfires. When you need an inline formula, find its place with G27 and then read that
 node's whole `STATEMENT`.
@@ -624,7 +624,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 {"bash":56,"json":5,"markdown":3,"mermaid":6,"python":4,"text":76}
 ```
 
-**`mermaid` shows up here too.** A figure is a code fence as well.
+`mermaid` shows up here too. A figure is a code fence as well.
 
 Pull out the content (the same shape as G28):
 
@@ -639,8 +639,8 @@ def convert(src: str, dst: str) -> None:
     (6 more lines)
 ```
 
-**This shape misses a fence whose author wrote no language name.** So always write the
-language name yourself.
+This shape misses a fence whose author wrote no language name. **So always write the
+language name yourself.**
 
 ### G32. Image targets
 
@@ -664,7 +664,7 @@ DOC-GUIDE  path
 DOC-GUIDE  _assets/flow.svg
 ```
 
-All 9 rows are above, and **only the last one names an image that exists.**
+All 9 rows are above, and only the last one names an image that exists.
 `path` and `_assets/x.svg` come straight from the `![alt](path)` syntax that the
 explanatory documents describe, and `"` and `...` are fragments of a query body this
 document quotes. A set that includes a document explaining the notation mixes in apparent
@@ -681,8 +681,8 @@ backslash.
 stops and prints `error: string index out of range` and nothing else.** It gives you no
 file name and no line number.
 
-**The JSON export, however, succeeds** (measured). So **export the JSON first and run this
-query, and you find the place before you build the HTML.**
+The JSON export, however, succeeds (measured). So export the JSON first and run this
+query, and you find the place before you build the HTML.
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
@@ -698,7 +698,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | $doc + "  " + .' <json>
 ````
 
-This sample returns 0 entries. **0 entries is the normal result.** Run it on a document we
+This sample returns 0 entries. 0 entries is the normal result. Run it on a document we
 broke on purpose and it prints this:
 
 ```text
@@ -708,16 +708,16 @@ DOC-LINT  SAFE   escaped trailing dollar 100 \$
 DOC-LINT  | CRASH cell ending in math | $T$ |
 ```
 
-The `reduce` part **throws the fence content away.** A `$` does no harm inside a fence, so
+The `reduce` part throws the fence content away. A `$` does no harm inside a fence, so
 keeping it would flood you with false detections.
 
-**The query remembers how long the opening fence marker is and closes only on a marker of
-the same length or longer.** A simpler way cuts on three `` ` `` and takes the
-even-numbered pieces, but **that breaks on a document that puts ` ``` ` inside ` ```` `.**
+The query remembers how long the opening fence marker is and closes only on a marker of
+the same length or longer. A simpler way cuts on three `` ` `` and takes the
+even-numbered pieces, but that breaks on a document that puts ` ``` ` inside ` ```` `.
 This document and `00-ai-guide.md` have exactly that shape, so the simple version reports
 4 false positives (measured).
 
-**One kind of false detection remains** - the query also prints a line that escapes the
+One kind of false detection remains - the query also prints a line that escapes the
 character as `\$` (the third line above). An escaped one is safe, so look at it and skip it.
 
 ### G34. Rewrite a figure and write it back to `.md`
@@ -727,9 +727,9 @@ character as `\$` (the third line above). An escaped one is safe, so look at it 
 **You cannot write back from JSON to `.md` mechanically.** The JSON holds no file path
 (see the note at the top of this document). Follow these steps.
 
-**1. Extract the figure** - G28.
+1. Extract the figure - G28.
 
-**2. Find which file holds it.** Search for the UID declaration as a fixed string.
+2. Find which file holds it. Search for the UID declaration as a fixed string.
 You add `-F` so that grep does not read `**` as a regular expression.
 
 ```bash
@@ -744,18 +744,18 @@ samples/md-basic-ja/_assets/fig-state.md
 `**UID**:` declaration, so `06-lower.md`, which only references it with
 `[LINK: DOC-FIG-STATE]`, drops out.
 
-**3. Edit that `.md` directly.** Replace the fence content.
+3. Edit that `.md` directly. Replace the fence content.
 
-**4. Measure the line count again.** When the figure reaches 16 lines or more, move it out
+4. Measure the line count again. When the figure reaches 16 lines or more, move it out
 of the body into `_assets/fig-*.md` and leave a `[LINK:]` in its old place (G29).
 
-**5. Export again.** StrictDoc does not update the JSON on its own.
+5. Export again. StrictDoc does not update the JSON on its own.
 
 ```bash
 strictdoc export <specification folder> --formats=json --output-dir <output dir>
 ```
 
-**6. Confirm that the HTML passes too.** `--formats=json` lets the `$` trap through.
+6. Confirm that the HTML passes too. `--formats=json` lets the `$` trap through.
 Whenever you touch a figure or a formula, run `--formats=html` as well.
 
 ```bash

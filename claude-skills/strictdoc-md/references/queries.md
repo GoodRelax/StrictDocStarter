@@ -204,8 +204,8 @@ DOC-NOTE  1  table
 ```
 
 **What you pass to `--arg skip` differs from one worked example to the next.** This
-worked example has four explanatory documents (`DOC-AI-GUIDE` = this document,
-`DOC-AI-QUERIES`, `DOC-GUIDE` and `DOC-REVIEW`). **In the other project, list the documents with
+worked example has six explanatory documents (`DOC-AI-GUIDE` = this document,
+`DOC-AI-QUERIES`, `DOC-GUIDE`, `DOC-REVIEW`, `DOC-BROWSER` and `DOC-COWORK`). **In the other project, list the documents with
 example 1 first, find the ones that double as an explanation of the notation, and
 pass those** (`queries.md`, "Exclude explanatory documents when you count", tells you
 how to find them).
@@ -246,6 +246,7 @@ DOC-AI-QUERIES  1 lines  keep it inline
 DOC-GUIDE  8 lines  keep it inline
 DOC-ARCH  7 lines  keep it inline
 DOC-LOWER  8 lines  keep it inline
+DOC-BROWSER  1 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
 
@@ -483,9 +484,10 @@ jq -r -f <query file>.jq <json>
 
 **A project sometimes mixes in a document that doubles as an explanation of the notation.**
 Such a document carries figures, formulas, code and tables to explain them, so it always skews
-an aggregate such as "how many figures does this set hold". **This worked example has four
+an aggregate such as "how many figures does this set hold". **This worked example has six
 explanatory documents** (`DOC-AI-GUIDE` = this guide, `DOC-AI-QUERIES`, `DOC-GUIDE`,
-`DOC-REVIEW`). **These four take up 82 of the 94 lines that example 13 prints** (measured).
+`DOC-REVIEW`, `DOC-BROWSER`, `DOC-COWORK`). **These six take up 113 of the 125 lines that
+example 13 prints** (measured).
 
 **A query finds those documents mechanically, as "a document that holds no node with a UID".**
 That means a document that holds nothing but free text and chapters.
@@ -500,6 +502,8 @@ DOC-AI-QUERIES  jq query collection - for AI
 DOC-GUIDE  Read this first
 DOC-ARCH  System structure
 DOC-REVIEW  How we review
+DOC-BROWSER  Driving StrictDoc from the browser
+DOC-COWORK  Working alongside Claude
 DOC-FIG-STATE  Large figure - conversion state machine
 DOC-NOTE  Terminology map
 ```
@@ -586,6 +590,8 @@ DOC-ARCH  System structure
 DOC-LOWER  Software requirements
 DOC-TESTS  Test cases
 DOC-REVIEW  How we review
+DOC-BROWSER  Driving StrictDoc from the browser
+DOC-COWORK  Working alongside Claude
 DOC-FIG-STATE  Large figure - conversion state machine
 DOC-NOTE  Terminology map
 ```
@@ -603,7 +609,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":11,"REQUIREMENT":7,"SECTION":100,"TEST_CASE":4,"TEXT":103,"USE_CASE":1}
+{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":142,"TEST_CASE":4,"TEXT":143,"USE_CASE":1}
 ```
 
 ### A3. The table of contents
@@ -962,7 +968,7 @@ DOC-FIG-STATE  1  figure
 DOC-NOTE  1  table
 ```
 
-(9 representative rows out of 94. **Four explanatory documents take up 82 of them** -
+(9 representative rows out of 125. **Six explanatory documents take up 113 of them** -
 this document, `00-ai-guide.md`, `02-guide-for-human.md` and `08-review.md`. A document
 that explains the notation carries that notation in bulk, so pass `--arg skip` as
 example 13 does when you count. The specification itself produces only 12 rows -
@@ -1029,6 +1035,7 @@ DOC-AI-QUERIES  1 lines  keep it inline
 DOC-GUIDE  8 lines  keep it inline
 DOC-ARCH  7 lines  keep it inline
 DOC-LOWER  8 lines  keep it inline
+DOC-BROWSER  1 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
 
@@ -1082,7 +1089,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":56,"json":5,"markdown":3,"mermaid":6,"python":4,"text":54}
+{"bash":56,"json":5,"markdown":3,"mermaid":6,"python":4,"text":76}
 ```
 
 **`mermaid` shows up here too.** A figure is a code fence as well.

@@ -4,14 +4,14 @@
 **UID**: DOC-LOWER \
 **Version**: 1.0
 
-This document states **how we implement** each requirement in `04-upper.md`.
+This document states how we implement each requirement in `04-upper.md`.
 
-**The lower level carries the link.** You put `**Relations**:` on the software
+The lower level carries the link. You put `**Relations**:` on the software
 requirement and point it at the UID of the parent. You write nothing on the system
 requirement. **Never list the children on the parent** - every new software
 requirement would force you to touch the parent, and you would maintain the link twice.
 
-The parent **may live in another file.** StrictDoc collects every UID in the
+The parent may live in another file. StrictDoc collects every UID in the
 project into a single table and resolves the relations afterward, so a file
 boundary changes nothing. A mix of `.md` and `.sdoc` behaves the same way.
 
@@ -73,9 +73,9 @@ boundary changes nothing. A mix of `.md` and `.sdoc` behaves the same way.
 
 **Type**: SECTION
 
-This chapter holds no requirement. A figure, math and code fill in **how the four
-requirements above join into a single run.** **A `.md` specification takes all
-three directly in the body text.**
+This chapter holds no requirement. A figure, math and code fill in how the four
+requirements above join into a single run. A `.md` specification takes all
+three directly in the body text.
 
 Material that does not fit in the body goes into `_assets/`, and you link to it
 from the body. **It does not have to be an image** - StrictDoc copies everything
@@ -95,7 +95,7 @@ flowchart LR
     MV --> OUT["Output file"]
 ```
 
-**We moved the large figure, which also covers the interruption and the cleanup, into its own document** → [LINK: DOC-FIG-STATE]
+We moved the large figure, which also covers the interruption and the cleanup, into its own document → [LINK: DOC-FIG-STATE]
 
 You write math directly in the body as well. The tool works through a temporary
 file, so the free space a conversion needs, $S_{need}$, is not the size of the
@@ -107,8 +107,8 @@ $$
 
 The temporary file and the output file exist side by side until the replacement finishes, so the coefficient comes out to $2$.
 
-The table below gives the meaning of each symbol in the formula. **Always put a
-character after you close the math in a cell** - export stops when a cell ends
+The table below gives the meaning of each symbol in the formula. Always put a
+character after you close the math in a cell - export stops when a cell ends
 with `$`. Escape a `|` inside a cell as `\|`.
 
 | Symbol | Unit | Meaning |
@@ -118,8 +118,8 @@ with `$`. Escape a `|` inside a cell as `\|`.
 | $S_{tmp}$ bytes | bytes | Size of the temporary file. It equals $S_{out}$ bytes |
 | Path | - | The three stages `input \| convert \| output` |
 
-Only one way of writing satisfies SW-004. **You create the temporary file in the
-same directory, and you rename it once you finish the write.** A rename inside one
+Only one way of writing satisfies SW-004. You create the temporary file in the
+same directory, and you rename it once you finish the write. A rename inside one
 directory happens indivisibly.
 
 ```python
