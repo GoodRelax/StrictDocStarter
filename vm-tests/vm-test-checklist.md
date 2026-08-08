@@ -210,7 +210,7 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 
 | # | 操作 | 期待 |
 |:-:|---|---|
-| **A** | `samples\sdoc-patterns` を `launch-strictdoc.bat` にドラッグ | ブラウザに **8 文書** — 番号付きの 6 個 + `_assets/note.md` の覚書 + 取り込んだ図 `_assets/fig-convert-flow.sdoc`。 **`strictdoc export` だけで出したときは取り込んだ図が単体で出ないので 7 個になる** (実測)。 **DEPRECATION 警告が出ないこと**。 `00-hello` が先頭に並ぶ。 `01-requirements` の冒頭に **取り込んだ図** (`_assets/fig-convert-flow.sdoc`) が展開され、 その Mermaid が図として描画される。 **同じ図が左の一覧に単体の文書としても並ぶこと**。 `03-figures` で Mermaid・数式・**SVG と PNG の画像 2 枚が実際に表示される** (枠だけ・壊れ画像アイコンなら NG)。 **`03-figures` の本文から「覚書 - _assets/ に置いた .md は 1 個の文書になる」へクリックで飛べること** (`[LINK: PATTERNS-NOTE]`。 **リンクの文言に ` を残さないこと** — 見出しの文字がそのまま出る)。 `04-markdown-form` が `.md` のまま並び **末尾の MD-003 に Mermaid 図と PNG が描画**。 `05-outputs` が並ぶ。 **`queries/README.md` が文書として現れないこと** (`exclude_doc_paths`)。 **「ほげ」「MDとらい」「SDとらい」といった習作の文書が 1 つも並ばないこと** |
+| **A** | `samples\md-basic-ja` をドラッグ | ブラウザに **13 文書** — 番号付きの 11 個 + `_assets/fig-state.md` の大きい図 + `_assets/note.md` の覚書。 **DEPRECATION 警告が出ないこと**。 `09-browser-guide` の写真 27 枚がすべて表示されること (枠だけ・壊れ画像アイコンなら NG)。 `06-lower` の Mermaid が図として描画されること |
 | **B** | `samples\md-sovd-automotive-ja` をドラッグ (**既定のサンプル**) | **DEPRECATION 警告が出ないこと**。 **21 文書** (本体 12 + `_assets/` の図 8 + 覚書 1) が描画され、 Mermaid 図と数式も出ること。 図の文書へは本文の `[LINK:]` からクリックで飛べること |
 | **C** | `samples\sd-basic-ja` をドラッグ | **B と同じ要求文 (`SYS-001` 〜 `SW-004` / `TC-001` 〜 `TC-004`) が、 `.sdoc` (RST) の記法で描画されること。** 記法の対照はこの一式で行う |
 | **D** | `samples\md-sovd-automotive-en` をドラッグ | 同上 (英語版) |
@@ -219,14 +219,14 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 > 全サンプルの `strictdoc_config.py` から外したためである (0.27 では既定で有効)。
 > **警告が出た場合も、 図や数式が描画されない場合も報告対象。**
 
-> **`samples\hello-strictdoc` は無くなった。** `sdoc-patterns` の `00-hello.sdoc` が
-> その役目 (写して始める最小の文書) を引き継いでいる。 **フォルダが残っていたら
-> ZIP の作り直し漏れである。**
+> **`samples\hello-strictdoc` と `samples\sdoc-patterns` は無くなった。**
+> 写して始める最小の文書は `md-basic-{ja,en}` / `sd-basic-{ja,en}` である。
+> **フォルダが残っていたら ZIP の作り直し漏れである。**
 
 > **`samples\sovd-automotive-{ja,en}` と `samples\sd-sovd-automotive-{ja,en}` は無くなった。**
 > SOVD 仕様は `md-sovd-automotive-{ja,en}` の 2 つだけである。 `.sdoc` との記法対照は
-> `sd-basic-{ja,en}` と `sdoc-patterns` が担う。 **旧フォルダが残っていたら
-> ZIP の作り直し漏れである。 同梱サンプルは 7 個。**
+> `sd-basic-{ja,en}` が担う。 **旧フォルダが残っていたら
+> ZIP の作り直し漏れである。 同梱サンプルは 6 個。**
 
 ## SC-018: 手動 - サーバ実行中の pip 保護 (FR-343a / FR-344a)
 
@@ -239,7 +239,7 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 
 | # | 操作 | 期待 |
 |:-:|---|---|
-| **A** | `samples\sdoc-patterns` を `launch-strictdoc.bat` にドラッグしてサーバを立てる。 **窓は開いたまま**にする | ブラウザが開く |
+| **A** | `samples\md-basic-ja` を `launch-strictdoc.bat` にドラッグしてサーバを立てる。 **窓は開いたまま**にする | ブラウザが開く |
 | **B** | その状態で `setup-strictdoc.bat dryrun` | Phase C 行が **`[BLOCKED] strictdoc  <n> strictdoc process(es) running (PID ...) - close the StrictDoc server window(s) first; ...`**。 **PID が実際の値であること** |
 | **C** | 続けて `setup-strictdoc.bat` | **`yes` プロンプトの前に** `[WARN] 1 step(s) above are [BLOCKED] and will NOT run: strictdoc` が出ること (FR-345a) |
 | **C2** | そのまま **`yes`** | Phase C が **pip を呼ばずに** 中止。 `[ERROR] <n> strictdoc process(es) are running.` + PID 一覧 + `Nothing has been changed.`。 **サマリが `Phase C  : BLOCKED (nothing was changed)`** であり **`FAILED` ではないこと**。 結びが `Stopped early: Phase C blocked.`。 **`strictdoc --version` が変わらないこと** |

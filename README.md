@@ -151,7 +151,6 @@ sentences — only the body notation differs, so the two folders can be read sid
 | `samples/md-basic-ja/` | **The basics in `.md` — copy this folder to start your own spec.** The smallest thing that still works as a requirements spec: three upper requirements, four lower ones that point at them, four test cases that point at those, and review status carried on the requirements themselves — each group in its own file, so the traceability actually crosses file boundaries. One shared grammar file (`basic.sgra`) adds the `TEST_CASE` node type, the `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` fields and the `Verifies` relation role. Also covers prose that is deliberately *not* a requirement, linking to another `.md` file, an externalised Mermaid diagram, an SVG image, what an AI needs in order to read the set, and how to edit it from the browser and alongside Claude. Japanese. |
 | `samples/sd-basic-ja/` | **The same spec written in `.sdoc`.** Adds what is specific to `.sdoc`: both RST table forms (`+---+` grid and `===` simple), `[DOCUMENT_FROM_FILE]` to pull a diagram fragment into the body (Markdown has no equivalent), and one document that declares `MARKUP: Markdown` to get pipe tables. Japanese. |
 | `samples/md-basic-en/`, `samples/sd-basic-en/` | English versions of the two above. |
-| `samples/sdoc-patterns/` | **Authoring patterns — start here to write your own.** `00-hello.sdoc` is the minimal document to copy: three requirements, no custom grammar. The rest add one construct each, small enough to read in full: custom grammar (`.sgra`), parent/file relations, a custom `FINDING` node type for review findings, a `REVISION` field, diagrams kept out of the requirement bodies (Mermaid, math, SVG/PNG images, and a Mermaid diagram externalised into its own file under `_assets/` and pulled back into the requirements page with `[DOCUMENT_FROM_FILE]`), a `.md` under `_assets/` reached with `[LINK:]` instead — the two ways of splitting a document up, and where each one stops — the same requirements written in Markdown, and what the export formats are for. `queries/` holds the seven ready-to-run jq filters from [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md). This is the sample [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) refers to. |
 
 To open the English sample, drag `samples\md-sovd-automotive-en` onto `launch-strictdoc.bat`
 (or set it as `project_path` in `server.config.json` to make it the default).
@@ -229,7 +228,7 @@ thing.
 
 - [`docs/01-environment.md`](docs/01-environment.md) — environment setup walkthrough (Phase 0 / Phase 1)
 - [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) — **how to write `.sdoc`** (and `.md`): the minimum an author — human or AI — needs so the official user guide does not have to be re-read for every requirement. Japanese; every statement verified by running strictdoc 0.27.1
-- [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) — **JSON query cookbook**: seven copy-and-run `jq` queries over `strictdoc export --formats=json`, with their actual output. Japanese
+- [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) — **JSON query cookbook**: five copy-and-run `jq` queries over `strictdoc export --formats=json`, with their actual output. Japanese
 - [`docs/setup-spec.md`](docs/setup-spec.md) — `setup-strictdoc` specification (requirements, ADRs)
 - [`docs/serve-spec.md`](docs/serve-spec.md) — `launch-strictdoc` specification (visible-window server model)
 
@@ -407,7 +406,6 @@ StrictDoc 自身はダークモードを持たないため、これは**スタ�
 | `samples/md-basic-ja/` | **`.md` の基本 — 自分の仕様書はこのフォルダを丸ごと写して始める。** 要求仕様書として最低限成り立つ一式: 上位要求 3 件・それを指す下位要求 4 件・それを指すテストケース 4 件・要求そのものに載せたレビュー欄を**それぞれ別ファイル**に置き、トレーサビリティがファイルをまたぐようにしてある。共有の文法定義 (`basic.sgra`) が `TEST_CASE` のノード型と `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` のフィールド、`Verifies` の関係ロールを足す。ほかに、意図して要求にしない地の文・別の `.md` へのリンク・外出しした Mermaid 図・SVG 画像・AI に読ませるために要るもの・ブラウザでの編集と Claude との共同作業。 |
 | `samples/sd-basic-ja/` | **同じ仕様書を `.sdoc` で書いた版。** `.sdoc` 固有の内容を追加: RST の表 2 形式 (`+---+` grid と `===` simple)・図の断片を本文へ取り込む `[DOCUMENT_FROM_FILE]` (Markdown に相当物は無い)・パイプ表のために `MARKUP: Markdown` を宣言した文書 1 つ。 |
 | `samples/md-basic-en/`、`samples/sd-basic-en/` | 上記 2 つの英語版。 |
-| `samples/sdoc-patterns/` | **書き方の型 — 自分の要求書はここから始める。** `00-hello.sdoc` が写して使う最小の文書 (要求 3 件、カスタム文法なし)。以降は構文を 1 つずつ、全部読める分量で足していく: カスタム文法 (`.sgra`)・親/ファイル関係・レビュー指摘用のカスタムノード型 `FINDING`・`REVISION` フィールド・要求本体から外に出した図 (Mermaid・数式・SVG / PNG 画像・図 1 枚を `_assets/` へ外出しして `[DOCUMENT_FROM_FILE]` で要求の画面に取り込む型)・`_assets/` の `.md` へ `[LINK:]` で飛ばす型 (文書を分ける 2 通りと、それぞれの限界)・同じ要求の Markdown 版・出力形式の使い分け。`queries/` に [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) の jq フィルタ 7 本をそのまま同梱。[`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) が参照するサンプル。 |
 
 英語版を開くには、`samples\md-sovd-automotive-en` を `launch-strictdoc.bat` にドラッグ&ドロップ
 してください (既定にするなら `server.config.json` の `project_path` を変更)。

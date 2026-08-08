@@ -21,7 +21,8 @@ through `**Grammar**:` under the H1.
 **This set carries no guide to the notation itself.** `samples/md-basic-en` and the bundled
 `strictdoc-md` skill hold that. **This set is an example of a real specification.**
 
-**It is `samples/sovd-automotive-en`, the `.sdoc` original, moved to `.md`.** What that move
+**It began as an `.sdoc` original and moved to `.md`.** That original is no longer bundled.
+What that move
 measured - the order the grammar must declare, which field names are usable, where the round trip
 stops - is recorded separately -> [LINK: DOC-SOVD-NOTE-MD2SDOC]
 

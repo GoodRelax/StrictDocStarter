@@ -492,17 +492,18 @@ jq fixes that case.
 **``.`` narrows nothing, so not one character of the content changes.** Only the
 notation changes, **and the file gets smaller.**
 
-=============  =======  =========
-Output         Bytes    vs source
-=============  =======  =========
-index.json     100,897  2.12
-after jq .     80,969   1.70
-after jq -c .  57,183   1.20
-=============  =======  =========
+=============  ==========
+Output         vs source
+=============  ==========
+index.json     about 2.5x
+after jq .     about 2x
+after jq -c .  about 1.3x
+=============  ==========
 
-The ratios compare each file against the 47,588 bytes of the original `.sdoc` set.
-A Japanese character such as ``検`` drops from 6 bytes back to the 3 bytes of
-UTF-8, and the indent drops from 4 spaces to 2. ``-c`` strips the indent and the
+The ratios compare each file against the original `.sdoc` set. The indent drops
+from 4 spaces to 2, and a character that StrictDoc wrote as a six-byte escape
+such as ``検`` returns to the 3 bytes of UTF-8 - which weighs on the
+Japanese set far more than on this one. ``-c`` strips the indent and the
 newlines themselves.
 
 **Never write this file out from PowerShell.** PowerShell's ``>`` writes UTF-16, so

@@ -2,7 +2,7 @@
 
 **目的: 公式ユーザーガイドを毎回読まなくても `.sdoc` を書けるようにする。** 記述はすべて **strictdoc 0.27.1** で実際に走らせて確かめた。差異は「版による違い」に書いた。
 
-**動く例は [`samples/sdoc-patterns/`](../samples/sdoc-patterns/)。** 本書の型はすべてそこに実物がある。JSON の引き方は [`03-sdoc-json-queries.md`](03-sdoc-json-queries.md)。
+**動く例は [`samples/sd-basic-ja/`](../samples/sd-basic-ja/)。** 本書の型はほとんどそこに実物がある。**カスタムノード型と独自フィールドだけは、同梱サンプルに実物が無い** — それを実演していた `sdoc-patterns` は保守の負担が見合わず削除した。JSON の引き方は [`03-sdoc-json-queries.md`](03-sdoc-json-queries.md)。
 
 ---
 
@@ -138,7 +138,7 @@ IMPORT_FROM_FILE: patterns.sgra
 
 ### 「指摘」と「修正」
 
-**どちらも StrictDoc の標準概念ではない。** カスタム文法で作る。`samples/sdoc-patterns/02-review.sdoc` が実物である。
+**どちらも StrictDoc の標準概念ではない。** カスタム文法で作る。**同梱サンプルにこの形の実物は無い。** `samples/sd-basic-ja/04-review.sdoc` はもう一方の形 — 指摘を要求そのものの `REVIEW_STATUS` / `REVIEW_COMMENT` に書く形 — を採っており、両者の使い分けもそこに書いてある。
 
 | 概念 | 作り方 |
 |---|---|
@@ -228,7 +228,7 @@ Semantic error: Markdown parsing error: the document must start with an H1 headi
 
 | # | 内容 |
 |:-:|---|
-| 1 | **文書にならない `.md` をツリーに残さない。** すべての `.md` が StrictDoc 文書として解析され、H1 で始まらないファイルや UTF-8 でないファイルが 1 つあると **export 全体が失敗する**。README や第三者からのコピーは `exclude_doc_paths` で**ファイル名を名指しして**除外する。**フォルダごと除外してはならない** — アセット置き場として認識されなくなり、同じフォルダの画像が黙ってコピーされなくなる（export は成功と報告し、`<img>` だけが 404 になる）。逆に、**図を入れた `.md` は文書にするのが正しい**。文書だからこそ ` ```mermaid ` が描画される（`samples/sdoc-patterns/_assets/flow-convert.md`） |
+| 1 | **文書にならない `.md` をツリーに残さない。** すべての `.md` が StrictDoc 文書として解析され、H1 で始まらないファイルや UTF-8 でないファイルが 1 つあると **export 全体が失敗する**。README や第三者からのコピーは `exclude_doc_paths` で**ファイル名を名指しして**除外する。**フォルダごと除外してはならない** — アセット置き場として認識されなくなり、同じフォルダの画像が黙ってコピーされなくなる（export は成功と報告し、`<img>` だけが 404 になる）。逆に、**図を入れた `.md` は文書にするのが正しい**。文書だからこそ ` ```mermaid ` が描画される（`samples/md-basic-ja/_assets/fig-state.md`） |
 | 2 | **フィールドを宣言順と違う順に書かない**（§2） |
 | 3 | **関係で `ROLE` を `VALUE` より先に書かない**（§3） |
 | 4 | **文書レベルのメタデータに、機械で引きたい値を置かない。** `DATE:` と `METADATA:` ブロックは `.sdoc` / `.md` には往復するが **JSON にはまったく出ない**（`json_generator.py` が書くのは `UID` / `VERSION` / `CLASSIFICATION` / `PREFIX` / `ROOT` だけ）。作成日・作成者・承認者を引きたいならノードのフィールドにする |
@@ -274,4 +274,4 @@ MID → UID → LEVEL → STATUS → TAGS  （既知のメタフィールド）
 
 > **上の各行は 0.23.1 と 0.27.1 の両端で実際に走らせて確かめたものである。挙動が変わった中間の版（0.24 / 0.25 / 0.26）は特定していない。**
 
-**`.md` 文書は `.gra.md` ではなく `.sgra` を参照できる。** 混在プロジェクトではそちらが安全である（`samples/sdoc-patterns/04-markdown-form.md` がその形）。
+**`.md` 文書は `.gra.md` ではなく `.sgra` を参照できる。** 混在プロジェクトではそちらが安全である（`samples/md-basic-ja/04-upper.md` がその形）。

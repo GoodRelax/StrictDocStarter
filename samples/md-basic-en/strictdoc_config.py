@@ -37,7 +37,7 @@
 #   REQUIREMENT_TO_SOURCE_TRACEABILITY
 #               Adds a "source coverage" icon, but this sample ships no source
 #               files and no include_source_paths, so the screen would be
-#               empty. See samples/sdoc-patterns for a project that uses it.
+#               empty. No bundled sample enables it.
 #
 # TREE_MAP_SCREEN is the one feature here with a real size cost: it bundles a
 # plotting library into the output folder. On this sample that is small; on a

@@ -20,7 +20,7 @@ Requirements → Architecture) を、 StrictDoc のカスタム文法と L0→L3
 **記法そのものの書き方は本サンプルには置かない。** `samples/md-basic-ja` と、
 同梱の `strictdoc-md` スキルがそれを持つ。 **本サンプルは実際の仕様の例である。**
 
-**この一式は `.sdoc` の原本 `samples/sovd-automotive-ja` を `.md` へ移したものである。**
+**この一式は `.sdoc` で書いた原本を `.md` へ移したものである。** 原本は同梱していない。
 移すときに測った制約 — 文法の宣言順、 使えるフィールド名、 往復の限界 — は
 別文書に残した → [LINK: DOC-SOVD-NOTE-MD2SDOC]
 

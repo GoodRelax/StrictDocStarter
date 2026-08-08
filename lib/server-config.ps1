@@ -19,7 +19,7 @@ function Expand-PathPlaceholders {
     #   <user>          -> $env:USERNAME (FR-208)
     #   <starter_root>  -> absolute path of launch-strictdoc.bat's folder
     # The second placeholder lets server.config.template.json point at the
-    # bundled samples (samples/sdoc-patterns) regardless of where the
+    # bundled samples (samples/md-basic-ja) regardless of where the
     # user extracted the ZIP -- unzip and "press 1 to Start" just works.
     #
     # Note: use String.Replace() (literal, not regex) for $StarterRoot because
