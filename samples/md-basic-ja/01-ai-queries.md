@@ -307,6 +307,9 @@ SYS-003  既存ファイルの保護
 jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT") | select(((.RELATIONS // []) | map(select(.TYPE=="Parent")) | length) == 0) | .UID' <json>
 ```
 
+このサンプルでは 0 件 — 要求 7 件はどれも親を持つ。 根は `04-usecases.md` の
+`UC-001` だが、 あれはユースケースであって要求ではないので、 このクエリには出ない。
+
 ### D18. 誰からも指されていない要求
 
 **Type**: SECTION
@@ -787,17 +790,28 @@ strictdoc export <仕様書のフォルダ> --formats=html --output-dir <出力�
 `jq` が挙げた参照を、 export した HTML の側に実在するかで判定するので、
 `--formats=html` を先に通しておくこと。
 
+**フェンスと行内コードを先に落とすこと。** 記法を説明する文書は `![alt](path)` の
+ような書き方そのものを本文に抱えており、 落とさずに走らせるとこの一式で 7 行の
+偽の参照が出る (実測)。
+
 ```bash
-jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "")
+jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | ((.STATEMENT? // "") | gsub("\r"; ""))
+| split("\n")
+| reduce .[] as $line ({open: 0, out: []};
+    ([$line | scan("^`{3,}")] | (.[0] // "") | length) as $w
+    | if $w > 0
+      then (if .open == 0 then .open = $w elif $w >= .open then .open = 0 else . end)
+      else (if .open == 0 then .out += [$line] else . end)
+      end)
+| .out[] | gsub("`[^`]*`"; "")
 | split("](") | .[1:][] | split(")")[0]
 | select(startswith("http") or startswith("#") | not)' <json> \
   | tr -d '\r' | sort -u \
   | while read -r p; do [ -f "<出力先>/html/<仕様書のフォルダ名>/$p" ] || echo "NOT PUBLISHED  $p"; done
 ```
 
-0 件が正常である。 記法を説明する文書は `![alt](path)` のような書き方そのものを
-本文に抱えているので、 `path` のような偽の行が出る。`select(.UID | IN(...) | not)` で
-解説文書を外すか、 出た行を目で選る。
+0 件が正常である。 この形なら解説文書を外さなくてよく、 この一式の 29 件の参照
+(写真 27 枚・図 1 つ・資料 1 つ) を全部検査したうえで 0 件になる (実測)。
 
 ### G36. 表を丸ごと取り出す
 
