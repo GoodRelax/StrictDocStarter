@@ -6,19 +6,21 @@
 
 This document defines the **stakeholder requirements (L0)** of the SOVD vehicle diagnostics system in EARS notation.
 With the top-level requirement SYS-L0-001 at its apex, the requirements of each functional domain (authentication / data / DTC / OTA)
-converge toward it. Each domain connects to SYS-L0-001 through a domain (aggregate) requirement (AUTH/DATA/DTC/SWU-L0-000), and the individual functional requirements are laid out in parallel directly beneath it. For background, see `00-overview.md`; for actors and usage scenarios (use cases), see
-`02-usecases.md`; for the system requirements (L1) and below of each domain, refer to the respective domain document.
+converge toward it. Each domain's requirements point at the matching use case (UC-001 to UC-004 in
+`02-usecases.md`) via `Parent`. For background, see `00-overview.md`; for the system requirements (L1)
+and below of each domain, refer to the respective domain document.
 
-**Distinction between requirements and use cases (IEEE 29148 / A-SPICE):** This document deals with "the conditions the system must satisfy"
-(requirements, EARS). "How actors use it" (use cases, scenarios) is
-separated into `02-usecases.md`, where each UC realizes a requirement of this document via Parent, and acceptance tests
-verify the UC.
+**Distinction between requirements and use cases (ISO/IEC/IEEE 29148 / A-SPICE):** This document deals with "the conditions the system must satisfy"
+(requirements, EARS). "How actors use it" (use cases, scenarios) is separated into `02-usecases.md`.
+**29148 treats a use case as a technique for expressing stakeholder requirements, and derives the
+system requirements from it.** So the requirements in this document point at a use case via `Parent`,
+and acceptance tests verify the UC. `Parent` always runs from the concrete to the abstract.
 
 ## 0. Top-Level Requirement (System Goal)
 
 **Type**: SECTION
 
-### Remote diagnostics and updates of vehicles by authorized parties
+### Provision of remote diagnostics and updates to authorized parties
 
 **Type**: REQUIREMENT \
 **UID**: SYS-L0-001 \
@@ -51,22 +53,6 @@ parties, and unauthorized access is rejected.
 
 **Type**: SECTION
 
-### Authentication and authorization domain
-
-**Type**: REQUIREMENT \
-**UID**: AUTH-L0-000 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
-**LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
-
-**Statement**: The system shall provide authentication, authorization, channel protection, and auditing for remote SOVD clients as a domain, so that only authorized parties can access diagnostics and updates.
-
-**Rationale**: A domain requirement that aggregates the individual authentication and authorization functions (providing access, restricting privileges, maintaining confidentiality, rejecting unauthenticated access, standards compliance, auditing). Each function is laid out in parallel directly beneath it.
-
 ### Provision of authenticated diagnostic access
 
 **Type**: REQUIREMENT \
@@ -77,7 +63,7 @@ parties, and unauthorized access is rejected.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: When a mechanic requests diagnostic access via authentication from a remote SOVD client,
 the system shall provide access to the target vehicle's diagnostic data within the authorized scope.
@@ -95,7 +81,7 @@ can be retrieved.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: The system shall restrict the available diagnostic functions (read / write) according to the user's role
 (mechanic / OEM engineer / fleet operator).
@@ -114,7 +100,7 @@ can be retrieved.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: The system shall not leak the credentials used for authenticating diagnostic access (passwords / tokens /
 certificates) to third parties, either in transit on the channel or at rest in storage.
@@ -133,7 +119,7 @@ certificates) to third parties, either in transit on the channel or at rest in s
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: If an unauthenticated client invokes a SOVD service, then the system shall
 not perform any processing, including reading diagnostic data, and shall reject the request.
@@ -151,7 +137,7 @@ not perform any processing, including reading diagnostic data, and shall reject 
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: The system's authentication and authorization functions shall comply with the authentication requirements of
 ASAM SOVD v1.0 (Part 1: Common).
@@ -166,7 +152,7 @@ ASAM SOVD v1.0 (Part 1: Common).
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: The system shall record access attempts related to authentication and authorization (successes and failures) as a traceable audit trail.
 
@@ -175,21 +161,6 @@ ASAM SOVD v1.0 (Part 1: Common).
 ## Vehicle Data Access
 
 **Type**: SECTION
-
-### Vehicle data access domain
-
-**Type**: REQUIREMENT \
-**UID**: DATA-L0-000 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
-
-**Statement**: The system shall provide, as a domain, the capability for authorized parties to remotely read vehicle data (current state, periodic, snapshot, large-volume).
-
-**Rationale**: A domain requirement that aggregates the individual data-access functions (one-shot read, periodic, snapshot, bulk, privilege separation).
 
 ### Provision of remote read of vehicle state data
 
@@ -201,7 +172,7 @@ ASAM SOVD v1.0 (Part 1: Common).
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DATA-L0-000`
+  **ID**: `UC-002`
 
 **Statement**: When a mechanic or OEM engineer requests the current vehicle state (odometer,
 battery voltage, per-ECU temperatures, etc.) from a remote SOVD client, the system shall return
@@ -218,7 +189,7 @@ that data within the authorized scope.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DATA-L0-000`
+  **ID**: `UC-002`
 
 **Statement**: The system shall allow continuous acquisition of a user-specified DID list at a period of 100 ms to 60 s.
 
@@ -231,7 +202,7 @@ that data within the authorized scope.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DATA-L0-000`
+  **ID**: `UC-002`
 
 **Statement**: The system shall allow acquisition of a snapshot of all DID values of the vehicle at a specific point in time in a single transaction.
 
@@ -244,7 +215,7 @@ that data within the authorized scope.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DATA-L0-000`
+  **ID**: `UC-002`
 
 **Statement**: The system shall be able to transfer data on the order of several hundred MB, such as logging data and recorded frames, in an interruptible and resumable manner.
 
@@ -258,7 +229,7 @@ that data within the authorized scope.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DATA-L0-000`
+  **ID**: `UC-002`
 
 **Statement**: If a write of a DID value (equivalent to writeDataByIdentifier) is requested with a read-only token,
 then the system shall reject it.
@@ -269,21 +240,6 @@ then the system shall reject it.
 
 **Type**: SECTION
 
-### Fault diagnostics domain
-
-**Type**: REQUIREMENT \
-**UID**: DTC-L0-000 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
-
-**Statement**: The system shall provide, as a domain, remote acquisition and clearing of fault codes (DTCs) and freeze frames.
-
-**Rationale**: A domain requirement that aggregates the individual DTC functions (acquisition, freeze frame, clearing, compliance).
-
 ### Remote acquisition of fault codes
 
 **Type**: REQUIREMENT \
@@ -293,7 +249,7 @@ then the system shall reject it.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DTC-L0-000`
+  **ID**: `UC-003`
 
 **Statement**: When a mechanic requests the list of fault codes from a remote SOVD client, the system shall
 return all DTCs recorded in the vehicle together with their status masks.
@@ -309,7 +265,7 @@ return all DTCs recorded in the vehicle together with their status masks.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DTC-L0-000`
+  **ID**: `UC-003`
 
 **Statement**: The system shall allow acquisition of the snapshot at the time of DTC occurrence (freeze frame).
 
@@ -323,7 +279,7 @@ return all DTCs recorded in the vehicle together with their status masks.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DTC-L0-000`
+  **ID**: `UC-003`
 
 **Statement**: When a mechanic requests clearing of a target DTC after completing a repair, the system shall clear it after verifying the write:dtc scope.
 
@@ -353,7 +309,7 @@ return all DTCs recorded in the vehicle together with their status masks.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DTC-L0-000`
+  **ID**: `UC-003`
 
 **Statement**: The system's DTC functions shall preserve the semantics of ISO 14229-1 (UDS) Service 0x19 (ReadDTCInformation) and
 0x14 (ClearDiagnosticInformation).
@@ -378,21 +334,6 @@ return all DTCs recorded in the vehicle together with their status masks.
 
 **Type**: SECTION
 
-### Software update domain
-
-**Type**: REQUIREMENT \
-**UID**: SWU-L0-000 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
-
-**Statement**: The system shall provide, as a domain, OTA updates of vehicle ECU software (distribution, verification, application, rollback, progress visualization).
-
-**Rationale**: A domain requirement that aggregates the individual OTA functions.
-
 ### Provision of remote software update via OTA
 
 **Type**: REQUIREMENT \
@@ -403,7 +344,7 @@ return all DTCs recorded in the vehicle together with their status masks.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: When the OEM wants to distribute defect-fix software, the system shall allow updating the vehicle ECU software over OTA (wireless).
 
@@ -419,7 +360,7 @@ return all DTCs recorded in the vehicle together with their status masks.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: The system shall verify the digital signature of the update package and detect tampering and forgery.
 
@@ -435,7 +376,7 @@ an attack target (security). Therefore the highest assurance level is applied fo
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: If an anomaly is detected after an update, then the system shall be able to roll back to the immediately preceding version automatically or manually.
 
@@ -448,7 +389,7 @@ an attack target (security). Therefore the highest assurance level is applied fo
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: If the vehicle is IG-ON and the vehicle speed > 0, then the system shall not start ECU flash writing.
 
@@ -463,7 +404,7 @@ an attack target (security). Therefore the highest assurance level is applied fo
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: The system's average update time per ECU (verification + write + reboot) shall be within 5 minutes.
 
@@ -477,7 +418,7 @@ an attack target (security). Therefore the highest assurance level is applied fo
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: If signature verification of an update package fails, then the system shall not install the package and shall discard it.
 
@@ -493,7 +434,7 @@ separated, and each is verified independently.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: WHILE the vehicle is moving, the system shall still be able to download an update package.
 
@@ -509,6 +450,6 @@ so it is allowed, enabling an immediate transition to writing after stopping.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: The system shall allow the driver to check the progress of an OTA update on the SOVD client.

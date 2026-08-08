@@ -445,6 +445,11 @@ memory usage within 256 KB.
 **ASIL**: QM \
 **CAL**: CAL2 \
 **LAYER**: L3_Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L2-002`
+- **Type**: `Parent` \
+  **ID**: `AUTH-L2-006`
 
 **Statement**: The authentication-related units shall be implemented in MISRA C:2012-compliant C,
 with external dependencies limited to OpenSSL / cJSON only.

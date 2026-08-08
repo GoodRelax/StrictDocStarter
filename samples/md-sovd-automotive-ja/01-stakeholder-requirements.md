@@ -6,19 +6,21 @@
 
 本書は SOVD 車両診断システムの **ステークホルダ要求 (L0)** を EARS で定義する要求文書である。
 最上位要求 SYS-L0-001 を頂点に、 各機能ドメイン (認証 / データ / DTC / OTA) の要求が
-これへ収束する。 各ドメインは束ね要求 (AUTH/DATA/DTC/SWU-L0-000) を介して SYS-L0-001 に接続し、 その直下へ各機能要求を並列に展開する。 背景は `00-overview.md`、 アクターと利用シナリオ (ユースケース) は
-`02-usecases.md`、 各ドメインのシステム要求 (L1) 以下は各ドメイン文書を参照のこと。
+これへ収束する。 各ドメインの要求は、 対応するユースケース (`02-usecases.md` の
+UC-001 〜 UC-004) を `Parent` で指す。 背景は `00-overview.md`、
+各ドメインのシステム要求 (L1) 以下は各ドメイン文書を参照のこと。
 
-**要求とユースケースの区別 (IEEE 29148 / A-SPICE):** 本書は「システムが満たすべき条件」
+**要求とユースケースの区別 (ISO/IEC/IEEE 29148 / A-SPICE):** 本書は「システムが満たすべき条件」
 (要求、 EARS) を扱う。 「アクターがどう使うか」(ユースケース、 シナリオ) は
-`02-usecases.md` に分離し、 各 UC が本書の要求を Parent で実現し、 受入テストが UC を
-検証する。
+`02-usecases.md` に分離する。 **29148 はユースケースを利害関係者要求の表現技法として扱い、
+システム要求はそこから導出されるものとする。** だから本書の要求がユースケースを
+`Parent` で指し、 受入テストが UC を検証する。 `Parent` は常に具体から抽象へ向く。
 
 ## 0. 最上位要求 (System Goal)
 
 **Type**: SECTION
 
-### 認可された関係者による車両の遠隔診断・更新
+### 認可された関係者への遠隔診断・更新の提供
 
 **Type**: REQUIREMENT \
 **UID**: SYS-L0-001 \
@@ -51,22 +53,6 @@
 
 **Type**: SECTION
 
-### 認証・認可ドメイン
-
-**Type**: REQUIREMENT \
-**UID**: AUTH-L0-000 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
-**LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
-
-**Statement**: 本システムは、 遠隔の SOVD クライアントに対する認証・認可・通信路保護・監査をドメインとして提供し、 認可された関係者のみが診断・更新へアクセスできるようにすること。
-
-**Rationale**: 認証・認可の各機能 (アクセス提供・権限制限・機密保持・未認証拒否・規格準拠・監査) を束ねるドメイン要求。 各機能はこの直下に並列で展開する。
-
 ### 認証付き診断アクセスの提供
 
 **Type**: REQUIREMENT \
@@ -77,7 +63,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: 整備士が遠隔の SOVD クライアントから認証を経て診断アクセスを要求したとき、
 本システムは認可された範囲で対象車両の診断データへのアクセスを提供すること。
@@ -95,7 +81,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: 本システムは、 利用者の役割 (整備士 / OEM エンジニア / フリート運用者) に応じて、
 利用可能な診断機能 (読み出し / 書き込み) を制限すること。
@@ -114,7 +100,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: 通信路上および保管中、 本システムは、 診断アクセスの認証に用いるクレデンシャル
 (パスワード / トークン / 証明書) を第三者へ漏洩させないこと。
@@ -133,7 +119,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: もし未認証のクライアントが SOVD サービスを呼び出した場合、 本システムは
 診断データの読み出しを含む一切の処理を実行せず、 要求を拒否すること。
@@ -151,7 +137,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: 本システムの認証・認可機能は、 ASAM SOVD v1.0 (Part 1: Common) の認証要件に
 準拠すること。
@@ -166,7 +152,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-000`
+  **ID**: `UC-001`
 
 **Statement**: 本システムは、 認証・認可に関わるアクセス試行 (成功・失敗) を、 追跡可能な監査証跡として記録すること。
 
@@ -175,21 +161,6 @@
 ## 車両データアクセス (Vehicle Data Access)
 
 **Type**: SECTION
-
-### 車両データアクセスドメイン
-
-**Type**: REQUIREMENT \
-**UID**: DATA-L0-000 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
-
-**Statement**: 本システムは、 認可された関係者が車両データ (現在状態・周期・スナップショット・大容量) を遠隔で読み取れる機能をドメインとして提供すること。
-
-**Rationale**: データアクセスの各機能 (単発読取・周期・スナップショット・バルク・権限分離) を束ねるドメイン要求。
 
 ### 車両状態データの遠隔読み取りの提供
 
@@ -201,7 +172,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DATA-L0-000`
+  **ID**: `UC-002`
 
 **Statement**: 整備士や OEM エンジニアが遠隔の SOVD クライアントから車両の現在状態 (走行距離・
 バッテリ電圧・各 ECU 温度等) の取得を要求したとき、 本システムは認可された範囲で
@@ -218,7 +189,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DATA-L0-000`
+  **ID**: `UC-002`
 
 **Statement**: 本システムは、 利用者が指定した DID リストを 100 ms 〜 60 s の周期で連続取得できる
 ようにすること。
@@ -232,7 +203,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DATA-L0-000`
+  **ID**: `UC-002`
 
 **Statement**: 本システムは、 特定時刻における車両の全 DID 値スナップショットを 1 トランザクションで
 取得できるようにすること。
@@ -246,7 +217,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DATA-L0-000`
+  **ID**: `UC-002`
 
 **Statement**: 本システムは、 ロギングデータや録画フレーム等の数百 MB 規模のデータを、 中断・再開
 可能な方式で転送できること。
@@ -261,7 +232,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DATA-L0-000`
+  **ID**: `UC-002`
 
 **Statement**: もし読み出し専用トークンで DID 値の書き込み (writeDataByIdentifier 相当) が要求された
 場合、 本システムはこれを拒否すること。
@@ -272,21 +243,6 @@
 
 **Type**: SECTION
 
-### 故障診断ドメイン
-
-**Type**: REQUIREMENT \
-**UID**: DTC-L0-000 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
-
-**Statement**: 本システムは、 故障コード (DTC)・フリーズフレームの遠隔取得とクリアをドメインとして提供すること。
-
-**Rationale**: DTC の各機能 (取得・フリーズフレーム・クリア・準拠) を束ねるドメイン要求。
-
 ### 故障コードの遠隔取得
 
 **Type**: REQUIREMENT \
@@ -296,7 +252,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DTC-L0-000`
+  **ID**: `UC-003`
 
 **Statement**: 整備士が遠隔の SOVD クライアントから故障コード一覧を要求したとき、 本システムは
 車両に記録された全 DTC をステータスマスクとともに返すこと。
@@ -312,7 +268,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DTC-L0-000`
+  **ID**: `UC-003`
 
 **Statement**: 本システムは、 DTC 発生時刻のスナップショット (フリーズフレーム) を取得できるように
 すること。
@@ -327,7 +283,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DTC-L0-000`
+  **ID**: `UC-003`
 
 **Statement**: 整備士が修理完了後に対象 DTC のクリアを要求したとき、 本システムは write:dtc スコープを確認したうえでクリアすること。
 
@@ -357,7 +313,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DTC-L0-000`
+  **ID**: `UC-003`
 
 **Statement**: 本システムの DTC 機能は、 ISO 14229-1 (UDS) Service 0x19 (ReadDTCInformation) および
 0x14 (ClearDiagnosticInformation) のセマンティクスを保つこと。
@@ -384,21 +340,6 @@
 
 **Type**: SECTION
 
-### ソフトウェア更新ドメイン
-
-**Type**: REQUIREMENT \
-**UID**: SWU-L0-000 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
-
-**Statement**: 本システムは、 車両 ECU ソフトウェアの OTA 更新 (配信・検証・適用・ロールバック・進捗可視化) をドメインとして提供すること。
-
-**Rationale**: OTA の各機能を束ねるドメイン要求。
-
 ### OTA による遠隔ソフトウェア更新の提供
 
 **Type**: REQUIREMENT \
@@ -409,7 +350,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: OEM が不具合修正ソフトを配信したいとき、 本システムは車両 ECU のソフトウェアを OTA (無線) で更新できるようにすること。
 
@@ -425,7 +366,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: 本システムは、 更新パッケージのデジタル署名を検証し、 改ざん・偽造を検知すること。
 
@@ -441,7 +382,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: もし更新後に異常が検出された場合、 本システムは直前のバージョンへ自動または手動で
 ロールバックできること。
@@ -455,7 +396,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: もし車両が IG-ON かつ車速 > 0 の場合、 本システムは ECU フラッシュ書込を開始しないこと。
 
@@ -470,7 +411,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: 本システムの 1 ECU 当たりの平均更新時間 (検証 + 書込 + 再起動) は、 5 分以内で
 あること。
@@ -485,7 +426,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: もし更新パッケージの署名検証に失敗した場合、 本システムは当該パッケージを
 インストールせず破棄すること。
@@ -502,7 +443,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: 走行中も、 本システムは、 更新パッケージのダウンロードを実行できること。
 
@@ -518,7 +459,7 @@
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-000`
+  **ID**: `UC-004`
 
 **Statement**: 本システムは、 OTA 更新の進捗を、 ドライバーが SOVD クライアントで確認できるように
 すること。

@@ -183,7 +183,7 @@ contract).
 |---|---|---|
 | 00-overview (this document) | Purpose, background story, scope, terminology, referenced standards, notation, revision history | Front matter |
 | 01-stakeholder-requirements | Stakeholder requirements (top-level SYS-L0-001 + each domain's L0, EARS) | L0 requirements |
-| 02-usecases | Use cases (actors, UC diagram, UC-000–004 scenarios) | L0 UC |
+| 02-usecases | Use cases (actors, UC diagram, UC-001–004 scenarios) | L0 UC |
 | 03-auth | Authentication / authorization (OAuth2 / JWT / TLS / RBAC) | L1–L3 |
 | 04-data-access | Vehicle data identification (DID) / read | L1–L3 |
 | 05-dtc-diagnostics | DTC / freeze frame | L1–L3 |
@@ -194,11 +194,13 @@ contract).
 | 10-test-spec | Test specification (strategy + unit / integration / system / acceptance) | Test (specification) |
 | 11-test-results | Test results (execution records, separated from the specification. 1 spec : N results) | Test (results) |
 
-This sample traces the V-model of "**stakeholder requirements (01) / use cases (02) → requirements
+This sample traces the V-model of "**use cases (02) → stakeholder requirements (01) → requirements
 (03-07) → design (08) → API contract (09) → test specification (10) → results (11)**" end to end with
 the ``Implements`` / ``Satisfies`` / ``Verifies`` / ``ResultOf`` relations (DEEP TRACE lets you follow
-requirements' test coverage and gaps). Use cases (02-usecases) implement the requirements (01), and
-acceptance tests (AT) verify the UCs (separating requirements and UCs in the IEEE 29148 style).
+requirements' test coverage and gaps). **Each domain in the stakeholder requirements (01) points at
+the matching use case (02-usecases) via `Parent`** - ISO/IEC/IEEE 29148 treats a use case as a
+technique for expressing stakeholder requirements and derives the system requirements from it.
+Acceptance tests (AT) verify the UCs.
 
 Note: The requirement field definitions shared by all documents are placed in `sovd-grammar.sgra`
 (a StrictDoc grammar file), which each document loads through `**Grammar**:` under its H1.

@@ -5,15 +5,17 @@
 **Version**: 1.0
 
 This document defines the **use cases** of the SOVD vehicle diagnostics system (usage
-scenarios in which an actor uses the system to achieve a goal). Each UC realizes its
-corresponding requirement (`01-stakeholder-requirements.md`) via ``Parent`` and is
-verified by an acceptance test (the AT series in `10-test-spec.md`).
+scenarios in which an actor uses the system to achieve a goal). **A UC here is the parent
+of the requirements.** The domain requirements in `01-stakeholder-requirements.md` point
+at a UC via ``Parent``, and an acceptance test (the AT series in `10-test-spec.md`)
+verifies the UC.
 
-**Distinguishing requirements from use cases (IEEE 29148 / A-SPICE):** a "condition the
+**Distinguishing requirements from use cases (ISO/IEC/IEEE 29148 / A-SPICE):** a "condition the
 system must satisfy" is a requirement (EARS, `01-stakeholder-requirements.md`), whereas
-"how an actor uses it" belongs in this document (scenarios). Keep them as separate
-artifacts and trace UC -> requirement (realization) and UC -> acceptance test
-(verification).
+"how an actor uses it" belongs in this document (scenarios). 29148 treats a use case as a
+technique for expressing stakeholder requirements and derives the system requirements from
+it, so the lines run requirement -> UC (derivation) and acceptance test -> UC
+(verification). **`Parent` always runs from the concrete to the abstract.**
 
 **Actors**
 
@@ -33,53 +35,30 @@ UC-001 is the "authentication / authorization foundation" that all other UCs pre
 Attacker threats (spoofing, etc.) are defended in UC-001, and the OEM backend supplies the
 trust anchor for tokens, revocation, and signatures.
 
-**Use case list (from UC to the requirement it realizes)**
+**Use case list (from UC to the requirements derived from it)**
 
-| UC | Use case | Primary actor | Requirement realized |
+| UC | Use case | Primary actor | Requirements derived from it |
 |---|---|---|---|
-| UC-000 | Whole system: remote diagnostics and update | All stakeholders | SYS-L0-001 |
-| UC-001 | Remote authenticated diagnostic access | Mechanic / OEM engineer | AUTH-L0-001 (03-auth) |
-| UC-002 | Remote read of vehicle data | Mechanic / OEM / Fleet | DATA-L0-001 (04-data-access) |
-| UC-003 | Fault diagnostics (retrieve / clear) | Mechanic / OEM engineer | DTC-L0-001 (05-dtc-diagnostics) |
-| UC-004 | OTA remote software update | OEM engineer / OEM backend | SWU-L0-001 (06-sw-update) |
+| UC-001 | Remote authenticated diagnostic access | Mechanic / OEM engineer | AUTH-L0-001 to 006 |
+| UC-002 | Remote read of vehicle data | Mechanic / OEM / Fleet | DATA-L0-001 to 005 |
+| UC-003 | Fault diagnostics (retrieve / clear) | Mechanic / OEM engineer | DTC-L0-001 to 003 / 005 |
+| UC-004 | OTA remote software update | OEM engineer / OEM backend | SWU-L0-001 to 008 |
 
-## UC-000 System-level Use Case
+**All of those requirements live in `01-stakeholder-requirements.md`.** The L1 and lower
+requirements of each domain document grow from there.
 
-**Type**: SECTION
+**The four hang together as one thread.** Something goes wrong on the vehicle, a stakeholder
+authenticates remotely (UC-001), and the system decides the authorization scope for their role.
+The stakeholder then reads vehicle data (UC-002) or retrieves fault codes (UC-003) to find the
+cause, and where needed clears a fault code (UC-003) or updates the software remotely (UC-004).
+This presumes the vehicle can reach the cloud through its TCU and that the stakeholder holds
+valid credentials. The vehicle's problem gets settled without a workshop visit - that is what
+`SYS-L0-001` means by "provision".
 
-### Remote diagnostics and update of the vehicle by authorized stakeholders
-
-**Type**: REQUIREMENT \
-**UID**: UC-000 \
-**TYPE**: UseCase \
-**ASIL**: QM \
-**LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
-
-**Statement**:
-
-**Actors:** Mechanic / OEM engineer / Fleet operator (primary), Driver,
-OEM backend, SOVD system.
-
-**Preconditions:** The vehicle can connect to the cloud via the TCU, and stakeholders hold valid credentials.
-
-**Main success scenario:**
-
-1. An anomaly occurs in the vehicle (warning lamp lit, DTC recorded, fault reported).
-2. A stakeholder accesses the SOVD system remotely and is authenticated (UC-001).
-3. The system determines the authorization scope according to the role.
-4. The stakeholder reads vehicle data (UC-002) and retrieves fault codes (UC-003) to investigate the cause.
-5. If needed, the stakeholder clears fault codes (UC-003) or performs a remote software update (UC-004).
-6. The system returns the result, and the vehicle's condition is understood and improved.
-
-**Postconditions:** The vehicle's problem is diagnosed and addressed remotely, without bringing it into the workshop.
-
-**Included use cases:** UC-001 authentication / UC-002 data / UC-003 DTC / UC-004 OTA.
-
-**VERIFICATION**: The four primary use cases can be executed remotely by authorized stakeholders, and
-unauthorized access is denied (confirmed by acceptance tests).
+**There is no kite-level use case that wraps the others.** Rolling the four into one only
+restates the thread above and adds a level for nothing. This document stays at sea level (the
+height at which one user goal completes). `SYS-L0-001` and the thread above carry the whole
+picture.
 
 ## UC-001 Authentication & Authorization
 
@@ -94,7 +73,7 @@ unauthorized access is denied (confirmed by acceptance tests).
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `AUTH-L0-001`
+  **ID**: `SYS-L0-001`
 
 **Statement**:
 
@@ -131,7 +110,7 @@ data can be retrieved.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DATA-L0-001`
+  **ID**: `SYS-L0-001`
 
 **Statement**:
 
@@ -168,7 +147,7 @@ bulk transfer follow the same authorization flow.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `DTC-L0-001`
+  **ID**: `SYS-L0-001`
 
 **Statement**:
 
@@ -204,7 +183,7 @@ bulk transfer follow the same authorization flow.
 **LAYER**: L0_Stakeholder
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `SWU-L0-001`
+  **ID**: `SYS-L0-001`
 
 **Statement**:
 

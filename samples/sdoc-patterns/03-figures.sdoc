@@ -6,8 +6,8 @@ VERSION: 1.0
 [TEXT]
 STATEMENT: >>>
 図をこの文書へ集めたのは、 要求本体を人が読みやすく保つためである。
-**JSON を軽くするためではない。** `sd-sovd-automotive-ja` で実測したところ、
-Mermaid が占めるのは JSON 全体の 3.7 パーセントであった
+**JSON を軽くするためではない。** `md-sovd-automotive-ja` で実測したところ、
+Mermaid が占めるのは JSON 全体の 1.4 パーセントであった
 (`docs/02-sdoc-authoring.md` 参照)。
 
 **図は要求文書に直接書かない。 1 枚 1 ファイルで `_assets/` に置き、 取り込む。**

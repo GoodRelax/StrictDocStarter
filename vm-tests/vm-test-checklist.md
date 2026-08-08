@@ -212,8 +212,8 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 |:-:|---|---|
 | **A** | `samples\sdoc-patterns` を `launch-strictdoc.bat` にドラッグ | ブラウザに **8 文書** — 番号付きの 6 個 + `_assets/note.md` の覚書 + 取り込んだ図 `_assets/fig-convert-flow.sdoc`。 **`strictdoc export` だけで出したときは取り込んだ図が単体で出ないので 7 個になる** (実測)。 **DEPRECATION 警告が出ないこと**。 `00-hello` が先頭に並ぶ。 `01-requirements` の冒頭に **取り込んだ図** (`_assets/fig-convert-flow.sdoc`) が展開され、 その Mermaid が図として描画される。 **同じ図が左の一覧に単体の文書としても並ぶこと**。 `03-figures` で Mermaid・数式・**SVG と PNG の画像 2 枚が実際に表示される** (枠だけ・壊れ画像アイコンなら NG)。 **`03-figures` の本文から「覚書 - _assets/ に置いた .md は 1 個の文書になる」へクリックで飛べること** (`[LINK: PATTERNS-NOTE]`。 **リンクの文言に ` を残さないこと** — 見出しの文字がそのまま出る)。 `04-markdown-form` が `.md` のまま並び **末尾の MD-003 に Mermaid 図と PNG が描画**。 `05-outputs` が並ぶ。 **`queries/README.md` が文書として現れないこと** (`exclude_doc_paths`)。 **「ほげ」「MDとらい」「SDとらい」といった習作の文書が 1 つも並ばないこと** |
 | **B** | `samples\md-sovd-automotive-ja` をドラッグ (**既定のサンプル**) | **DEPRECATION 警告が出ないこと**。 **21 文書** (本体 12 + `_assets/` の図 8 + 覚書 1) が描画され、 Mermaid 図と数式も出ること。 図の文書へは本文の `[LINK:]` からクリックで飛べること |
-| **C** | `samples\sd-sovd-automotive-ja` をドラッグ | 同上。 **B と同じ 21 文書・同じ要求文が、 `.sdoc` (RST) の記法で描画されること** |
-| **D** | `samples\md-sovd-automotive-en` / `samples\sd-sovd-automotive-en` をドラッグ | 同上 (英語版) |
+| **C** | `samples\sd-basic-ja` をドラッグ | **B と同じ要求文 (`SYS-001` 〜 `SW-004` / `TC-001` 〜 `TC-004`) が、 `.sdoc` (RST) の記法で描画されること。** 記法の対照はこの一式で行う |
+| **D** | `samples\md-sovd-automotive-en` をドラッグ | 同上 (英語版) |
 
 > **どのサンプルでも警告が出ないのが正しい状態になった。** `MATHJAX` / `MERMAID` の列挙を
 > 全サンプルの `strictdoc_config.py` から外したためである (0.27 では既定で有効)。
@@ -223,9 +223,10 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 > その役目 (写して始める最小の文書) を引き継いでいる。 **フォルダが残っていたら
 > ZIP の作り直し漏れである。**
 
-> **`samples\sovd-automotive-ja` と `samples\sovd-automotive-en` も無くなった。**
-> `md-sovd-automotive-*` と `sd-sovd-automotive-*` の 4 つが同じ中身を 2 つの記法で
-> 持っている。 **旧フォルダが残っていたら ZIP の作り直し漏れである。**
+> **`samples\sovd-automotive-{ja,en}` と `samples\sd-sovd-automotive-{ja,en}` は無くなった。**
+> SOVD 仕様は `md-sovd-automotive-{ja,en}` の 2 つだけである。 `.sdoc` との記法対照は
+> `sd-basic-{ja,en}` と `sdoc-patterns` が担う。 **旧フォルダが残っていたら
+> ZIP の作り直し漏れである。 同梱サンプルは 7 個。**
 
 ## SC-018: 手動 - サーバ実行中の pip 保護 (FR-343a / FR-344a)
 

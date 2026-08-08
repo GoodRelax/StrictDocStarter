@@ -431,6 +431,11 @@ HTTPS POST /auth/token エンドポイントでこれを受け付けること。
 **ASIL**: QM \
 **CAL**: CAL2 \
 **LAYER**: L3_Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L2-002`
+- **Type**: `Parent` \
+  **ID**: `AUTH-L2-006`
 
 **Statement**: 認証関連ユニットは、 MISRA C:2012 準拠の C 言語で実装し、 外部依存を
 OpenSSL / cJSON のみとすること。
