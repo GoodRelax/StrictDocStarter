@@ -19,11 +19,16 @@ replacing the content.**
 **This paragraph carries no UID.** It is `[TEXT]`, free text, not a requirement.
 StrictDoc treats a requirement and free text as different things. You may mix them.
 
-`samples/md-basic-en/` holds the same content written in `.md`. **The same
-grammar, the same UIDs, the same requirement wording** - only the way you write
-the body text differs. The one thing this set carries and that one cannot is
-`05-markdown.sdoc`, the document that declares `MARKUP: Markdown`, and the single
-requirement `SW-005` inside it.
+`samples/md-basic-en/` writes the same requirements in `.md`. The grammar file
+matches to the character, and `SYS-001` through `SW-004` and `TC-001` through
+`TC-004` carry the same wording, so you can put the two side by side and read off
+what the notation alone changes.
+
+**This set is the smallest pair for comparing notation, not a copy of
+`md-basic-en`.** That set also carries a guide for AI and a jq query catalogue,
+two documents this one deliberately leaves out. The one thing this set carries
+and that one does not is `05-markdown.sdoc`, the document that declares
+`MARKUP: Markdown`, and the single requirement `SW-005` inside it.
 
 The files line up like this.
 
@@ -42,7 +47,7 @@ The files line up like this.
 TITLE: The basics
 
 [[SECTION]]
-TITLE: Text and tags
+TITLE: Blocks and fields
 
 [TEXT]
 STATEMENT: >>>

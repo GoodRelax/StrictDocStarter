@@ -88,9 +88,11 @@ report "broken table row" "$TMP/table"
 #    Fenced blocks and inline code spans are dropped first. Prose that explains
 #    the syntax - `![alt](path)` in 04-markdown-form.md - is not a reference,
 #    and counting it reported a missing attachment named "path" (measured).
+#    This check ignores $SKIP on purpose. Dropping fences and code spans is
+#    enough to silence the documents that only explain notation, and skipping
+#    them left the 27 screenshots of md-basic-ja unchecked (measured).
 if [ -d "$HTMLDIR" ]; then
-    jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
-    | .DOCUMENTS[] | select(.UID | IN($s[]) | not)
+    jq -r '.DOCUMENTS[]
     | recurse(.NODES[]?) | ((.STATEMENT? // "") | gsub("\r"; ""))
     | split("\n")
     | reduce .[] as $line ({open: 0, out: []};

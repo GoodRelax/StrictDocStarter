@@ -15,9 +15,11 @@ replacing what is inside.**
 This paragraph carries no UID. It is free text, not a requirement. StrictDoc
 treats a requirement and free text as two different things. You may mix them.
 
-A set that says the same thing in `.sdoc` sits in `samples/sd-basic-en/`.
-**The same grammar, the same UIDs, the same requirement wording** - only the way
-you write the body differs. The one thing that set carries and this one cannot is
+A set that writes the same requirements in `.sdoc` sits in `samples/sd-basic-en/`.
+The grammar file matches to the character, and `SYS-001` through `SW-004` and
+`TC-001` through `TC-004` carry the same wording. **That set is the smallest pair
+for comparing notation, not a copy of this one** - it leaves out `00-ai-guide.md`
+and `01-ai-queries.md`. The one thing that set carries and this one cannot is
 `05-markdown.sdoc`, the document that declares `MARKUP: Markdown`, and the single
 requirement `SW-005` inside it. Choose between them like this.
 
@@ -67,7 +69,7 @@ nine in all - become StrictDoc documents.**
 
 **Type**: SECTION
 
-### Text and tags
+### Headings and fields
 
 **Type**: SECTION
 

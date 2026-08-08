@@ -23,11 +23,11 @@ EARS は要求文の形を 5 つに絞る書き方であり、 条件の書き�
 
 | 型 | 形 | 原型 (英語) |
 |---|---|---|
-| 遍在型 (Ubiquitous) | 〈システム〉は、〈応答〉すること。 | The `<system>` `shall` `<response>`. |
-| 事象駆動型 (Event-driven) | 〈トリガ〉したとき、〈システム〉は、〈応答〉すること。 | `WHEN` `<trigger>`, the `<system>` `shall` `<response>`. |
-| 状態駆動型 (State-driven) | 〈状態〉の間、〈システム〉は、〈応答〉すること。 | `WHILE` `<state>`, the `<system>` `shall` `<response>`. |
-| 望ましくない挙動型 (Unwanted behaviour) | もし〈条件〉ならば、〈システム〉は、〈応答〉すること。 | `IF` `<condition>`, `THEN` the `<system>` `shall` `<response>`. |
-| 任意機能型 (Optional feature) | 〈機能〉を備える場合、〈システム〉は、〈応答〉すること。 | `WHERE` `<feature>`, the `<system>` `shall` `<response>`. |
+| 遍在型 (Ubiquitous) | 〈システム〉は、 〈応答〉すること。 | The `<system>` `shall` `<response>`. |
+| 事象駆動型 (Event-driven) | 〈トリガ〉したとき、 〈システム〉は、 〈応答〉すること。 | `WHEN` `<trigger>`, the `<system>` `shall` `<response>`. |
+| 状態駆動型 (State-driven) | 〈状態〉の間、 〈システム〉は、 〈応答〉すること。 | `WHILE` `<state>`, the `<system>` `shall` `<response>`. |
+| 望ましくない挙動型 (Unwanted behaviour) | もし〈条件〉ならば、 〈システム〉は、 〈応答〉すること。 | `IF` `<condition>`, `THEN` the `<system>` `shall` `<response>`. |
+| 任意機能型 (Optional feature) | 〈機能〉を備える場合、 〈システム〉は、 〈応答〉すること。 | `WHERE` `<feature>`, the `<system>` `shall` `<response>`. |
 
 英語の原型を併記したのは、 EARS の資料がほぼ英語だからである。
 型を見分ける手掛かりは、 英語では文頭の `WHEN` / `WHILE` / `IF` / `WHERE` という

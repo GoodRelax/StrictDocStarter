@@ -138,9 +138,10 @@ sh claude-skills/strictdoc-md/scripts/audit.sh <仕様書> <出力先> <除外�
 | `review comment missing` | 指摘したのに中身が空。 `REVIEW_STATUS` が `Open` / `Fixed` / `WontFix` なのに `REVIEW_COMMENT` が無い |
 | `wording candidates` | EARS の形・語順・受動態・主語の欠落・否定形。 違反ではなく候補であり、 判断は人と AI がする |
 
-第 3 引数を忘れないこと。 解説文書は `![alt](path)` のような書式の説明を
-本文に載せているので、 除外しないと `attachment not published` が誤って発火する。
-この一式なら次を渡す。
+第 3 引数は集計系の検査だけに効く。 `attachment not published` はこの引数を
+無視して全文書を調べる — 先にフェンスと行内コードを落とすので、 `![alt](path)`
+のような書式の説明を本文に載せた解説文書でも誤検出が出ないためである
+(この一式の 29 件の参照を全部調べて 0 件。 実測)。 この一式なら次を渡す。
 
 ```text
 DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW,DOC-BROWSER,DOC-COWORK
@@ -180,7 +181,7 @@ DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW,DOC-BROWSER,DOC-COWORK
 
 以下のクエリに出てくる `<json>` は `<出力先>/json/index.json` を指す。
 
-### 1. 他の形式から取り込む
+### 他の形式から取り込む
 
 **Type**: SECTION
 
@@ -211,7 +212,7 @@ DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW,DOC-BROWSER,DOC-COWORK
 jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")] | length' <json>
 ```
 
-### 2. 不適切な要求を挙げさせる
+### 不適切な要求を挙げさせる
 
 **Type**: SECTION
 
@@ -273,7 +274,7 @@ EARS は条件を先に置くので、 合わせるなら「もし…ならば�
 **後で確かめること。** 直した後にもう一度 `audit.sh` を回し、 減った件数が直した
 件数と合うことを見る。 そして export を 2 形式とも通す。
 
-### 3. 上位と下位を挙げさせる
+### 上位と下位を挙げさせる
 
 **Type**: SECTION
 
@@ -327,7 +328,7 @@ lower (2)
 export が通っている時点で、 出てきた宛先は全部実在する。 残る危険は、
 関係を張り忘れた側にある。
 
-### 4. テスト仕様を作らせる
+### テスト仕様を作らせる
 
 **Type**: SECTION
 
@@ -370,7 +371,7 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE") | (
 | select(.UID | IN($tested[]) | not) | .UID + "  " + .TITLE' <json>
 ```
 
-### 5. レビューが終わっていない仕様を挙げさせる
+### レビューが終わっていない仕様を挙げさせる
 
 **Type**: SECTION
 

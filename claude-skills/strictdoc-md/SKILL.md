@@ -152,6 +152,12 @@ It checks the six things StrictDoc does not: the `$` trap, broken table rows,
 attachments that never reached the output, figures that outgrew the body, a
 review that says something is wrong without saying what, and requirement wording.
 
+`skip-uids` only reaches the checks that count notation. `attachment not
+published` ignores it and reads every document, because dropping fenced blocks
+and inline code spans already silences the documents that merely explain
+`![alt](path)`. Honouring it left the 27 screenshots of `md-basic-ja` unchecked -
+one reference examined instead of 29 (measured).
+
 The last two stay quiet where they do not apply. `review comment missing` needs
 a grammar that declares `REVIEW_STATUS`. `wording candidates` runs one pass per
 language and gates each one on the script it reads: the Japanese patterns see
