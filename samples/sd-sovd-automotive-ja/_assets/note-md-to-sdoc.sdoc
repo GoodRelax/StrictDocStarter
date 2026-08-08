@@ -1,0 +1,143 @@
+[DOCUMENT]
+TITLE: 覚書 - この一式の作り方と、 .md と .sdoc の相互変換で測ったこと
+UID: DOC-SOVD-NOTE-MD2SDOC
+
+[TEXT]
+STATEMENT: >>>
+本書は仕様ではない。 **この一式と、 Markdown で書いた同じ内容の一式
+(samples/md-sovd-automotive-ja) を同じ中身に保つ作業で、 実際に測った制約を残す。**
+
+**このファイル自身が「外に置いた文書」の実例でもある。** ``_assets/`` に置いた
+``.sdoc`` を StrictDoc は 1 個の文書として解析するので、 ``UID:`` を宣言すれば
+本文からリンクで飛べる。 15 行を超える Mermaid 図 8 件も同じ仕組みで外に出してある。
+
+``.sdoc`` には図の断片を本文へ取り込む手段もある (``[DOCUMENT_FROM_FILE]``)。
+``.md`` にはそれが無いので、 **2 つの一式を揃えるために本一式もリンクで繋いでいる。**
+取り込みの実例は ``samples/sd-basic-ja`` が持つ。
+
+**RST の強調は、 閉じ記号の直後に文字が続くと成立しない。** 日本語で助詞を直に
+続けて ``**制約**を残す`` と書くと ``Inline strong start-string without end-string``
+になり、 **HTML だけが落ちる** (JSON は通る)。 空白か句読点を挟めば通る。
+強調の中に ``...`` を入れる入れ子は通る (実測)。 Markdown には無い制約なので、
+本文を写すときに踏みやすい。
+
+環境: strictdoc 0.27.1 / Python 3.13 / Windows 11。
+<<<
+
+[[SECTION]]
+TITLE: 1. この一式は自動変換ではなく、原本に差分を当てて作った
+
+[TEXT]
+STATEMENT: >>>
+``.sdoc`` から ``.md`` への変換は ``--formats=markdown`` が行う。 逆は
+``--formats=sdoc`` である。 ノードの構造 — 文書・章・要求・関係・カスタムフィールド —
+はどちらの向きでもそのまま移る。
+
+.. code-block:: bash
+
+    strictdoc export <仕様書のフォルダ> --formats=sdoc --output-dir <出力先>
+
+**しかし、 生成した .sdoc を StrictDoc 自身が読み戻せない。 理由を 3 つ測った。**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - 止まる理由
+     - 内容
+   * - 文法が複製されない
+     - 生成した ``.sdoc`` は文法ファイルを名指しするが、 出力先へその複製を作る仕組みが
+       無い。 自分で複製すれば済む
+   * - リンクの引用が実リンクになる
+     - リンクの書き方を「例」として引用している文書があると、 ``.md`` ではただの文字
+       だったものを StrictDoc が解決しようとして
+       ``the inline link references an object with an UID that does not exist`` で止まる
+   * - **折り返した値が囲われない**
+     - ``.md`` で折り返して書いた ``STATEMENT`` や ``VERIFICATION`` は改行を含む値に
+       なるが、 ``--formats=sdoc`` はそれを ``>>>`` と ``<<<`` で囲まずに書き出す。
+       続きの行がフィールド名として読まれ、 ``Expected 'MID' or 'UID' or ...`` で止まる
+
+**3 つめは手で直せる量ではない** (この一式では 100 箇所を超える)。 加えて、 変換は
+**本文の記法を書き換えない** — Markdown のフェンスやパイプ表がそのまま ``.sdoc`` の
+中へ入るだけで、 RST にはならない。 それでは RST と Markdown の比較にならない。
+
+**そこで本一式は、 RST 版を既に持っている .sdoc の原本を出発点にし、 .md 側で
+加えた中身の差分だけを当てて作った。** 記法 (図 16 / 表 15 / 数式 9 / 画像 4 /
+コード 77) は原本の RST をそのまま使っている。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. .md ではノードの最後のフィールドが次の見出しまでを飲み込む
+
+[TEXT]
+STATEMENT: >>>
+**Markdown 側の欠陥を 1 件、 この作業で見つけた。** ノードの最後のフィールドの後ろに
+段落を置くと、 **その段落はフィールドの値の続きとして読まれる。** 区切りたくても
+``---`` も HTML コメントも効かない (実測)。 止められるのは**次の見出しだけ**である。
+
+.. code-block:: text
+
+    **MODULE**: src/platform/json_serializer.c
+
+    **認証ドメイン (03-auth)**          <- MODULE の値の一部になる
+
+``.sdoc`` では同じものが独立した ``[TEXT]`` ノードになるので、 この罠は無い。
+**Markdown 側は、 こういう見出し的な段落を節へ格上げして直した** (見出しの行と
+``**Type**: SECTION`` の 2 行にする)。 本一式の 08-architecture もその形に揃えてある。
+
+**export は成功したまま壊れる。** JSON にも HTML にもエラーは出ず、 値が汚れるだけ
+である。 見つけるには、 短いはずのフィールドに空行が入っていないかを JSON で走査する。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. 文法は 2 つの一式で 1 文字も違えない
+
+[TEXT]
+STATEMENT: >>>
+``sovd-grammar.sgra`` は Markdown 側と ``.sdoc`` 側で同一である。 **Markdown の
+都合が文法を決めるので、 .sdoc 側がそれに合わせている。**
+
+**Markdown では TITLE を UID の直後に宣言する。** ``TITLE`` は見出しから来るため、
+StrictDoc は他の単一行フィールドより前に置く。 崩すと ``Wrong field order`` で止まる。
+原本は ``TITLE`` を ``LAYER`` の後ろに宣言していたので、 ``REQUIREMENT`` と ``API``
+の 132 ノードで ``TITLE`` の行を前へ移した。
+
+**LEVEL というフィールド名は使えない。** StrictDoc 組み込みの ``Level``
+(目次の水準) と衝突する。 **export は成功したまま目次の番号がその値で上書きされる。**
+本一式はテストの水準を ``TEST_LEVEL`` という名前に変えて避けている。
+
+**TYPE は使える。** Markdown の reader が予約しているのは ``Type`` という綴りだけで、
+``field_.name == "Type"`` と完全一致・大文字小文字を区別して比べている
+(``backend/markdown/reader.py``)。 大文字で書けば通常のフィールドとして通る。
+
+**順を崩すと json / html / sdoc のすべてが即座に止まる** (実測)。
+「json は通るが sdoc で落ちる」ということは起きない。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. 「中身が同じで記法だけ違う」の確かめ方
+
+[TEXT]
+STATEMENT: >>>
+2 つの一式を JSON へ書き出し、 **UID をキーにしてノードを突き合わせる。**
+
+.. code-block:: bash
+
+    strictdoc export samples/md-sovd-automotive-ja --formats=json --output-dir <出力先A>
+    strictdoc export samples/sd-sovd-automotive-ja --formats=json --output-dir <出力先B>
+
+**一致すべきもの**: 文法・UID の集合・要求文・部品・API・テストの判定条件・関係。
+**違ってよいのは本文の記法だけである** — テスト 75 件の Gherkin は Markdown では
+コードフェンス、 ``.sdoc`` では ``.. code-block:: gherkin`` で書く。
+
+**残る差はこの 75 件だけになるようにしてある。** それ以外が食い違ったら、 どちらかを
+直し忘れている。
+<<<
+
+[[/SECTION]]

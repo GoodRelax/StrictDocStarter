@@ -16,7 +16,7 @@
 
 **コンポーネント収束図 (機能 → 共通基盤)**
 
-**この図は 16 行を超えるので別文書にしてある** → [LINK: DOC-FIG-PLATFORM-SHARED]
+**この図は 15 行を超えるので別文書にしてある** → [LINK: DOC-FIG-PLATFORM-SHARED]
 
 注: TlsTerminator は全機能ドメインの外部通信を終端するが、 TLS 要求は代表として
 03-auth (AUTH-L1-005 / AUTH-L2-004) に集約されるため、 図では Auth からの依存のみを

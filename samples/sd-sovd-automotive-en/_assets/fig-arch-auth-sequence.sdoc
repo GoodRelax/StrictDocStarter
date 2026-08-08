@@ -1,0 +1,30 @@
+[DOCUMENT]
+TITLE: Figure - authentication sequence
+UID: DOC-FIG-ARCH-AUTH-SEQUENCE
+
+[TEXT]
+STATEMENT: >>>
+.. raw:: html
+
+    <pre class="mermaid">
+    sequenceDiagram
+        participant C as SOVD Client
+        participant TCU as TCU
+        participant TLS as TlsTerminator
+        participant SA as ScopeAuthorizer
+        participant DRU as DataReadUseCase
+        participant UDS as UdsClient
+        participant E as Engine ECU
+        participant J as JsonSerializer
+        C->>TCU: GET /components/engine/data/rpm (Bearer JWT)
+        TCU->>TLS: forward over cellular
+        TLS->>SA: verify scope read:did
+        SA->>DRU: authorized
+        DRU->>UDS: ReadDataByIdentifier(0xF40C)
+        UDS->>E: UDS 0x22 F40C
+        E-->>UDS: 0x62 F40C 0338
+        UDS-->>DRU: 824
+        DRU->>J: serialize(rpm=824)
+        J-->>C: 200 {"rpm": 824}
+    </pre>
+<<<

@@ -211,16 +211,21 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 | # | 操作 | 期待 |
 |:-:|---|---|
 | **A** | `samples\sdoc-patterns` を `launch-strictdoc.bat` にドラッグ | ブラウザに **7 文書** (`_assets/flow-convert.md` を含む)。 **DEPRECATION 警告が出ないこと**。 `00-hello` が先頭に並ぶ。 `01-requirements` の冒頭に **図への本文リンク**があり、 クリックで `flow-convert` の文書へ飛べること。 `03-figures` で Mermaid・数式・**SVG と PNG の画像 2 枚が実際に表示される** (枠だけ・壊れ画像アイコンなら NG)。 **`_assets/flow-convert.md` が 1 個の文書として並び、 その中の Mermaid が図として描画される。** PAT-001 の File 関係からその文書へクリックで飛べること。 `04-markdown-form` が `.md` のまま並び **末尾の MD-003 に Mermaid 図と PNG が描画**。 `05-outputs` が並ぶ。 **`queries/README.md` が文書として現れないこと** (`exclude_doc_paths`) |
-| **B** | `samples\sovd-automotive-ja` をドラッグ | **DEPRECATION 警告が出ないこと**。 13 文書が従来どおり描画され、 Mermaid 図と数式も従来どおり出ること |
-| **C** | `samples\sovd-automotive-en` をドラッグ | 同上 (英語版) |
+| **B** | `samples\md-sovd-automotive-ja` をドラッグ (**既定のサンプル**) | **DEPRECATION 警告が出ないこと**。 **21 文書** (本体 12 + `_assets/` の図 8 + 覚書 1) が描画され、 Mermaid 図と数式も出ること。 図の文書へは本文の `[LINK:]` からクリックで飛べること |
+| **C** | `samples\sd-sovd-automotive-ja` をドラッグ | 同上。 **B と同じ 21 文書・同じ要求文が、 `.sdoc` (RST) の記法で描画されること** |
+| **D** | `samples\md-sovd-automotive-en` / `samples\sd-sovd-automotive-en` をドラッグ | 同上 (英語版) |
 
-> **3 サンプルとも警告が出ないのが正しい状態になった。** `MATHJAX` / `MERMAID` の列挙を
+> **どのサンプルでも警告が出ないのが正しい状態になった。** `MATHJAX` / `MERMAID` の列挙を
 > 全サンプルの `strictdoc_config.py` から外したためである (0.27 では既定で有効)。
 > **警告が出た場合も、 図や数式が描画されない場合も報告対象。**
 
 > **`samples\hello-strictdoc` は無くなった。** `sdoc-patterns` の `00-hello.sdoc` が
 > その役目 (写して始める最小の文書) を引き継いでいる。 **フォルダが残っていたら
 > ZIP の作り直し漏れである。**
+
+> **`samples\sovd-automotive-ja` と `samples\sovd-automotive-en` も無くなった。**
+> `md-sovd-automotive-*` と `sd-sovd-automotive-*` の 4 つが同じ中身を 2 つの記法で
+> 持っている。 **旧フォルダが残っていたら ZIP の作り直し漏れである。**
 
 ## SC-018: 手動 - サーバ実行中の pip 保護 (FR-343a / FR-344a)
 

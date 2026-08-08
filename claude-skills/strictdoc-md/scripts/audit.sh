@@ -85,8 +85,9 @@ report "broken table row" "$TMP/table"
 if [ -d "$HTMLDIR" ]; then
     jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
     | .DOCUMENTS[] | select(.UID | IN($s[]) | not)
-    | recurse(.NODES[]?) | (.STATEMENT? // "")
-    | split("](") | .[1:][] | split(")")[0]
+    | recurse(.NODES[]?) | ((.STATEMENT? // "") | gsub("\r"; ""))
+    | ( (split("](") | .[1:][] | split(")")[0]),
+        (split("\n")[] | capture("^ *\\.\\. (?:image|figure):: +(?<p>[^ ]+) *$") | .p) )
     | select(startswith("http") or startswith("#") | not)' "$JSON" 2>/dev/null \
       | tr -d '\r' | sort -u \
       | while read -r p; do
@@ -99,11 +100,20 @@ fi
 
 # 4. A figure past 15 lines belongs in its own document.
 #    A document may carry no UID at all, so default it before startswith.
+#    Both notations are read. A .sdoc writes the same diagram as
+#    ".. raw:: html" + <pre class="mermaid">, and a check that only knew the
+#    Markdown fence reported 0 rows on a deliberately broken .sdoc copy holding
+#    a 16-line raw-html figure (measured).
+#    The raw-html arm requires a newline right after the opening tag. Without
+#    it, prose that merely quotes the tag inline - as the .sdoc overview does
+#    when it lists the notation - matched and reported a 46-line figure that
+#    does not exist (measured).
 jq -r --arg figprefix "$FIGPREFIX" '.DOCUMENTS[] | select((.UID // "") | startswith($figprefix) | not)
 | (.UID // .TITLE) as $doc
-| recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
-| select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
+| recurse(.NODES[]?) | select(.STATEMENT?) as $n | ($n.STATEMENT | gsub("\r"; ""))
+| ( (select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid")) | ltrimstr("mermaid")),
+    (split("<pre class=\"mermaid\">\n") | .[1:][] | split("</pre>")[0]) )
+| split("\n") | map(sub("^ +"; "")) | map(select(. != "")) | length as $c
 | select($c > 15) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($c | tostring) + " lines"' \
   "$JSON" > "$TMP/figure"
 report "oversized inline figure" "$TMP/figure"

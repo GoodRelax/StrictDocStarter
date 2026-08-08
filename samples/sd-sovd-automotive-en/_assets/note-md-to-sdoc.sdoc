@@ -1,0 +1,147 @@
+[DOCUMENT]
+TITLE: Note - how this set was built, and what the .md / .sdoc conversions measured
+UID: DOC-SOVD-NOTE-MD2SDOC
+
+[TEXT]
+STATEMENT: >>>
+This document is not a specification. It records **the constraints actually measured while keeping
+this set and the Markdown set of the same content (samples/md-sovd-automotive-en) identical**.
+
+**This file is itself an example of a document kept outside the body.** StrictDoc parses a
+``.sdoc`` placed under ``_assets/`` as a document of its own, so declaring a ``UID:`` is enough
+for the body to link to it. The 8 Mermaid diagrams that run past 15 lines are held out the same
+way.
+
+``.sdoc`` can also pull a fragment into the body (``[DOCUMENT_FROM_FILE]``). ``.md`` has no
+equivalent, so **this set links instead of embedding, to keep the two sets aligned.**
+``samples/sd-basic-en`` carries the embedding example.
+
+**RST strong emphasis does not close when a letter follows the closing marker.** Nesting is fine -
+``...`` inside strong emphasis parses - but a word butted straight against the closing ``**``
+raises ``Inline strong start-string without end-string`` and **only the HTML export fails** while
+the JSON still passes. A space or a punctuation mark after the marker fixes it. The trap bites
+hardest in Japanese, where a particle normally follows with no space; Markdown has no such rule.
+
+Environment: strictdoc 0.27.1 / Python 3.13 / Windows 11.
+<<<
+
+[[SECTION]]
+TITLE: 1. This set was built by patching the original, not by converting
+
+[TEXT]
+STATEMENT: >>>
+``--formats=markdown`` converts ``.sdoc`` to ``.md``; ``--formats=sdoc`` goes the other way. The
+node structure - documents, sections, requirements, relations, custom fields - survives in both
+directions.
+
+.. code-block:: bash
+
+    strictdoc export <specification folder> --formats=sdoc --output-dir <output dir>
+
+**StrictDoc cannot read its own .sdoc output back, though. Three reasons were measured.**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Why it stops
+     - What happens
+   * - The grammar is not copied
+     - The generated ``.sdoc`` names its grammar file, but nothing copies that file to the output
+       folder. Copying it by hand is enough
+   * - A quoted link becomes a real link
+     - If a document quotes the link syntax as an example, what stayed plain text in ``.md`` is
+       resolved by StrictDoc and stops with
+       ``the inline link references an object with an UID that does not exist``
+   * - **Wrapped values are not fenced**
+     - A ``STATEMENT`` or ``VERIFICATION`` wrapped across lines in ``.md`` becomes a value
+       containing newlines, and ``--formats=sdoc`` writes it without the ``>>>`` / ``<<<`` fence.
+       The continuation line is read as a field name and it stops with
+       ``Expected 'MID' or 'UID' or ...``
+
+**The third is not a hand-fixable amount** - over a hundred places in this set. On top of that,
+the conversion **does not rewrite the body notation**: Markdown fences and pipe tables are carried
+into the ``.sdoc`` verbatim rather than becoming RST, which defeats the RST-versus-Markdown
+comparison.
+
+**So this set starts from the .sdoc original, which already holds the RST version, and applies
+only the content changes made on the Markdown side.** The notation (16 diagrams / 15 tables /
+9 formulas / 4 images / 77 code blocks) is the original's RST, untouched.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. In .md the last field of a node swallows everything up to the next heading
+
+[TEXT]
+STATEMENT: >>>
+**One defect on the Markdown side turned up during this work.** A paragraph placed after a node's
+last field **is read as a continuation of that field's value.** Neither ``---`` nor an HTML
+comment separates them (measured). **Only the next heading stops it.**
+
+.. code-block:: text
+
+    **MODULE**: src/platform/json_serializer.c
+
+    **Authentication domain (03-auth)**    <- becomes part of the MODULE value
+
+In ``.sdoc`` the same thing is an independent ``[TEXT]`` node, so the trap does not exist.
+**The Markdown side was fixed by promoting such heading-like paragraphs to sections** (a heading
+line plus a ``**Type**: SECTION`` line). The 08-architecture of this set follows the same shape.
+
+**The export succeeds while the data is broken.** Neither JSON nor HTML reports anything; the
+value is simply polluted. To find it, scan the JSON for blank lines inside fields that should be
+short.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. The grammar must be identical across the two sets
+
+[TEXT]
+STATEMENT: >>>
+``sovd-grammar.sgra`` is the same file on the Markdown side and the ``.sdoc`` side. **What
+Markdown needs decides the grammar, and the .sdoc side follows.**
+
+**In Markdown, TITLE is declared right after UID.** ``TITLE`` comes from the heading, so StrictDoc
+places it ahead of the other single-line fields. Break that and it stops with
+``Wrong field order``. The original declared ``TITLE`` after ``LAYER``, so the ``TITLE`` line was
+moved up in 132 ``REQUIREMENT`` and ``API`` nodes.
+
+**The field name LEVEL is unusable.** It collides with StrictDoc's built-in ``Level`` (the
+table-of-contents level). **The export succeeds and the TOC numbering is overwritten by that
+value.** This set renames the test level to ``TEST_LEVEL`` to avoid it.
+
+**TYPE is usable.** The Markdown reader reserves only the spelling ``Type``, comparing
+``field_.name == "Type"`` exactly and case-sensitively (``backend/markdown/reader.py``). Written
+in capitals it passes as an ordinary field.
+
+**Breaking the order stops json, html and sdoc alike, immediately** (measured). "json passes but
+sdoc fails" does not happen.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. How to check "same content, different notation"
+
+[TEXT]
+STATEMENT: >>>
+Export both sets to JSON and **match the nodes by UID.**
+
+.. code-block:: bash
+
+    strictdoc export samples/md-sovd-automotive-en --formats=json --output-dir <output dir A>
+    strictdoc export samples/sd-sovd-automotive-en --formats=json --output-dir <output dir B>
+
+**What must match**: the grammar, the set of UIDs, the requirement sentences, the components, the
+APIs, the test criteria and the relations. **Only the body notation may differ** - the Gherkin of
+the 75 tests is a code fence in Markdown and ``.. code-block:: gherkin`` in ``.sdoc``.
+
+**Those 75 are meant to be the only remaining difference.** Anything else that disagrees means one
+of the two sets was left un-updated.
+<<<
+
+[[/SECTION]]

@@ -120,8 +120,8 @@
 | `%LOCALAPPDATA%` | `C:\Users\<user>\AppData\Local` (Windows のユーザローカルキャッシュ領域、 NTFS ACL でユーザ単位アクセス制御) |
 | Expand-UserPlaceholders | setup-spec.md FR-208 由来、 `<user>` を `$env:USERNAME` に展開する関数 |
 | Expand-PathPlaceholders | 拡張版。 `<user>` (FR-208) + `<starter_root>` (launch-strictdoc.bat のフォルダ絶対パス) の両方を展開。 unzip-and-go で同梱 `samples/` を default project_path に指せるようにする |
-| `<starter_root>` | path placeholder。 `launch-strictdoc.bat` のフォルダの絶対パスに展開される。 template の default `project_path` で `<starter_root>\samples\sovd-automotive-ja` を使用 |
-| samples/ | StrictDocStarter 同梱の StrictDoc サンプルプロジェクト 3 個。 `samples/sdoc-patterns/` (書き方の型。 `00-hello.sdoc` が編集用テンプレ)、 `samples/sovd-automotive-ja/` (~105 reqs、 中規模、 **初期 default**) と同構成の英語版 `samples/sovd-automotive-en/`。 sovd 系は 00 概要 + 01-05 要求/基盤 + 06 設計 + 07 API + 08 テスト仕様 + 09 テスト結果 + 90 付録、 要求→設計→API→テスト仕様→結果の V 字を EARS/L0-L3 + Implements/Satisfies/Verifies/ResultOf でトレース、 ASIL/CAL/Layer/Type custom fields、 共有文法 `sovd-grammar.sgra` (REQUIREMENT/COMPONENT/API/TEST/TEST_RESULT)) |
+| `<starter_root>` | path placeholder。 `launch-strictdoc.bat` のフォルダの絶対パスに展開される。 template の default `project_path` で `<starter_root>\samples\md-sovd-automotive-ja` を使用 |
+| samples/ | StrictDocStarter 同梱の StrictDoc サンプルプロジェクト 9 個。 **8 個は「同じ中身を 2 つの記法で持つ対」** — `md-` が Markdown、 `sd-` が `.sdoc` (RST)。 `md-basic-{ja,en}` / `sd-basic-{ja,en}` (最小構成。 写して始める)、 `md-sovd-automotive-{ja,en}` / `sd-sovd-automotive-{ja,en}` (要求 122 件の中規模 SOVD 仕様。 **`md-sovd-automotive-ja` が初期 default**)。 残る 1 個が `samples/sdoc-patterns/` (書き方の型。 `00-hello.sdoc` が編集用テンプレ)。 sovd 系は 00 概要 + 01 ステークホルダ要求 + 02 ユースケース + 03-07 要求/基盤 + 08 設計 + 09 API + 10 テスト仕様 + 11 テスト結果 + `_assets/` の図 8 と覚書 1、 要求→設計→API→テスト仕様→結果の V 字を EARS/L0-L3 + Implements/Satisfies/Verifies/ResultOf でトレース、 ASIL/CAL/Layer/Type custom fields、 共有文法 `sovd-grammar.sgra` (REQUIREMENT/COMPONENT/API/TEST/TEST_RESULT) |
 | `$pid` | **PowerShell の予約自動変数** で現プロセス自身の PID を保持。 server プロセスの PID 変数として **使用禁止** (= 自プロセスを stop 対象にしてしまう事故防止)。 `$serverPid` / `$targetPid` 等を使用 |
 | MOTW | Mark-of-the-Web。 Web/Zip 経由で取得したファイルに付くゾーン情報、 PowerShell が実行を阻害することがある |
 | WMI | Windows Management Instrumentation。 プロセス情報等を取得する Windows の管理基盤 |
@@ -381,7 +381,7 @@ StrictDocStarter/
 │   └── server-process.ps1               # (新規) start/stop/status/logs
 ├── setup.config.template.json           # (既存)
 ├── setup.config.json                    # (既存、 gitignore)
-├── server.config.template.json          # (新規、 commit、 default project_path = <starter_root>\samples\sovd-automotive-ja)
+├── server.config.template.json          # (新規、 commit、 default project_path = <starter_root>\samples\md-sovd-automotive-ja)
 ├── server.config.json                   # (新規、 gitignore)
 ├── samples/                             # (新規、 commit) 同梱サンプル
 │   ├── sd-basic-ja/                     # (D-9h) .sdoc の基本。 丸ごと写して始める用
@@ -400,36 +400,28 @@ StrictDocStarter/
 │   │   ├── basic.sgra                   # sd-basic-ja と同一内容
 │   │   ├── _assets/                     # note.md (LINK 先) / flow.svg。 Mermaid は本文へ直書き
 │   │   └── strictdoc_config.py          # sd-basic-ja と project_title 以外同一
-│   ├── md-sovd-automotive-ja/           # (D-9k) SOVD の実仕様を全部 .md で。 sovd-automotive-ja の写し替え
-│   │   ├── 00-overview.md 〜 11-test-results.md  # 12 文書。 原本の 13 文書から記法の付録を除いたもの
-│   │   ├── sovd-grammar.sgra            # 原本と同じ型。 TITLE を UID の直後へ、 LEVEL を TEST_LEVEL へ
-│   │   ├── _assets/                     # 16 行超の Mermaid 8 件 (fig-*.md) / 構成図 png,svg,drawio / note-md-to-sdoc.md
-│   │   └── strictdoc_config.py          # sovd-automotive-ja と project_title 以外同一
-│   ├── md-sovd-automotive-en/           # (D-9k) 同上の英語版。 sovd-automotive-en の写し替え
+│   ├── sd-basic-en/ md-basic-en/        # (D-9i/j) 上記 2 つの英語版。 07/08 の手引きは日本語版のみ
+│   ├── md-sovd-automotive-ja/           # (D-9k) SOVD の実仕様を全部 .md で。 **初期 default**
+│   │   ├── 00-overview.md 〜 11-test-results.md  # 12 文書
+│   │   ├── sovd-grammar.sgra            # TITLE を UID の直後へ、 LEVEL を TEST_LEVEL へ。 sd- 側と同一
+│   │   ├── _assets/                     # 15 行超の Mermaid 8 件 (fig-*.md) / 構成図 png,svg,drawio / note-md-to-sdoc.md
+│   │   └── strictdoc_config.py          # sd- 側と project_title 以外同一
+│   ├── md-sovd-automotive-en/           # (D-9k) 同上の英語版
 │   │   └── (md-sovd-automotive-ja と同じ構成。 ノード数も 1 件残らず一致)
-│   ├── sdoc-patterns/                   # 書き方の型。 00-hello.sdoc が編集用テンプレ (D-9 改)
-│   │   ├── 00-hello.sdoc                # 要求 3 件、 カスタム文法なし。 写して始める用
-│   │   ├── 01-requirements.sdoc 〜 05-outputs.sdoc
-│   │   ├── patterns.sgra / _assets/ / queries/
-│   │   └── strictdoc_config.py          # (D-8) project_path 直下 (D-1/FR-1141)。 MERMAID/MATHJAX は列挙しない (0.27 既定)、 左ツールバー 3 画面 + Source coverage (FR-1146)
-│   ├── sovd-automotive-en/             # 英語版 (sovd-automotive-ja と同構成)
-│   └── sovd-automotive-ja/              # 初期 default、 ASIL/CAL/Layer/Type custom fields、 SOVD 教材
-│       ├── sovd-grammar.sgra            # (D-9b) 共有要求文法。 全 .sdoc が IMPORT_FROM_FILE で参照
-│       ├── 00-overview.sdoc             # (D-9b) 前付け: 背景ストーリー/範囲/用語/参照規格/表記規約/構成図
-│       ├── 01-stakeholder-requirements.sdoc  # (D-9f) ステークホルダ要求 (最上位 SYS-L0-001 + 各 L0、 EARS)
-│       ├── 02-usecases.sdoc            # (D-9g) ユースケース (アクター/UC図/UC-000〜004、 UC→要求 / UC←受入AT)
-│       ├── 03-auth.sdoc                 # 認証・認可 (OAuth2/JWT/TLS/RBAC)、 EARS/L1-L3
-│       ├── 04-data-access.sdoc          # 車両データ識別 (DID) / 読取
-│       ├── 05-dtc-diagnostics.sdoc      # DTC / フリーズフレーム
-│       ├── 06-sw-update.sdoc            # OTA / 署名検証 / rollback
-│       ├── 07-common-platform.sdoc      # (D-9c) 共通基盤: 機能横断の共有ユニット (PLAT-、 収束 N→1)
-│       ├── 08-architecture.sdoc         # (D-9d) システム設計: コンポーネント/クラス/モジュール/ADR (Implements)
-│       ├── 09-api.sdoc                  # (D-9d) HTTP API 契約 (連携相手向け、 Satisfies)
-│       ├── 10-test-spec.sdoc            # (D-9d) テスト仕様: 単体/結合/システム/受入 (Verifies)
-│       ├── 11-test-results.sdoc         # (D-9d) テスト結果: 実行記録 (仕様と分離、 ResultOf)
-│       ├── 90-appendix-notation.sdoc    # (D-9b) 付録: 表記・記法リファレンス (旧 05/06 を統合)
-│       ├── _assets/                     # 図素材: sovd-architecture.drawio (編集ソース) + .svg + .png
-│       └── strictdoc_config.py          # (D-8) project_path 直下 (D-1/FR-1141)。 左ツールバー 3 画面を有効化 (FR-1146)
+│   ├── sd-sovd-automotive-ja/           # (D-9l) 同じ中身を全部 .sdoc (RST) で。 md- 側との差は本文の記法だけ
+│   │   ├── 00-overview.sdoc 〜 11-test-results.sdoc  # 12 文書。 UID も要求文も md- 側と一致
+│   │   ├── sovd-grammar.sgra            # md- 側と 1 文字も違わない
+│   │   ├── _assets/                     # fig-*.sdoc 8 件 (LINK 先) / 構成図 png,svg,drawio / note-md-to-sdoc.sdoc
+│   │   └── strictdoc_config.py          # md- 側と project_title 以外同一
+│   ├── sd-sovd-automotive-en/           # (D-9l) 同上の英語版
+│   │   └── (sd-sovd-automotive-ja と同じ構成)
+│   └── sdoc-patterns/                   # 書き方の型。 00-hello.sdoc が編集用テンプレ (D-9 改)
+│       ├── 00-hello.sdoc                # 要求 3 件、 カスタム文法なし。 写して始める用
+│       ├── 01-requirements.sdoc 〜 05-outputs.sdoc
+│       ├── patterns.sgra / _assets/ / queries/
+│       └── strictdoc_config.py          # (D-8) project_path 直下 (D-1/FR-1141)。 MERMAID/MATHJAX は列挙しない (0.27 既定)、 左ツールバー 3 画面 + Source coverage (FR-1146)
+│                                        # (D-9l) sovd-automotive-{ja,en} (.sdoc の原本) は削除した。
+│                                        #        sd-sovd-automotive-* が同じ内容を引き継いでいる
 ├── setup.log                            # (既存、 gitignore)
 ├── launch.log                           # (新規、 gitignore)
 ├── env-report.json                      # (既存、 gitignore)
@@ -824,7 +816,7 @@ Feature: launch-strictdoc - StrictDoc Server Lifecycle Management
   "_comment_overview": "project_path is OPTIONAL (last-used default; primary input = drag a folder/file onto launch-strictdoc.bat, or the startup prompt -- serve-spec 6.10). Optional with defaults: host (127.0.0.1); port (5111 = START port, actual = first free >= it); open_browser (true); output_path (empty=strictdoc default).",
 
   "_comment_project_path": "Default/last-used StrictDoc project root. Overridden by a folder/file dropped on launch-strictdoc.bat (file -> its parent) or the startup prompt; the chosen folder is saved back here (FR-1150..1155). <starter_root> -> the .bat's folder; <user> -> $env:USERNAME (FR-208).",
-  "project_path": "<starter_root>\\samples\\sovd-automotive-ja",
+  "project_path": "<starter_root>\\samples\\md-sovd-automotive-ja",
 
   "_comment_host": "Server bind host. Allowed: IPv4 dotted-decimal (e.g. 127.0.0.1, 0.0.0.0), 'localhost', or IPv6 literal (e.g. ::, ::1). 127.0.0.1 = local only (recommended). 0.0.0.0 and :: = LAN exposed (browser open auto-translates to 127.0.0.1).",
   "host": "127.0.0.1",
@@ -1017,6 +1009,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 - **D-9i md-basic-ja のレビュー方式を要求のフィールドへ変更 (2026-08-08)**: `md-basic-ja` だけ、 レビュー結果を独立ノード (`FINDING` + `ROLE: Reviews`) で持つのをやめ、 **`REQUIREMENT` の項目 `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` に移した**。 `FINDING` 型と `06-review.md` の指摘ノードは削除し、 `06-review.md` は「レビューの進め方」を伝える文書に役割を変えた。 **`sd-basic-ja` は従来のまま**であり、 D-9h の「両者共通」はこの時点で成り立たない。 **変更の動機は表示である** (実測): 別ノードで結ぶと要求の側には「指摘が在る」ことしか出ず、 未対応か対応済みかは指摘を開くまで分からない。 要求の項目にすると Document / Table / Traceability の 3 ビューすべてに出て、 **Table ビューは列の取捨選択と並べ替えができる**ため「未対応だけを並べる」がその場で終わる。 **捨てたもの**: 1 要求に指摘を複数持てない、 指摘ごとの UID と履歴が無い、 プロジェクト全体のトレーサビリティ行列に出ない。 **`REVIEW_STATUS` は `SingleChoice(NotReviewed, NoFinding, Open, Fixed, WontFix)` の `REQUIRED: True`** とした — 欄の欠落に意味を持たせると書き忘れと区別が付かないため、 `NotReviewed` を明示的な値として置いている。 `Rejected` を避けたのは、 指摘そのものを退けたと読めるためである。 **`.md` 側の 2 つの制約 (実測)**: 文法の `FIELDS` の順と `.md` の記述順が食い違うと `Wrong field order for requirement` で止まる。 段落型のカスタム項目は文法どおりの綴りが要り、 `**Review_comment**:` は `Invalid requirement field` で落ちる。 **`audit.sh` に 5 つめの検査 `review comment missing`** (状態が `Open` / `Fixed` / `WontFix` なのに `REVIEW_COMMENT` が空) を追加した。 **`samples/md-basic-en` と同梱スキルは未追随** — スキルの実例は `md-basic-en` に対する実測値であり、 日本語版に合わせて書き換えると実測でなくなるため、 別の作業単位で扱う。
 - **D-9j basic 4 サンプルとスキルの再統一 (2026-08-08)**: D-9i で `md-basic-ja` だけに入れたレビュー方式を、 `md-basic-en` / `sd-basic-ja` / `sd-basic-en` と同梱スキルへ広げ、 **4 つの basic サンプルが再び同じ文法・同じ UID・同じ要求文面を持つ状態へ戻した**。 D-9i の「両者共通が成り立たない」はここで解消する。 **併せて入れた変更**: 要求を EARS 化 (`0*-upper` に EARS の章を新設)、 テストケースを Gherkin 化 (`GIVEN` / `WHEN` / `THEN` / `TEST_RESULT` / `ISSUE_KEY` / `TEST_REMARK`)、 `FINDING` 型と `EXPECTED` の削除、 文書題名から `基本 - ` / `Basics - ` の削除。 **`sd-basic-*` のファイル番号を `01` 始まりから `00` 始まりへ付け直した** — D-9h が `00` を空けた理由は「AI 向けの手引きの枠」だったが、 `sd-basic-*` に AI 連携の話を入れないと決めたため、 その枠は永久に埋まらない。 **`.md` と `.sdoc` で 1 件だけ差が残る**: `05-markdown.sdoc` は `MARKUP: Markdown` を宣言できる `.sdoc` にしか置けず、 その中の `SW-005` は `.md` 側に対応が無い。 両サンプルの手引きにその旨を明記した。 **`audit.sh` に入れた変更 3 つ (すべて実測で見つけた欠陥)**: (a) 英語用の文面検査を追加し、 日本語のパターンと互いに逆の言語門を付けた (日本語文字を含む文だけ / 含まない文だけ)。 (b) `trailing dollar` が **1 件も発火していなかった** — StrictDoc が元ファイルの CRLF を `STATEMENT` に残すため、 各行が CR で終わり、 末尾を見る `" *$"` が決して一致しない。 `map(rtrimstr("\r"))` を足して直し、 同じクエリを載せている 5 ファイルも直した。 (c) `negative` の 2 語パターンが空白をまたげず、 **`.sdoc` の折り返しで `shall` と `not` の間に改行が入ると発火しなかった** — `shall\s+not` へ直し、 4 サンプルの出力が完全に一致することを確認した。 **`tools/check-jq-output.py` を新設** — `verify-jq.py` は「動くか」しか見ないため、 **貼ってある出力が今も正しいか**を突き合わせる道具を足した。 意図的な抜粋と省略は正常扱いにし、 「(16 more lines)」の数字は実際の残り行数と照合する。 これで 25 箇所の古い出力を見つけた。 **`.sdoc` の RST 表で測った罠 2 つ**: 表を組むのは docutils であり、 東アジア文字幅が「曖昧」の文字 (`○` など) を **1 桁**と数える — 等幅フォントの見た目で揃えると 1 桁ずつずれ、 `Malformed table` で **HTML だけが落ちる** (JSON は通る)。 simple 形式では先頭列が空の行が「前の行の続き」になる (見出し行だけを空にするのは通る、 実測)。
 - **D-9k `md-sovd-automotive-ja` / `-en` の新設 (2026-08-08)**: `samples/sovd-automotive-ja` と `-en` (`.sdoc`) を**編集せず**、 同じ仕様を全部 `.md` で書いた一式 `samples/md-sovd-automotive-ja` を新設した。 **要求 122 / 部品 17 / API 10 / テスト 75 / 結果 75 はすべて原本と同数**である。 **写さなかったのは `90-appendix-notation.sdoc` だけ** — RST と Markdown の記法を並べて見せる教材であり、 全部 `.md` の一式では意味を失ううえ、 「書き方は `md-basic-ja` とスキルが持つ」という方針に反する。 **変換は StrictDoc 自身の `--formats=markdown` に行わせ、 本文に残る RST のディレクティブ 5 種 (raw-html Mermaid 16 / list-table 15 / math 9 / image 4 / code-block 77) を Markdown へ書き換えた。** **文法に必要だった変更は 2 つ (どちらも実測で判明)**: (a) `.md` は `TITLE` を見出しから取り `UID` の直後へ置くため、 **文法でも `TITLE` を `UID` の直後に宣言する** (`REQUIREMENT` と `API` が該当)。 崩すと `Wrong field order` で止まる。 (b) **`LEVEL` は使えない** — StrictDoc 組み込みの `Level` と衝突し、 **export は成功したまま目次の番号 `_TOC` がその値で上書きされる**。 テストの水準を `TEST_LEVEL` へ改名した。 `COMMENT` や `PRIORITY` は同じ組み込み語でも衝突しない。 **原本には無かったものを 2 つ足した**: 全 12 文書に文書 UID (`DOC-SOVD-*`。 原本は 1 つも持たず `[LINK:]` の宛先になれなかった)、 および 16 行超の Mermaid 8 件を `_assets/fig-*.md` へ出して `[LINK:]` で繋ぐ形。 **要求文 17 件を日本語 EARS へ直した** — `ears-order` 11 件と `ears-shape` 12 件が消え、 残る `wording candidates` は `passive` 14 と `negative` 10 だけになった (この 2 つは 0 にしてはならない)。 **監査は 2 文書を除いて回す**: `DOC-SOVD-NOTE-MD2SDOC` (記法の説明) と `DOC-SOVD-USECASES` (ユースケースは要求文ではない)。 **英語版は同じ手順を `samples/sovd-automotive-en` に当てて作った** — 英訳は既に存在するので訳し直していない (「翻訳は 1 回だけ払う」)。 **両者はノード数が 1 件も違わない** (DOCUMENT 21 / REQUIREMENT 122 / COMPONENT 17 / API 10 / TEST 75 / TEST_RESULT 75 / SECTION 56 / TEXT 47)。 原本の DOCUMENT 13 → 21 は文書 UID を持つ図 8 件と覚書 1 件を足したためで、 TEXT 64 → 47 は `--formats=markdown` が 1 つの章の中の連続する `[TEXT]` をまとめるためである (トレース対象のノード数は変わらない)。 **`audit.sh` の英語 `ears-order` を 1 文ずつ判定する形に直した** — 2 文目が正当に `If` で始まる要求で 1 文目が誤検出されていた (実測 3 件)。 日本語側は `[^。]*` で元から 1 文に収まっている。
+- **D-9l `sd-sovd-automotive-ja` / `-en` の新設と原本 2 つの削除 (2026-08-08)**: D-9k で作った `md-sovd-automotive-*` と**同じ中身を `.sdoc` (RST) で持つ一式**を新設し、 `.sdoc` の原本 `samples/sovd-automotive-ja` / `-en` を削除した。 **これで同梱サンプルはすべて「同じ中身を 2 つの 記法で持つ対」になり、 残る差は本文の記法だけになる** (利用者の方針: 「md- と sd- が極力同一に することである。 これにより、 RST と MD の書き方の違いを比較できる」)。 **作り方は変換ではない。** `--formats=sdoc` の出力は StrictDoc 自身が読み戻せず、 理由を 3 つ 測った: (a) 文法ファイルが複製されない、 (b) リンクの書き方を引用している文書はその引用が実リンクに 変わる、 (c) **`.md` で折り返して書いた値を `>>>` / `<<<` で囲わずに書き出すため、 続きの行が フィールド名として読まれる** (この 3 つめは前の引き継ぎに無く、 該当箇所が 100 を超えるので手では 直せない)。 加えて変換は本文の記法を書き換えないので、 Markdown のフェンスがそのまま `.sdoc` の中へ 入るだけで RST にはならない。 **そこで RST 版を既に持つ原本を出発点にし、 `.md` 側で加えた中身の 差分だけを当てた**: 文法を `md-` 側と同一に (`TITLE` を `UID` の直後へ、 `LEVEL` → `TEST_LEVEL`。 `REQUIREMENT` と `API` の 132 ノードで `TITLE` の行を移動)、 要求文の書き直し (ja 19 件 / en 5 件)、 文書 UID 12 個、 `90-appendix-notation.sdoc` の削除、 15 行超の Mermaid 8 件を `_assets/fig-*.sdoc` へ 出して `[LINK:]` で繋ぐ形 (**`[DOCUMENT_FROM_FILE]` は使わない** — `.md` に相当物が無く、 使うと 文書数が 21 対 13 に割れて「記法だけの差」でなくなる。 取り込みの実例は `sd-basic-*` が持つ)、 覚書 `_assets/note-md-to-sdoc.sdoc` の追加。 **実測: UID 集合は md/sd で完全一致 (320 件)、 食い違うのはテスト 75 件の Gherkin の書き方 (コードフェンス 対 `.. code-block:: gherkin`) と 覚書の題名だけである。** 監査も 4 サンプルで完全に一致する (5 検査 0 件 + `wording candidates` ja 23 / en 29、 UID も判定も一致)。 **`md-sovd-automotive-*` の欠陥を 1 件直した**: `.md` はノードの最後のフィールドの後ろに置いた段落を その値の続きとして読むため、 `ARCH-C-004/006/009/013` の `MODULE` にグループ見出しが吸われていた (両言語 8 ノード)。 `---` も HTML コメントも区切りにならず、 **止められるのは次の見出しだけ**なので、 見出し的な段落を節へ格上げして直した (`SECTION` 56 → 61)。 **`audit.sh` の欠陥を 2 件直した**: `attachment not published` が `.. image::` を、 `oversized inline figure` が `.. raw:: html` + `<pre class="mermaid">` を見ておらず、 **`.sdoc` の一式では両方とも 0 件を返していた** (壊した複製で確認)。 どちらも行頭に固定した形で足した — 緩く書くと記法を説明している地の文に誤反応する (実測: 存在しない 46 行の図を報告した)。 **既定プロジェクトを `md-sovd-automotive-ja` へ移した** (`server.config.template.json` / `launch-strictdoc.ps1` / FR-1153 / §3.3)。
 - **D-10 出力先・色モード・scaffold 世代更新 (2026-08-06)**: FR-1160..1163 と NFR-010 を追加した。 起点は「複数プロジェクトを同時に開くとプロジェクトインデックスが混ざる」という実害で、 原因は strictdoc のサーバ既定出力が**相対パス `./output/server`** であり CWD 基準で解決されることだった (FR-1160)。 出力先を配信対象フォルダ配下へ移すにあたり、 **第 1 階層を `output` 以外にできない**ことが実測で判明している — `output` は StrictDoc が名前で無条件に除外する予約名であり、 他の名前だと 2 回目の起動で自身の出力を再走査して重複 UID で停止する。 色モード (FR-1162) と scaffold 世代更新 (FR-1163) は**同じ 1 ファイル `strictdoc_config.py` を書き換える必要がある**という共通の制約を持つため、 判定を FR-1163 に一本化した。 **FR-1142 の「既存を上書きしない」は撤回しない** — 保証の対象を「利用者が書いたファイル」と明確化し、 ランチャ自身が書いた**手つかずの**ファイルに限りハッシュ照合と同意を条件に更新可能とした。 これは「旧 starter で scaffold した利用者に新機能が永久に届かない」という指摘への回答である。
 - **D-11 プロジェクト題名 (2026-08-07)**: FR-1167 / FR-1168 を追加し、 scaffold の `project_title` を固定文字列から**配信対象フォルダ名**へ変えた。 利用者の指示は「`project_title` の定義が無い場合はフォルダ名にする。 定義があれば触らない」であり、 これを素直に実装すると**人が書いた `.py` に黙って行を足す**ため FR-1163 と衝突する。 そこで**状況を 3 つに割った** (無い/我々の手つかず/人が書いた) のが FR-1168 である。 **設計上の副作用を 1 つ引き受けている**: 題名がプロジェクトごとに変わるため FR-1163 のハッシュ照合が成り立たなくなり、 照合を「題名を伏せた世代ハッシュ」に変えた。 これは損ではなく得で、 strictdoc がブラウザからの題名変更でこの値だけを書き換える (0.21.1+) ため、 **題名を変えただけの利用者にも世代更新が届き続ける**ようになった。 **限界は利用者に伝え済み**: `sdoc` や `docs` のような一般名のフォルダでは題名もそうなる。 美しくはないが `StrictDoc Project` が並ぶよりは「どれか」が分かり、 整えたい人は 1 行書き換えればその瞬間から「その人の設定」になる (FR-1163 (c))。 **同梱サンプル 5 つは影響を受けない** — すべて `project_title` を持つ専用設定であり、 実測でも 5 つとも問われず `git status` が clean のままだった。 なお本件の調査中に、 **`--watch` 実行中に `strictdoc_config.py` を書き換えてもサーバは落ちないが、 題名は起動時に読んだ値のまま**であることを実測した (設定の再読込は行われない)。
 - **D-9b サンプル品質リライト (S-1 の後継、 2026-06-06)**: 上記 Phase 1 の `05/06` 記法デモ文書は「仕様書として不自然」 (ツール解説と要求が混在) のため**廃止**し、 ANMS テンプレート準拠の自然な仕様書へ全面リライトした。 (a) 遠隔診断の背景ストーリーを起点に前付け `00-overview.sdoc` (目的/範囲/用語/参照規格/表記規約/構成図/改訂履歴) を新設、 (b) 要求文を **EARS 化**・単一要求化・受入基準 (VERIFICATION 欄) 付与、 (c) **ASIL (安全) と CAL (セキュリティ) を分離** (00-overview §6.3)、 (d) 図/数式を本来の要求文書へ統合 (認証シーケンス→01、 SOVD↔UDS→02、 DTC ガード→03、 OTA 状態機械→04、 構成図→00)、 (e) 旧 05/06 の記法カバレッジは付録 `90-appendix-notation.sdoc` (Markdown マークアップで RST/Markdown 両記法を実演) に集約、 (f) 共有文法を `sovd-grammar.sgra` に切り出し全 .sdoc が `IMPORT_FROM_FILE` で参照 (ボイラープレート削減・整合保証)。 セクションは 0.23.1 で廃止された `[SECTION]` の後継 `[[SECTION]]` (`IS_COMPOSITE: True`) を使用。 strictdoc 0.23.1 で export クリーン・全図/数式/表/トレース描画確認済。 **その後、 同一構成のまま日本語版 `samples/sovd-automotive-ja/` と英語版 `samples/sovd-automotive-en/` の 2 言語へ分離。 既定は `-ja` (server.config.template.json / §3.3 / §6.10.4 と整合)。**
@@ -1102,7 +1095,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 | FR-1150b | If | もし引数 0 個 (ドロップ無し) で起動されたら、 `launch-strictdoc.ps1` はこれを受理し FR-1153 のプロンプトへ進むこと。 |
 | FR-1151 | When | ドロップ項目が **(a) ディレクトリ** (`Test-Path -PathType Container` が真) のとき project_path = そのディレクトリ。 **(b) ファイル**のとき project_path = その親ディレクトリ (`Split-Path -Parent`)。 **(c)** 解決結果がドライブ直下 (例 `C:\`) または UNC 共有ルート (`\\server\share`) になる場合は FR-1154a のエラー扱いとし、 ドライブ / 共有全体の走査を防ぐこと (UNC 下の通常フォルダ `\\server\share\proj` は可)。 **(d)** `.lnk` ショートカットは解決対象外とし `[WARN] Shortcuts (.lnk) are not supported; drop the actual folder/file` を表示してスキップ (FR-1153 のプロンプトへ)。 |
 | FR-1152 | If | もし複数項目がドロップされたら、 **先頭 1 項目**のみを採用し、 `[WARN] Multiple items dropped; using the first: <path>` を表示すること。 |
-| FR-1153 | If | もし引数 0 個 (ドロップ無し) ならば、 `Enter folder path (or Q to quit) [default: <default>]: ` のプロンプトでフォルダ入力を求めること。 (a) **空入力 (Enter のみ) → `<default>` を採用**。 (b) `<default>` は config.project_path が有効ならそれ、 無効 / 空なら同梱サンプル `<starter_root>\samples\sovd-automotive-ja` (同梱されており常に存在 = Enter は安全な脱出口)。 (c) **`Q` / `q` 入力 → 中断**し `[INFO] Cancelled.` を表示して exit すること (無効パス再プロンプトの無限ループ脱出口)。 |
+| FR-1153 | If | もし引数 0 個 (ドロップ無し) ならば、 `Enter folder path (or Q to quit) [default: <default>]: ` のプロンプトでフォルダ入力を求めること。 (a) **空入力 (Enter のみ) → `<default>` を採用**。 (b) `<default>` は config.project_path が有効ならそれ、 無効 / 空なら同梱サンプル `<starter_root>\samples\md-sovd-automotive-ja` (同梱されており常に存在 = Enter は安全な脱出口)。 (c) **`Q` / `q` 入力 → 中断**し `[INFO] Cancelled.` を表示して exit すること (無効パス再プロンプトの無限ループ脱出口)。 |
 | FR-1154 | If | (a) もし解決 project_path が無効 (展開後の絶対パスが存在しない / ディレクトリでない / ドライブ・共有ルート) ならば `[ERROR] <path> does not exist or is not a usable project folder` を表示し FR-1153 のプロンプトへ戻ること。 (b) もしディレクトリに `*.sdoc` が 1 つも無ければ `[WARN] No .sdoc files found under <path>` を表示し**起動は継続** (strictdoc は空プロジェクトとして空インデックスを表示。 FR-1142 の scaffold は `.sdoc` 有無に依らず実行)。 (c) 同期 / 空白 / 非 ASCII パスは FR-1132 の警告を適用すること。 |
 | FR-1155 | When | project_path が確定したとき: (a) その絶対パスを `server.config.json` の `project_path` へ保存すること (最終使用 = 次回単体起動の既定。 UTF-8 BOM なし・ FR-204 流儀)。 (b) `host` / `port` / `open_browser` / `output_path` は変更しないこと。 (c) 保存失敗 (読み取り専用 / ロック等) は非致命とし `[WARN] Could not save last-used path: <reason>` 表示のうえ続行すること (FR-1144 流儀)。 |
 
@@ -1131,7 +1124,7 @@ v1.0 では **host 手動テスト** (VM テスト不要、 strictdoc は host �
 
 ### 6.10.4 config スキーマ差分 (§4.2 を改訂)
 
-- `project_path`: **任意 (optional)**。 D&D / プロンプトで与えられた値が優先され、 確定後に最終使用として本フィールドへ保存される (FR-1155)。 初期テンプレートでは同梱サンプル (`<starter_root>\samples\sovd-automotive-ja`) を既定として保持する。
+- `project_path`: **任意 (optional)**。 D&D / プロンプトで与えられた値が優先され、 確定後に最終使用として本フィールドへ保存される (FR-1155)。 初期テンプレートでは同梱サンプル (`<starter_root>\samples\md-sovd-automotive-ja`) を既定として保持する。
 - `port`: **開始ポート (start port)**。 実 bind ポートは本値以上で最初に空いているポート (FR-1156)。
 - `host` / `open_browser`: 不変。
 - `output_path`: **意味を変更 (FR-1160)**。 空のときの既定が「strictdoc 既定 (= サーバプロセスの CWD 直下 `output\server`)」から **`<specified folder>\output\strictdoc`** になる。 明示値がある場合の扱いは不変。

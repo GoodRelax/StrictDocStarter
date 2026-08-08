@@ -23,7 +23,7 @@ $ScriptDir     = Split-Path -Parent $MyInvocation.MyCommand.Path
 $StarterRoot   = $ScriptDir
 $ConfigPath    = Join-Path $ScriptDir 'server.config.json'
 $TemplatePath  = Join-Path $ScriptDir 'server.config.template.json'
-$SampleDefault = Join-Path $ScriptDir 'samples\sovd-automotive-ja'
+$SampleDefault = Join-Path $ScriptDir 'samples\md-sovd-automotive-ja'
 $libConfig     = Join-Path $ScriptDir 'lib\server-config.ps1'
 $libProcess    = Join-Path $ScriptDir 'lib\server-process.ps1'
 

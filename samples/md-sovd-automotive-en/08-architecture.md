@@ -56,9 +56,11 @@ Below, the main components of all domains are defined by their **single responsi
 sentence)** and traced to requirements. For individual behaviors (acceptance/unit verdicts),
 refer to the scenarios in 10.
 
-**Platform components (Common Platform)**
+### Platform components (Common Platform)
 
-### TlsTerminator
+**Type**: SECTION
+
+#### TlsTerminator
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-001 \
@@ -72,7 +74,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/platform/tls_terminator.c
 
-### ScopeAuthorizer
+#### ScopeAuthorizer
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-002 \
@@ -86,7 +88,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/platform/scope_authorizer.c
 
-### UdsClient
+#### UdsClient
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-003 \
@@ -100,7 +102,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/platform/uds_client.c
 
-### JsonSerializer
+#### JsonSerializer
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-004 \
@@ -114,9 +116,11 @@ refer to the scenarios in 10.
 
 **MODULE**: src/platform/json_serializer.c
 
-**Authentication domain (03-auth)**
+### Authentication domain (03-auth)
 
-### TokenVerifier
+**Type**: SECTION
+
+#### TokenVerifier
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-005 \
@@ -130,7 +134,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/auth/token_verifier.c
 
-### TokenCache
+#### TokenCache
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-006 \
@@ -144,9 +148,11 @@ refer to the scenarios in 10.
 
 **MODULE**: src/auth/token_cache.c
 
-**Data access domain (04-data-access)**
+### Data access domain (04-data-access)
 
-### DataReadUseCase
+**Type**: SECTION
+
+#### DataReadUseCase
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-007 \
@@ -160,7 +166,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/data/data_read_usecase.c
 
-### DidResolver
+#### DidResolver
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-008 \
@@ -174,7 +180,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/data/did_resolver.c
 
-### DataCache
+#### DataCache
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-009 \
@@ -188,9 +194,11 @@ refer to the scenarios in 10.
 
 **MODULE**: src/data/data_cache.c
 
-**DTC domain (05-dtc-diagnostics)**
+### DTC domain (05-dtc-diagnostics)
 
-### DtcParser
+**Type**: SECTION
+
+#### DtcParser
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-010 \
@@ -204,7 +212,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/dtc/dtc_parser.c
 
-### FreezeFrameDecoder
+#### FreezeFrameDecoder
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-011 \
@@ -218,7 +226,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/dtc/freeze_frame_decoder.c
 
-### SpeedReader
+#### SpeedReader
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-012 \
@@ -232,7 +240,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/dtc/speed_reader.c
 
-### DtcHistoryStore
+#### DtcHistoryStore
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-013 \
@@ -246,9 +254,11 @@ refer to the scenarios in 10.
 
 **MODULE**: src/dtc/dtc_history_store.c
 
-**OTA domain (06-sw-update)**
+### OTA domain (06-sw-update)
 
-### PackageDownloader
+**Type**: SECTION
+
+#### PackageDownloader
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-014 \
@@ -262,7 +272,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/swupdate/package_downloader.c
 
-### SignatureVerifier
+#### SignatureVerifier
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-015 \
@@ -276,7 +286,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/swupdate/signature_verifier.c
 
-### FlashSectorWriter
+#### FlashSectorWriter
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-016 \
@@ -290,7 +300,7 @@ refer to the scenarios in 10.
 
 **MODULE**: src/swupdate/flash_sector_writer.c
 
-### VehicleStateMonitor
+#### VehicleStateMonitor
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-017 \

@@ -140,15 +140,21 @@ no and it will not ask again until a newer version ships.
 
 ## Bundled samples
 
+Every sample comes as a pair holding **the same content in the two notations**: `md-` is
+written in Markdown, `sd-` in `.sdoc` (RST). Same grammar, same UIDs, same requirement
+sentences — only the body notation differs, so the two folders can be read side by side.
+
 | Path | What |
 |---|---|
-| `samples/sovd-automotive-ja/` | **Default.** A full Japanese SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) requirements spec — overview, stakeholder requirements, use cases, authentication, data access, DTC diagnostics, OTA software update, architecture, HTTP API, and test spec & results — with ASIL (ISO 26262) and A-SPICE layer custom fields, Mermaid diagrams, math, and traceability. |
-| `samples/sovd-automotive-en/` | English version of the above. |
-| `samples/sd-basic-ja/` | **The basics in `.sdoc` — copy this folder to start your own spec.** The smallest thing that still works as a requirements spec: three upper requirements, four lower ones that point at them, four test cases that point at those, and two review findings — each group in its own file, so the traceability actually crosses file boundaries. One shared grammar file (`basic.sgra`) adds the `TEST_CASE` and `FINDING` node types and the `Verifies` / `Reviews` relation roles. Also covers prose that is deliberately *not* a requirement, linking to a `.md` file, a Mermaid diagram externalised into an included fragment, an SVG image, both RST table forms (`+---+` grid and `===` simple), and one document that declares `MARKUP: Markdown` to get pipe tables. Japanese. |
-| `samples/md-basic-ja/` | **The same spec written entirely in `.md`.** Same UIDs, same traceability, same JSON — only the body syntax differs, which makes the two folders directly comparable. Adds what is specific to Markdown: the `**Type**: SECTION` rule, the four parse errors that stop the whole export, the mixed-case/upper-case field-name asymmetry, inline Mermaid fences (no fragment file needed), pipe tables that need no column alignment, and how to convert to `.sdoc`. Japanese. |
+| `samples/md-sovd-automotive-ja/` | **Default.** A full Japanese SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) requirements spec — overview, stakeholder requirements, use cases, authentication, data access, DTC diagnostics, OTA software update, architecture, HTTP API, and test spec & results — with ASIL (ISO 26262) and A-SPICE layer custom fields, Mermaid diagrams, math, and traceability. Requirements are written in EARS and tests in Gherkin. Written entirely in `.md`. |
+| `samples/sd-sovd-automotive-ja/` | The same specification written in `.sdoc`. This is where the notations are worth comparing at the scale of a real spec: Mermaid as `.. raw:: html`, tables as `.. list-table::`, math as `.. math::`, code as `.. code-block::`. |
+| `samples/md-sovd-automotive-en/`, `samples/sd-sovd-automotive-en/` | English versions of the two above. |
+| `samples/md-basic-ja/` | **The basics in `.md` — copy this folder to start your own spec.** The smallest thing that still works as a requirements spec: three upper requirements, four lower ones that point at them, four test cases that point at those, and review status carried on the requirements themselves — each group in its own file, so the traceability actually crosses file boundaries. One shared grammar file (`basic.sgra`) adds the `TEST_CASE` node type, the `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` fields and the `Verifies` relation role. Also covers prose that is deliberately *not* a requirement, linking to another `.md` file, an externalised Mermaid diagram, an SVG image, what an AI needs in order to read the set, and how to edit it from the browser and alongside Claude. Japanese. |
+| `samples/sd-basic-ja/` | **The same spec written in `.sdoc`.** Adds what is specific to `.sdoc`: both RST table forms (`+---+` grid and `===` simple), `[DOCUMENT_FROM_FILE]` to pull a diagram fragment into the body (Markdown has no equivalent), and one document that declares `MARKUP: Markdown` to get pipe tables. Japanese. |
+| `samples/md-basic-en/`, `samples/sd-basic-en/` | English versions of the two above. |
 | `samples/sdoc-patterns/` | **Authoring patterns — start here to write your own.** `00-hello.sdoc` is the minimal document to copy: three requirements, no custom grammar. The rest add one construct each, small enough to read in full: custom grammar (`.sgra`), parent/file relations, a custom `FINDING` node type for review findings, a `REVISION` field, diagrams kept out of the requirement bodies (Mermaid, math, SVG/PNG images, and a Mermaid diagram externalised into its own `.md` under `_assets/` and linked back with a `File` relation), the same requirements written in Markdown, and what the export formats are for. `queries/` holds the seven ready-to-run jq filters from [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md). This is the sample [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) refers to. |
 
-To open the English sample, drag `samples\sovd-automotive-en` onto `launch-strictdoc.bat`
+To open the English sample, drag `samples\md-sovd-automotive-en` onto `launch-strictdoc.bat`
 (or set it as `project_path` in `server.config.json` to make it the default).
 
 ## Verified StrictDoc version
@@ -391,15 +397,21 @@ StrictDoc 自身はダークモードを持たないため、これは**スタ�
 
 ## 同梱サンプル
 
+サンプルはすべて **同じ中身を 2 つの記法で持つ対**になっています。`md-` は Markdown、
+`sd-` は `.sdoc` (RST) で書いてあります。文法も UID も要求文も同じで、違うのは本文の
+記法だけなので、2 つのフォルダを並べて読み比べられます。
+
 | パス | 内容 |
 |---|---|
-| `samples/sovd-automotive-ja/` | **既定。** 日本語のフル SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) 要求仕様書 — 全体概要・ステークホルダ要求・ユースケース・認証・データアクセス・DTC 診断・OTA ソフトウェア更新・アーキテクチャ・HTTP API・テスト仕様/結果。ASIL (ISO 26262) と A-SPICE レイヤの custom field、Mermaid 図、数式、トレーサビリティ付き。 |
-| `samples/sovd-automotive-en/` | 上記の英語版。 |
-| `samples/sd-basic-ja/` | **`.sdoc` の基本 — 自分の仕様書はこのフォルダを丸ごと写して始める。** 要求仕様書として最低限成り立つ一式: 上位要求 3 件・それを指す下位要求 4 件・それを指すテストケース 4 件・レビュー指摘 2 件を**それぞれ別ファイル**に置き、トレーサビリティがファイルをまたぐようにしてある。共有の文法定義 (`basic.sgra`) が `TEST_CASE` / `FINDING` のノード型と `Verifies` / `Reviews` の関係ロールを足す。ほかに、意図して要求にしない地の文・`.md` へのリンク・断片へ外出しした Mermaid 図・SVG 画像・RST の表 2 形式 (`+---+` grid と `===` simple)・パイプ表のために `MARKUP: Markdown` を宣言した文書 1 つ。 |
-| `samples/md-basic-ja/` | **同じ仕様書を全部 `.md` で書いた版。** UID もトレーサビリティも JSON も同じで、違うのは本文の記法だけなので 2 つのフォルダを直接見比べられる。`.md` 固有の内容を追加: `**Type**: SECTION` の規則・export 全体を止める 4 つの解析エラー・フィールド名の大文字小文字の非対称・Mermaid フェンス直書き (断片ファイル不要)・桁揃え不要のパイプ表・`.sdoc` への変換方法。 |
+| `samples/md-sovd-automotive-ja/` | **既定。** 日本語のフル SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) 要求仕様書 — 全体概要・ステークホルダ要求・ユースケース・認証・データアクセス・DTC 診断・OTA ソフトウェア更新・アーキテクチャ・HTTP API・テスト仕様/結果。ASIL (ISO 26262) と A-SPICE レイヤの custom field、Mermaid 図、数式、トレーサビリティ付き。要求は EARS、テストは Gherkin で書いてあり、本文は全部 `.md`。 |
+| `samples/sd-sovd-automotive-ja/` | 同じ仕様書を `.sdoc` で書いた版。実仕様の規模で記法を比べられる: Mermaid は `.. raw:: html`、表は `.. list-table::`、数式は `.. math::`、コードは `.. code-block::`。 |
+| `samples/md-sovd-automotive-en/`、`samples/sd-sovd-automotive-en/` | 上記 2 つの英語版。 |
+| `samples/md-basic-ja/` | **`.md` の基本 — 自分の仕様書はこのフォルダを丸ごと写して始める。** 要求仕様書として最低限成り立つ一式: 上位要求 3 件・それを指す下位要求 4 件・それを指すテストケース 4 件・要求そのものに載せたレビュー欄を**それぞれ別ファイル**に置き、トレーサビリティがファイルをまたぐようにしてある。共有の文法定義 (`basic.sgra`) が `TEST_CASE` のノード型と `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` のフィールド、`Verifies` の関係ロールを足す。ほかに、意図して要求にしない地の文・別の `.md` へのリンク・外出しした Mermaid 図・SVG 画像・AI に読ませるために要るもの・ブラウザでの編集と Claude との共同作業。 |
+| `samples/sd-basic-ja/` | **同じ仕様書を `.sdoc` で書いた版。** `.sdoc` 固有の内容を追加: RST の表 2 形式 (`+---+` grid と `===` simple)・図の断片を本文へ取り込む `[DOCUMENT_FROM_FILE]` (Markdown に相当物は無い)・パイプ表のために `MARKUP: Markdown` を宣言した文書 1 つ。 |
+| `samples/md-basic-en/`、`samples/sd-basic-en/` | 上記 2 つの英語版。 |
 | `samples/sdoc-patterns/` | **書き方の型 — 自分の要求書はここから始める。** `00-hello.sdoc` が写して使う最小の文書 (要求 3 件、カスタム文法なし)。以降は構文を 1 つずつ、全部読める分量で足していく: カスタム文法 (`.sgra`)・親/ファイル関係・レビュー指摘用のカスタムノード型 `FINDING`・`REVISION` フィールド・要求本体から外に出した図 (Mermaid・数式・SVG / PNG 画像・図 1 枚を `_assets/` の `.md` に外出しして `File` 関係で戻す型)・同じ要求の Markdown 版・出力形式の使い分け。`queries/` に [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) の jq フィルタ 7 本をそのまま同梱。[`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) が参照するサンプル。 |
 
-英語版を開くには、`samples\sovd-automotive-en` を `launch-strictdoc.bat` にドラッグ&ドロップ
+英語版を開くには、`samples\md-sovd-automotive-en` を `launch-strictdoc.bat` にドラッグ&ドロップ
 してください (既定にするなら `server.config.json` の `project_path` を変更)。
 
 ## 動作確認済み StrictDoc バージョン

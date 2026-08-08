@@ -249,7 +249,8 @@ function Remove-OrphanedOutput {
     # or opened file-by-file -- but the leftovers accumulate.
     #
     # Deliberately narrow. Wiping the whole folder would cost the cache (measured
-    # on sovd-automotive-ja: 12.6 s cold against 7.4 s warm) and, since FR-1160
+    # on a SOVD-sized project of 122 requirements: 12.6 s cold against 7.4 s warm)
+    # and, since FR-1160
     # puts our output next to whatever else the user keeps under output\, could
     # take their files with it.
     param(

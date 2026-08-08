@@ -52,8 +52,8 @@ RATIONALE: >>>
 `strictdoc` の JSON は元の `.sdoc` より**大きい**。 `json_generator.py` が
 `json.dumps(..., indent=4)` を既定のまま呼ぶため、 4 スペースで整形され、
 かつ**非 ASCII が ``\uXXXX`` に展開される** (日本語 1 文字が 3 バイトから
-6 バイトになる)。 `sovd-automotive-ja` の実測で `.sdoc` の **2.79 倍**
-(トークン数。 バイトでは 3.23 倍) であった。
+6 バイトになる)。 `sd-sovd-automotive-ja` の実測で `.sdoc` の **2.87 倍**
+(トークン数。 バイトでは 3.35 倍) であった。
 
 `jq` を一度通せば元の文字に戻り、 整形も外れる。
 

@@ -46,14 +46,16 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **代表スライス: 認証付き DID 読み出し (CA 層で色分け)**
 
-**この図は 16 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CONTEXT]
+**この図は 15 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CONTEXT]
 
 以下、 全ドメインの主要コンポーネントを **単一責務 (1 文)** で定義し、 要求へトレースする。
 個々の振る舞い (受入/単体の判定) は 10 のシナリオを参照。
 
-**基盤コンポーネント (Common Platform)**
+### 基盤コンポーネント (Common Platform)
 
-### TlsTerminator
+**Type**: SECTION
+
+#### TlsTerminator
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-001 \
@@ -67,7 +69,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/platform/tls_terminator.c
 
-### ScopeAuthorizer
+#### ScopeAuthorizer
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-002 \
@@ -81,7 +83,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/platform/scope_authorizer.c
 
-### UdsClient
+#### UdsClient
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-003 \
@@ -95,7 +97,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/platform/uds_client.c
 
-### JsonSerializer
+#### JsonSerializer
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-004 \
@@ -109,9 +111,11 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/platform/json_serializer.c
 
-**認証ドメイン (03-auth)**
+### 認証ドメイン (03-auth)
 
-### TokenVerifier
+**Type**: SECTION
+
+#### TokenVerifier
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-005 \
@@ -125,7 +129,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/auth/token_verifier.c
 
-### TokenCache
+#### TokenCache
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-006 \
@@ -139,9 +143,11 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/auth/token_cache.c
 
-**データアクセスドメイン (04-data-access)**
+### データアクセスドメイン (04-data-access)
 
-### DataReadUseCase
+**Type**: SECTION
+
+#### DataReadUseCase
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-007 \
@@ -155,7 +161,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/data/data_read_usecase.c
 
-### DidResolver
+#### DidResolver
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-008 \
@@ -169,7 +175,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/data/did_resolver.c
 
-### DataCache
+#### DataCache
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-009 \
@@ -183,9 +189,11 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/data/data_cache.c
 
-**DTC ドメイン (05-dtc-diagnostics)**
+### DTC ドメイン (05-dtc-diagnostics)
 
-### DtcParser
+**Type**: SECTION
+
+#### DtcParser
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-010 \
@@ -199,7 +207,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/dtc/dtc_parser.c
 
-### FreezeFrameDecoder
+#### FreezeFrameDecoder
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-011 \
@@ -213,7 +221,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/dtc/freeze_frame_decoder.c
 
-### SpeedReader
+#### SpeedReader
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-012 \
@@ -227,7 +235,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/dtc/speed_reader.c
 
-### DtcHistoryStore
+#### DtcHistoryStore
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-013 \
@@ -241,9 +249,11 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/dtc/dtc_history_store.c
 
-**OTA ドメイン (06-sw-update)**
+### OTA ドメイン (06-sw-update)
 
-### PackageDownloader
+**Type**: SECTION
+
+#### PackageDownloader
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-014 \
@@ -257,7 +267,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/swupdate/package_downloader.c
 
-### SignatureVerifier
+#### SignatureVerifier
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-015 \
@@ -271,7 +281,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/swupdate/signature_verifier.c
 
-### FlashSectorWriter
+#### FlashSectorWriter
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-016 \
@@ -285,7 +295,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **MODULE**: src/swupdate/flash_sector_writer.c
 
-### VehicleStateMonitor
+#### VehicleStateMonitor
 
 **Type**: COMPONENT \
 **UID**: ARCH-C-017 \
@@ -335,15 +345,15 @@ src/
 
 **クラス図 1: 認証付き DID 読み出し** (各クラスのメソッド = コンポーネントのインタフェース)
 
-**この図は 16 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-CORE]
+**この図は 15 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-CORE]
 
 **クラス図 2: DTC 読み出し / クリア**
 
-**この図は 16 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-ADAPTER]
+**この図は 15 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-ADAPTER]
 
 **クラス図 3: OTA 更新**
 
-**この図は 16 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-FRAMEWORK]
+**この図は 15 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-FRAMEWORK]
 
 ## 3.5 振る舞い (Behavior)
 
@@ -351,7 +361,7 @@ src/
 
 **システムシーケンス (代表スライス: 認証付き DID 読み出し、 端から端まで)**
 
-**この図は 16 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-AUTH-SEQUENCE]
+**この図は 15 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-AUTH-SEQUENCE]
 
 他ドメインの代表シーケンス (認証フロー・DTC ガード・OTA 状態機械) は各要求文書
 (03/05/06) に置く。
