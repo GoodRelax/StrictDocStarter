@@ -1033,10 +1033,15 @@ jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW,DOC-BROWSER,D
 ````
 
 ```text
+DOC-ARCH  2.1  図
+DOC-ARCH  3.1  表
+DOC-USECASES  1  表
+DOC-USECASES  2.1  コード,表
+DOC-USECASES  3.1  表
 DOC-UPPER  2.1  表
 DOC-UPPER  2.2.1  コード,表
 DOC-LOWER  6.1  図,数式,コード,表
-DOC-TESTS  1  コード
+DOC-TESTS  1  コード,表
 DOC-TESTS  2.1  コード,表
 DOC-FIG-STATE  1  図
 DOC-NOTE  1  表

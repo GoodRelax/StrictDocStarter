@@ -113,6 +113,10 @@ WHERE <feature>, WHILE <state>, WHEN <trigger>, the <system> shall <response>.
 
 **Rationale**: 本ツールの存在理由そのものである。 これを外すと他の要求が意味を失う。
 
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `UC-002`
+
 ## 想定外の入力の拒否
 
 **UID**: SYS-002 \
@@ -120,6 +124,10 @@ WHERE <feature>, WHILE <state>, WHEN <trigger>, the <system> shall <response>.
 **REVIEW_STATUS**: Fixed
 
 **Statement**: もし入力ファイルが利用者の指定した形式でないならば、 本ツールは、 変換を行わないこと。
+
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `UC-002`
 
 **REVIEW_COMMENT**: 下位要求 SW-002 が、 変換を拒む条件を「検査する」という手順としてしか書いておらず、 どの入力を拒むのかを文の先頭から読み取れなかった。
 
@@ -134,5 +142,9 @@ WHERE <feature>, WHILE <state>, WHEN <trigger>, the <system> shall <response>.
 **Statement**: もし出力先に同名のファイルが既にあるならば、 本ツールは、 そのファイルを上書きしないこと。
 
 **Rationale**: 無警告で既存ファイルを潰すと、 利用者は取り返しのつかない操作に気づけない。 既定は安全側に倒す。
+
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `UC-002`
 
 **REVIEW_COMMENT**: 「上書きしない」とだけ書いてあるが、 同名のファイルがあったときに何をするのかが決まっていない。 中断か、 別名か。
