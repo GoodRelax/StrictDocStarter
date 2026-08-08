@@ -1,0 +1,169 @@
+[DOCUMENT]
+TITLE: Test cases
+UID: DOC-TESTS
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+A test case is **not a standard StrictDoc concept.** We added a node type named
+`TEST_CASE` ourselves in `basic.sgra`. Because we added it, we could take the
+three Gherkin words `GIVEN`, `WHEN` and `THEN` straight into it as fields.
+**`TITLE` doubles as the scenario name, so this grammar carries no `SCENARIO`
+field.**
+
+**The relation type stays `Parent`, and `ROLE` changes what it means.** Here we
+attached `ROLE: Verifies`. That puts the direction "verifies" into the screens
+and into the JSON alike. You must declare a `ROLE` in the grammar before you use
+it.
+
+These four test cases cover the four software requirements of `02-lower.sdoc` one
+for one. The **traceability matrix** screen in the left toolbar shows you at a
+glance whether the coverage holds.
+<<<
+
+[[SECTION]]
+TITLE: What Gherkin is
+
+[TEXT]
+STATEMENT: >>>
+**Gherkin is a language for writing down behaviour split three ways.** It spread
+as the format that Cucumber, a test automation tool, reads. The official
+reference defines the three words like this.
+
+======  ==============================================================
+Word    What you write
+======  ==============================================================
+Given   **The precondition.** The state the system sits in beforehand
+When    **The event.** The operation a person or another system performs
+Then    **The expected outcome.** What ought to happen
+======  ==============================================================
+
+**The reason for the split is that nobody can verify a sentence that mixes
+precondition, operation and outcome.** Write "handing it a broken file makes it
+exit with an error" as one sentence, and a reader cannot tell what to prepare in
+order to try it. Split it three ways and what to prepare, what to press and what
+to look at each become decided.
+
+**A StrictDoc field cannot repeat.** Gherkin's `And` and `But` cannot become
+fields of their own, so **you write the extra lines inside `GIVEN`.**
+
+::
+
+    GIVEN: >>>
+    An input file the tool can convert exists.
+    No file of the same name sits at the destination.
+    <<<
+
+**This set uses the three words Given, When and Then and nothing else.** Gherkin
+also has `Feature`, `Rule`, `Scenario Outline`, `Examples` and `Background`. We
+take none of them, because StrictDoc's own document structure fills the same
+role: `Feature` maps to a document and a chapter, `Scenario` to `TITLE`.
+
+**`TEST_RESULT` is required, and it takes one of NotRun, Passed, Failed and
+Blocked.** `ISSUE_KEY` and `TEST_REMARK` are optional, so you write them only on
+the scenarios that need them.
+
+**This grammar's `TEST_CASE` carries no `STATEMENT`.** In `.sdoc` StrictDoc never
+invents a field you did not write, so the `.md` mix-up cannot happen here. Write
+an explanation in `TEST_REMARK`.
+<<<
+
+[[SECTION]]
+TITLE: Sources
+
+[TEXT]
+STATEMENT: >>>
+- **The official Gherkin reference** - https://cucumber.io/docs/gherkin/reference/
+  It lists the keywords and defines Given, When and Then one by one.
+  **The description of the three words above follows the definitions on that
+  page.**
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[TEST_CASE]
+UID: TC-001
+TITLE: The conversion succeeds
+TEST_RESULT: Passed
+GIVEN: >>>
+The user prepares one input file in the format they specified, and no file of the
+same name sits at the destination.
+<<<
+WHEN: >>>
+The user runs the tool.
+<<<
+THEN: >>>
+The tool exits normally and creates an output file in the format the user
+specified.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-001
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-002
+TITLE: An unexpected format is rejected
+TEST_RESULT: Failed
+ISSUE_KEY: PROJ-142
+GIVEN: >>>
+The user prepares one input file that does not match the format they specified.
+<<<
+WHEN: >>>
+The user runs the tool.
+<<<
+THEN: >>>
+The tool exits with an error and creates no output file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-002
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-003
+TITLE: An existing file is not overwritten
+TEST_RESULT: NotRun
+GIVEN: >>>
+The user puts a file at the destination under the same name as the output file
+the tool creates.
+<<<
+WHEN: >>>
+The user runs the tool.
+<<<
+THEN: >>>
+The tool exits with an error and the contents of the existing file stay
+unchanged.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-003
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-004
+TITLE: An interruption leaves no partial file
+TEST_RESULT: Blocked
+ISSUE_KEY: PROJ-207
+GIVEN: >>>
+The tool is partway through writing the output file.
+<<<
+WHEN: >>>
+The user kills the tool's process.
+<<<
+THEN: >>>
+The tool leaves no incomplete file at the destination.
+<<<
+TEST_REMARK: >>>
+The verification team has no procedure yet for stopping the process partway
+through the write. The team holds this scenario until that procedure exists.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-004
+  ROLE: Verifies

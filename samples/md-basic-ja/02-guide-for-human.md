@@ -15,8 +15,9 @@
 別のものとして扱う。 混ぜてよい。
 
 同じ内容を `.sdoc` で書いた一式が `samples/sd-basic-ja/` にある。
-**どちらで書いてもトレーサビリティと JSON の中身は同じになる。** 違うのは本文の
-書き方だけである。 迷ったときの選び方は次のとおり。
+**文法も UID も要求の文面も同じである。** 違うのは本文の書き方だけで、
+あちらだけが持つのは `MARKUP: Markdown` を宣言した `05-markdown.sdoc` と、
+その中の要求 `SW-005` の 1 件である。 迷ったときの選び方は次のとおり。
 
 | | `.md` | `.sdoc` |
 | --- | --- | --- |
@@ -250,7 +251,7 @@ StrictDoc が自動でコピーするので、 設定に何も足さなくてよ
 `[DOCUMENT_FROM_FILE]` に相当するものが無く、 書いても StrictDoc はただの文字として出す。
 **同じ図を 2 か所で見せたいなら、 図を持つ文書へ `[LINK:]` で飛ばす。**
 どうしても本文へ展開したいなら、 その文書だけ `.sdoc` にする
-(`samples/sd-basic-ja/01-guide-for-human.sdoc` がその形)。
+(`samples/sd-basic-ja/00-guide-for-human.sdoc` がその形)。
 
 #### 大きい図は本文に置かない
 
@@ -316,7 +317,7 @@ error: DocumentIndex: the inline link references an object with an UID that does
 いく文書では、 この差がそのまま作業量の差になる。
 
 `.sdoc` でパイプ表を使いたい場合は `MARKUP: Markdown` を宣言する。 例は
-`samples/sd-basic-ja/06-markdown.sdoc` にある。
+`samples/sd-basic-ja/05-markdown.sdoc` にある。
 
 ## 数式
 

@@ -16,8 +16,10 @@ This paragraph carries no UID. It is free text, not a requirement. StrictDoc
 treats a requirement and free text as two different things. You may mix them.
 
 A set that says the same thing in `.sdoc` sits in `samples/sd-basic-en/`.
-**Whichever one you write, the traceability and the JSON come out the same.**
-Only the way you write the body differs. Choose between them like this.
+**The same grammar, the same UIDs, the same requirement wording** - only the way
+you write the body differs. The one thing that set carries and this one cannot is
+`05-markdown.sdoc`, the document that declares `MARKUP: Markdown`, and the single
+requirement `SW-005` inside it. Choose between them like this.
 
 | | `.md` | `.sdoc` |
 | --- | --- | --- |
@@ -263,7 +265,7 @@ default, because it does not degrade when you zoom in.**
 text. **When you want to show the same figure in two places, send the reader with
 `[LINK:]` to the document that holds it.** If you really must expand a figure in the
 body, make that one document a `.sdoc`
-(`samples/sd-basic-en/01-guide-for-human.sdoc` takes that shape).
+(`samples/sd-basic-en/00-guide-for-human.sdoc` takes that shape).
 
 #### Do not put large figures in the body
 
@@ -337,7 +339,7 @@ you keep adding rows by hand, that difference turns directly into a difference i
 effort.
 
 When you want a pipe table in `.sdoc`, you declare `MARKUP: Markdown`. You find an
-example in `samples/sd-basic-en/06-markdown.sdoc`.
+example in `samples/sd-basic-en/05-markdown.sdoc`.
 
 ## Math
 

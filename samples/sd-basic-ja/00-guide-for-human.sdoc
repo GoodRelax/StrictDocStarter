@@ -1,5 +1,5 @@
 [DOCUMENT]
-TITLE: 基本 - まずこれを読む
+TITLE: まずこれを読む
 UID: DOC-GUIDE
 VERSION: 1.0
 
@@ -11,25 +11,26 @@ STATEMENT: >>>
 **本書の目的は、 `.sdoc` を初心者と AI がすぐ使えるようにすることである。**
 
 この一式は、 要求仕様書として最低限成り立つものを一通り並べてある。
-上位要求から下位要求、 テストケース、 レビュー指摘までが **別のファイルに分かれ、
-その間が繋がっている。** 自分の仕様書は **この一式を丸ごと写して、 中身を
-差し替えるところから始める。**
+上位要求から下位要求、 テストケースまでが **別のファイルに分かれ、
+その間が繋がっている。** レビューの結果は要求そのものに書く。 自分の仕様書は
+**この一式を丸ごと写して、 中身を差し替えるところから始める。**
 
 **この段落には UID が無い。** `[TEXT]` という地の文であり、 要求ではない。
 StrictDoc は要求と地の文を別のものとして扱う。 混ぜてよい。
 
-同じ内容を `.md` で書いた一式が `samples/md-basic-ja/` にある。 **どちらで
-書いてもトレーサビリティと JSON の中身は同じになる。** 違うのは本文の
-書き方だけである。
+同じ内容を `.md` で書いた一式が `samples/md-basic-ja/` にある。
+**文法も UID も要求の文面も同じである。** 違うのは本文の書き方だけで、
+こちらだけが持つのは `MARKUP: Markdown` を宣言した `05-markdown.sdoc` と、
+その中の要求 `SW-005` の 1 件である。
 
 ファイルの並びは次のとおり。
 
-- `01-guide-for-human.sdoc` — 本書。 読む順と書き方
-- `02-upper.sdoc` — 上位要求 3 件。 何を作るか
-- `03-lower.sdoc` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
-- `04-tests.sdoc` — テストケース 4 件。 下位へ結ぶ
-- `05-review.sdoc` — レビュー指摘 2 件。 対象の要求へ結ぶ
-- `06-markdown.sdoc` — 本文を Markdown 記法で書く文書
+- `00-guide-for-human.sdoc` — 本書。 読む順と書き方
+- `01-upper.sdoc` — 上位要求 3 件。 何を作るか
+- `02-lower.sdoc` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
+- `03-tests.sdoc` — テストケース 4 件。 下位へ結ぶ
+- `04-review.sdoc` — **レビューの進め方。** 指摘は要求そのものに書く
+- `05-markdown.sdoc` — 本文を Markdown 記法で書く文書
 - `basic.sgra` — 全文書が共有する文法定義
 - `strictdoc_config.py` — プロジェクト設定。 **このフォルダ直下に無いと読まれない**
 - `_assets/` — 図・画像・リンク先の `.md`
@@ -71,21 +72,24 @@ STATEMENT: >>>
 `[TEXT]` にして UID を付けない。 本書はほぼ全部が `[TEXT]` である。
 
 **`[GRAMMAR]` を外部ファイルに出す理由は、 文書をまたいで揃えるためである。**
-この一式では 5 つの文書が同じ `basic.sgra` を読む。
+この一式では 6 つの文書が同じ `basic.sgra` を読む。
 
 ::
 
     [GRAMMAR]
     IMPORT_FROM_FILE: basic.sgra
 
-`basic.sgra` が宣言しているのは 4 つのノード型である。
+`basic.sgra` が宣言しているのは 3 つのノード型である。
 
 - `SECTION` — 章。 入れ子にできる
-- `REQUIREMENT` — 要求。 `UID` / `STATUS` / `TITLE` / `STATEMENT` / `RATIONALE`
-- `TEST_CASE` — テストケース。 `EXPECTED` を持つ
-- `FINDING` — レビュー指摘。 `SEVERITY` と `RESOLUTION` を持つ
+- `REQUIREMENT` — 要求。 `UID` / `STATUS` / `TITLE` / `REVIEW_STATUS` /
+  `STATEMENT` / `RATIONALE` / `REVIEW_COMMENT` / `REVIEW_ACTION`
+- `TEST_CASE` — テストケース。 Gherkin の `GIVEN` / `WHEN` / `THEN` と、
+  `TEST_RESULT` / `ISSUE_KEY` / `TEST_REMARK` を持つ。 **`STATEMENT` は持たない**
 
-後ろの 2 つは **StrictDoc の標準概念ではない。** 文法で足したものである。
+**`TEST_CASE` は StrictDoc の標準概念ではない。** 文法で足したものである。
+`REVIEW_*` の 3 項目も同じで、 標準の `REQUIREMENT` には無い。 使い方は
+`04-review.sdoc` にある。
 **個別の文書にフィールドを足してはならない。** 文書ごとに違う形になり、
 どこに何があるか誰も分からなくなる。 足すときは `basic.sgra` に足す。
 <<<
@@ -112,11 +116,11 @@ STATEMENT: >>>
 
 ::
 
-    02-upper.sdoc   SYS-001   SYS-002   SYS-003
+    01-upper.sdoc   SYS-001   SYS-002   SYS-003
                        |         |         |
-    03-lower.sdoc   SW-001    SW-002    SW-003 / SW-004
+    02-lower.sdoc   SW-001    SW-002    SW-003 / SW-004
                        |         |         |
-    04-tests.sdoc   TC-001    TC-002    TC-003 / TC-004
+    03-tests.sdoc   TC-001    TC-002    TC-003 / TC-004
 
 **`ROLE:` を足すと関係に意味が付く。** 種類は `Parent` のままでよい。
 
@@ -127,7 +131,7 @@ STATEMENT: >>>
       VALUE: SW-001
       ROLE: Verifies
 
-`04-tests.sdoc` は `Verifies`、 `05-review.sdoc` は `Reviews` を使っている。
+`03-tests.sdoc` が `Verifies` を使っている。
 **`ROLE` は使う前に文法側で宣言しておく。** 宣言していない値を書くと落ちる。
 
 繋がりの確認は画面で行う。 文書の上の **VIEWS** から
@@ -271,12 +275,25 @@ simple      耐える            末尾の罫線は全列分書く
 **日本語はどちらでも使える。** 桁を数えるときは **文字数ではなく表示幅** で
 数える。 全角 1 文字が 2 桁である。 **等幅フォントで見た目が揃っていれば通る。**
 
+**★ ただし ○ や ✗ は 1 桁である** (実測)。 表を組むのは docutils であり、
+Unicode の東アジア文字幅が「曖昧 (Ambiguous)」の文字を **1 桁として数える。**
+○ は曖昧、 ✗ はそもそも半角である。 **等幅フォントでは 2 桁に見えるので、
+見た目で揃えると 1 桁ずつずれる。** ずれると export は
+`RST markup syntax error on line N: Malformed table.` で止まり、
+**JSON は通って HTML だけが落ちる。** 表に記号を使うなら
+`docutils.utils.column_width()` で数えること。
+
+**★ 先頭列のセルを空にしてはならない。** simple 形式では、 先頭列が空白の行は
+**前の行の続き** として扱われる。 見出しの先頭列を空にするだけなら通るが
+(実測)、 本文の行で空にすると意図しない結合が起きる。 `04-review.sdoc` の
+比較表が先頭列に「観点」を置いているのはこのためである。
+
 **grid 形式は 1 桁ずれると export 全体が止まる。** simple 形式は右にずれても
 正しい表になるので、 手で書くならこちらが安全である。 ただし
 **末尾の罫線を全列分書かないと止まる。**
 
 **パイプ表は既定では使えない。** `MARKUP: Markdown` を宣言した文書でだけ
-使える。 例は `06-markdown.sdoc` にある。 **こちらは桁を揃えなくても通る。**
+使える。 例は `05-markdown.sdoc` にある。 **こちらは桁を揃えなくても通る。**
 
 列が多い表は `.. csv-table::` も使える。 こちらは列数が合わなくても通る。
 <<<
@@ -333,27 +350,26 @@ STATEMENT: >>>
 
     jq -r -f q-open-findings.jq out/json/index.json
 
-`q-open-findings.jq` の中身は、 例えば未対処の指摘を出すならこうなる。
+`q-open-findings.jq` の中身は、 例えば未対応の指摘を出すならこうなる。
 
 ::
 
     .DOCUMENTS[] | recurse(.NODES[]?)
-    | select(._NODE_TYPE == "FINDING" and .RESOLUTION == "Open")
-    | .UID + "  " + .SEVERITY + "  " + .TITLE
+    | select(.REVIEW_STATUS == "Open")
+    | .UID + "  " + .TITLE
 
 **先頭の ``.`` は「入力そのもの」を指す。** そこから ``.名前`` で下へ降り、
 ``[]`` で配列をバラす。 ``.DOCUMENTS[]`` は「入力の ``DOCUMENTS`` を 1 個ずつ」
 の意味である。 ``.`` はオプションではなくフィルタ本体で、
 ``jq [オプション] <フィルタ> [ファイル]`` の真ん中に来る。
 
-**ノード型を引くキーは `_NODE_TYPE` である。** 文法に書いた `FINDING` という
-名前がそこに入る。 先頭に下線が付くので **書き間違えやすい。**
-この一式に当てた実際の出力はこうなる。
+**`REVIEW_STATUS` は文法が `REQUIREMENT` に足した項目である。** 状態の意味と
+値は `04-review.sdoc` にある。 **ノード型で絞りたいときのキーは `_NODE_TYPE` で、
+先頭に下線が付くので書き間違えやすい。** この一式に当てた実際の出力はこうなる。
 
 ::
 
-    RV-001  Major  SW-002 の検査方法が決まっていない
-    RV-002  Question  SYS-003 に上書きを許す手段が無い
+    SYS-003  既存ファイルの保護
 
 **同じフィルタを `samples/md-basic-ja/` の JSON に当てても出力は 1 文字も
 変わらない。** これが「どちらで書いても JSON は同じ」の実物である。
@@ -385,29 +401,34 @@ STATEMENT: >>>
 
 ::
 
-    [ .DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE == "FINDING") ]
-    | map({UID, SEVERITY, RESOLUTION, TITLE})
+    [ .DOCUMENTS[] | recurse(.NODES[]?)
+      | select(.REVIEW_STATUS? and .REVIEW_STATUS != "NoFinding"
+               and .REVIEW_STATUS != "NotReviewed") ]
+    | map({UID, REVIEW_STATUS, TITLE})
 
 ::
 
     [
       {
-        "UID": "RV-001",
-        "SEVERITY": "Major",
-        "RESOLUTION": "Open",
-        "TITLE": "SW-002 の検査方法が決まっていない"
+        "UID": "SYS-002",
+        "REVIEW_STATUS": "Fixed",
+        "TITLE": "想定外の入力の拒否"
       },
       {
-        "UID": "RV-002",
-        "SEVERITY": "Question",
-        "RESOLUTION": "Open",
-        "TITLE": "SYS-003 に上書きを許す手段が無い"
+        "UID": "SYS-003",
+        "REVIEW_STATUS": "Open",
+        "TITLE": "既存ファイルの保護"
+      },
+      {
+        "UID": "SW-004",
+        "REVIEW_STATUS": "WontFix",
+        "TITLE": "書き込みの原子性"
       }
     ]
 
 **外側の ``[ ... ]`` は、 1 個ずつ出てくる結果を 1 つの配列にまとめるための
 ものである。** これが無いと JSON の値が縦に並ぶだけで、 配列にはならない。
-``map({UID, SEVERITY, RESOLUTION, TITLE})`` は欲しい欄だけを残す書き方で、
+``map({UID, REVIEW_STATUS, TITLE})`` は欲しい欄だけを残す書き方で、
 全部の欄が要るならその行ごと外す。
 <<<
 
@@ -423,7 +444,7 @@ STATEMENT: >>>
 
 ::
 
-    "TITLE": "\u57fa\u672c - \u307e\u305a\u3053\u308c\u3092\u8aad\u3080",
+    "TITLE": "\u307e\u305a\u3053\u308c\u3092\u8aad\u3080",
 
 StrictDoc が ``json.dumps(..., indent=4)`` をそのまま呼んでおり、 Python の
 既定で非 ASCII がすべてエスケープされるためである。 **これを変える設定も
@@ -440,15 +461,15 @@ StrictDoc が ``json.dumps(..., indent=4)`` をそのまま呼んでおり、 Py
 **``.`` は何も絞り込まないので中身は 1 文字も変わらない。** 変わるのは表記
 だけで、 **しかも小さくなる。**
 
-============  ======  ========
-出力          バイト  元との比
-============  ======  ========
-index.json    92,021  3.51
-jq . 済み     57,809  2.21
-jq -c . 済み  36,756  1.40
-============  ======  ========
+============  =======  ========
+出力          バイト   元との比
+============  =======  ========
+index.json    135,361  2.62
+jq . 済み     85,079   1.64
+jq -c . 済み  61,293   1.18
+============  =======  ========
 
-比は元の `.sdoc` 一式 26,212 バイトに対する値である。 日本語 1 文字が
+比は元の `.sdoc` 一式 51,744 バイトに対する値である。 日本語 1 文字が
 ``検`` の 6 バイトから UTF-8 の 3 バイトに戻り、 字下げも 4 スペースから
 2 スペースになる。 ``-c`` は字下げと改行そのものを外す。
 

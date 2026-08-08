@@ -1,5 +1,5 @@
 [DOCUMENT]
-TITLE: Basics - read this first
+TITLE: Read this first
 UID: DOC-GUIDE
 VERSION: 1.0
 
@@ -11,25 +11,28 @@ STATEMENT: >>>
 **This document exists to let a beginner and an AI use `.sdoc` right away.**
 
 This set lays out the smallest thing that still holds together as a requirements
-specification. System requirements, software requirements, test cases and review
-findings **sit in separate files, and the links run between them.** Start your own
-specification by **copying this whole set and replacing the content.**
+specification. System requirements, software requirements and test cases **sit in
+separate files, and the links run between them.** A review result goes on the
+requirement itself. Start your own specification by **copying this whole set and
+replacing the content.**
 
 **This paragraph carries no UID.** It is `[TEXT]`, free text, not a requirement.
 StrictDoc treats a requirement and free text as different things. You may mix them.
 
-`samples/md-basic-en/` holds the same content written in `.md`. **Either form
-produces the same traceability and the same JSON.** Only the way you write the body
-text differs.
+`samples/md-basic-en/` holds the same content written in `.md`. **The same
+grammar, the same UIDs, the same requirement wording** - only the way you write
+the body text differs. The one thing this set carries and that one cannot is
+`05-markdown.sdoc`, the document that declares `MARKUP: Markdown`, and the single
+requirement `SW-005` inside it.
 
 The files line up like this.
 
-- `01-guide-for-human.sdoc` — this document. The reading order and how to write
-- `02-upper.sdoc` — 3 system requirements. What to build
-- `03-lower.sdoc` — 4 software requirements. How to build it. Links up to the system requirements
-- `04-tests.sdoc` — 4 test cases. Links to the software requirements
-- `05-review.sdoc` — 2 review findings. Links to the requirement each one targets
-- `06-markdown.sdoc` — the document that writes its body text in Markdown notation
+- `00-guide-for-human.sdoc` — this document. The reading order and how to write
+- `01-upper.sdoc` — 3 system requirements. What to build
+- `02-lower.sdoc` — 4 software requirements. How to build it. Links up to the system requirements
+- `03-tests.sdoc` — 4 test cases. Links to the software requirements
+- `04-review.sdoc` — **how the review runs.** A finding goes on the requirement itself
+- `05-markdown.sdoc` — the document that writes its body text in Markdown notation
 - `basic.sgra` — the grammar every document shares
 - `strictdoc_config.py` — the project configuration. **StrictDoc reads it only from this folder**
 - `_assets/` — figures, images and the `.md` files that links point to
@@ -74,21 +77,25 @@ chapter — into `[TEXT]` and leave the UID off. Almost every node in this docum
 is `[TEXT]`.
 
 **Move `[GRAMMAR]` into an external file so that every document matches.** In this
-set five documents read the same `basic.sgra`.
+set six documents read the same `basic.sgra`.
 
 ::
 
     [GRAMMAR]
     IMPORT_FROM_FILE: basic.sgra
 
-`basic.sgra` declares four node types.
+`basic.sgra` declares three node types.
 
 - `SECTION` — a chapter. You can nest it
-- `REQUIREMENT` — a requirement. `UID` / `STATUS` / `TITLE` / `STATEMENT` / `RATIONALE`
-- `TEST_CASE` — a test case. It carries `EXPECTED`
-- `FINDING` — a review finding. It carries `SEVERITY` and `RESOLUTION`
+- `REQUIREMENT` — a requirement. `UID` / `STATUS` / `TITLE` / `REVIEW_STATUS` /
+  `STATEMENT` / `RATIONALE` / `REVIEW_COMMENT` / `REVIEW_ACTION`
+- `TEST_CASE` — a test case. It carries the Gherkin words `GIVEN` / `WHEN` /
+  `THEN` plus `TEST_RESULT` / `ISSUE_KEY` / `TEST_REMARK`. **It carries no
+  `STATEMENT`**
 
-The last two are **not standard StrictDoc concepts.** The grammar adds them.
+**`TEST_CASE` is not a standard StrictDoc concept.** The grammar adds it. So do
+the three `REVIEW_*` fields, which the standard `REQUIREMENT` does not have -
+`04-review.sdoc` shows you how to use them.
 **Never add a field to a single document.** Every document then takes a different
 shape, and nobody can tell where anything lives. Add the field to `basic.sgra`
 instead.
@@ -116,11 +123,11 @@ does not matter. This set works exactly that way.
 
 ::
 
-    02-upper.sdoc   SYS-001   SYS-002   SYS-003
+    01-upper.sdoc   SYS-001   SYS-002   SYS-003
                        |         |         |
-    03-lower.sdoc   SW-001    SW-002    SW-003 / SW-004
+    02-lower.sdoc   SW-001    SW-002    SW-003 / SW-004
                        |         |         |
-    04-tests.sdoc   TC-001    TC-002    TC-003 / TC-004
+    03-tests.sdoc   TC-001    TC-002    TC-003 / TC-004
 
 **Add `ROLE:` and the relation gains a meaning.** The type stays `Parent`.
 
@@ -131,7 +138,7 @@ does not matter. This set works exactly that way.
       VALUE: SW-001
       ROLE: Verifies
 
-`04-tests.sdoc` uses `Verifies` and `05-review.sdoc` uses `Reviews`. **Declare a
+`03-tests.sdoc` uses `Verifies`. **Declare a
 `ROLE` in the grammar before you use it.** StrictDoc fails on a value that nobody
 declared.
 
@@ -282,13 +289,27 @@ simple      it survives         Write the last rule for all columns
 count.** One full-width character takes 2 columns. **The table passes as long as it
 lines up in a monospace font.**
 
+**A circle or a cross counts as ONE column, though** (measured). docutils builds
+the table, and it counts a character whose east-asian width is "ambiguous" as one
+column. A monospace font draws that glyph two columns wide, so aligning by eye
+puts every following column off by one. The export then stops with
+`RST markup syntax error on line N: Malformed table.` - and **the JSON export
+passes while only the HTML dies.** Count with `docutils.utils.column_width()`
+whenever a table holds such a symbol.
+
+**Never leave a cell in the first column empty.** In the simple form a row whose
+first column is blank continues the row above it. An empty header cell alone does
+pass (measured), but an empty one in the body merges rows you did not mean to
+merge. That is why the comparison table in `04-review.sdoc` gives its first
+column the heading "Aspect".
+
 **A grid table that is off by one column stops the whole export.** A simple table
 still comes out correct when a cell runs to the right, so it is the safer choice
 when you write by hand. **It does stop, though, if you leave the last rule short of
 the full width.**
 
 **A pipe table does not work by default.** It works only in a document that
-declares `MARKUP: Markdown`. `06-markdown.sdoc` holds an example. **That form
+declares `MARKUP: Markdown`. `05-markdown.sdoc` holds an example. **That form
 passes without any column alignment.**
 
 For a table with many columns you can also use `.. csv-table::`. That one passes
@@ -355,22 +376,23 @@ To list the findings that nobody has resolved yet, `q-open-findings.jq` holds th
 ::
 
     .DOCUMENTS[] | recurse(.NODES[]?)
-    | select(._NODE_TYPE == "FINDING" and .RESOLUTION == "Open")
-    | .UID + "  " + .SEVERITY + "  " + .TITLE
+    | select(.REVIEW_STATUS == "Open")
+    | .UID + "  " + .TITLE
 
 **The leading ``.`` means "the input itself."** From there ``.name`` descends and
 ``[]`` breaks an array apart. ``.DOCUMENTS[]`` means "each item of ``DOCUMENTS`` in
 the input." The ``.`` is not an option but the filter itself, and it sits in the
 middle of ``jq [options] <filter> [file]``.
 
-**The key that gives you the node type is `_NODE_TYPE`.** It holds the name
-`FINDING` that the grammar declares. The leading underscore makes it **easy to
-mistype.** Run the filter against this set and it prints this.
+**`REVIEW_STATUS` is a field the grammar added to `REQUIREMENT`.**
+`04-review.sdoc` gives the meaning of each state and lists the values. **When you
+want to filter by node type instead, the key is `_NODE_TYPE`, and the leading
+underscore makes it easy to mistype.** Run the filter against this set and it
+prints this.
 
 ::
 
-    RV-001  Major  SW-002 does not say how to check the format
-    RV-002  Question  SYS-003 offers no way to allow overwriting
+    SYS-003  Protecting an existing file
 
 **Run the same filter against the JSON from `samples/md-basic-en/` and not one
 character of the output changes.** That is the proof of "either form produces the
@@ -404,29 +426,34 @@ STATEMENT: >>>
 
 ::
 
-    [ .DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE == "FINDING") ]
-    | map({UID, SEVERITY, RESOLUTION, TITLE})
+    [ .DOCUMENTS[] | recurse(.NODES[]?)
+      | select(.REVIEW_STATUS? and .REVIEW_STATUS != "NoFinding"
+               and .REVIEW_STATUS != "NotReviewed") ]
+    | map({UID, REVIEW_STATUS, TITLE})
 
 ::
 
     [
       {
-        "UID": "RV-001",
-        "SEVERITY": "Major",
-        "RESOLUTION": "Open",
-        "TITLE": "SW-002 does not say how to check the format"
+        "UID": "SYS-002",
+        "REVIEW_STATUS": "Fixed",
+        "TITLE": "Rejecting unexpected input"
       },
       {
-        "UID": "RV-002",
-        "SEVERITY": "Question",
-        "RESOLUTION": "Open",
-        "TITLE": "SYS-003 offers no way to allow overwriting"
+        "UID": "SYS-003",
+        "REVIEW_STATUS": "Open",
+        "TITLE": "Protecting an existing file"
+      },
+      {
+        "UID": "SW-004",
+        "REVIEW_STATUS": "WontFix",
+        "TITLE": "Atomic writing"
       }
     ]
 
 **The outer ``[ ... ]`` gathers the results, which arrive one at a time, into a
 single array.** Without it jq only stacks JSON values one under another and builds
-no array. ``map({UID, SEVERITY, RESOLUTION, TITLE})`` keeps just the fields you
+no array. ``map({UID, REVIEW_STATUS, TITLE})`` keeps just the fields you
 want; drop that whole line when you want every field.
 <<<
 
@@ -442,7 +469,7 @@ STATEMENT: >>>
 
 ::
 
-    "TITLE": "\u57fa\u672c - \u307e\u305a\u3053\u308c\u3092\u8aad\u3080",
+    "TITLE": "\u307e\u305a\u3053\u308c\u3092\u8aad\u3080",
 
 StrictDoc calls ``json.dumps(..., indent=4)`` as it is, and Python escapes every
 non-ASCII character by default. **StrictDoc offers no setting and no option that
@@ -460,15 +487,15 @@ jq fixes that case.
 **``.`` narrows nothing, so not one character of the content changes.** Only the
 notation changes, **and the file gets smaller.**
 
-=============  ======  =========
-Output         Bytes   vs source
-=============  ======  =========
-index.json     92,021  3.51
-after jq .     57,809  2.21
-after jq -c .  36,756  1.40
-=============  ======  =========
+=============  =======  =========
+Output         Bytes    vs source
+=============  =======  =========
+index.json     100,897  2.12
+after jq .     80,969   1.70
+after jq -c .  57,183   1.20
+=============  =======  =========
 
-The ratios compare each file against the 26,212 bytes of the original `.sdoc` set.
+The ratios compare each file against the 47,588 bytes of the original `.sdoc` set.
 A Japanese character such as ``検`` drops from 6 bytes back to the 3 bytes of
 UTF-8, and the indent drops from 4 spaces to 2. ``-c`` strips the indent and the
 newlines themselves.

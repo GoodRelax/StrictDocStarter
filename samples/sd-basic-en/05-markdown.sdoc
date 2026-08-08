@@ -1,5 +1,5 @@
 [DOCUMENT]
-TITLE: Basics - writing the body in Markdown
+TITLE: Writing the body in Markdown
 UID: DOC-MARKUP-MD
 VERSION: 1.0
 OPTIONS:
@@ -26,7 +26,7 @@ requirement.
 
 The declaration covers **every multi-line field in that document**. It reaches
 `STATEMENT`, it reaches `RATIONALE`, and it reaches a field you added in the
-grammar such as `EXPECTED`. It does not touch a single-line field such as
+grammar such as `GIVEN`. It does not touch a single-line field such as
 `UID:`.
 
 **The browser gives you no way to set this.** The document-settings editor
@@ -49,7 +49,7 @@ Markdown notation `![alt](path)`.
 **You also lose `[DOCUMENT_FROM_FILE]`.** That is why **this document cannot
 pull in a figure.** Do not declare Markdown in a document that carries a figure.
 
-**This is why `01-guide-for-human.sdoc` stays out of Markdown.** That document
+**This is why `00-guide-for-human.sdoc` stays out of Markdown.** That document
 uses both an image and an include.
 <<<
 
@@ -70,7 +70,7 @@ up.** That is the biggest benefit.
 | pipe | It survives | **MARKUP: Markdown required** |
 
 The table above does not line up its column widths, and it still passes.
-Compare it with the grid table in `01-guide-for-human.sdoc`. **In a document
+Compare it with the grid table in `00-guide-for-human.sdoc`. **In a document
 where you keep adding tables by hand, that difference turns straight into a
 difference in effort.**
 
@@ -88,16 +88,19 @@ TITLE: You write a requirement the same way
 STATEMENT: >>>
 Only the way you write the body changes, so you write a requirement node exactly
 as you write it in the other documents. The single requirement below links to
-`SYS-001` in `02-upper.sdoc`.
+`SYS-001` in `01-upper.sdoc`. **This requirement exists only in the `.sdoc`
+set** - `MARKUP: Markdown` is something only `.sdoc` can declare, so this
+document has no counterpart in the `.md` set.
 <<<
 
 [REQUIREMENT]
 UID: SW-005
 STATUS: Draft
 TITLE: Showing a conversion summary
+REVIEW_STATUS: NotReviewed
 STATEMENT: >>>
-After the tool finishes the conversion, it shall print the following three items
-to standard output on a single line.
+WHEN the conversion finishes, the tool shall print the following three items to
+standard output on a single line.
 
 - The name of the input file
 - The name of the output file

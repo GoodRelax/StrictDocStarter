@@ -1,0 +1,90 @@
+[DOCUMENT]
+TITLE: Software requirements
+UID: DOC-LOWER
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+This document states **how to implement** each requirement in `01-upper.sdoc`.
+
+**The lower level carries the link.** You put `RELATIONS: TYPE: Parent` on the
+software requirement and point it at the UID of the parent. You write nothing on
+the system requirement. **Never list the children on the parent** - every new
+software requirement would force you to touch the parent, and you would maintain
+the link twice.
+
+The parent **may live in another file.** StrictDoc collects every UID in the
+project into a single table and resolves the relations afterward, so a file
+boundary changes nothing.
+
+**Every requirement follows EARS.** `01-upper.sdoc` lists the five patterns and
+gives the reason for putting the condition ahead of the subject.
+<<<
+
+[REQUIREMENT]
+UID: SW-001
+STATUS: Approved
+TITLE: Running the conversion
+REVIEW_STATUS: NoFinding
+STATEMENT: >>>
+The tool shall read the input file, convert it into the output format the user
+specifies, and write the result to the output file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYS-001
+
+[REQUIREMENT]
+UID: SW-002
+STATUS: Approved
+TITLE: Checking the input format
+REVIEW_STATUS: NoFinding
+STATEMENT: >>>
+IF the format of the input file differs from the format the user specifies, THEN
+the tool shall skip the conversion and exit with an error.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYS-002
+
+[REQUIREMENT]
+UID: SW-003
+STATUS: Approved
+TITLE: Checking the destination
+REVIEW_STATUS: NotReviewed
+STATEMENT: >>>
+IF a file of the same name already sits at the destination, THEN the tool shall
+skip the write and exit with an error.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYS-003
+
+[REQUIREMENT]
+UID: SW-004
+STATUS: Draft
+TITLE: Atomic writing
+REVIEW_STATUS: WontFix
+STATEMENT: >>>
+IF an interruption stops the write partway, THEN the tool shall not leave an
+incomplete file at the destination.
+<<<
+RATIONALE: >>>
+If an incomplete file from an interruption stays on disk, SW-003 counts it as an
+existing file on the next run and stops the tool. The user then sees an error
+exit with no visible cause.
+<<<
+REVIEW_COMMENT: >>>
+Nobody decided where the temporary file goes. A rename stops being atomic once
+the two paths sit on different drives.
+<<<
+REVIEW_ACTION: >>>
+This set is a worked example of how to write, and it leaves implementation detail
+out. Decide this point in a real specification.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYS-003

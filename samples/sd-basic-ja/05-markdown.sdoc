@@ -1,5 +1,5 @@
 [DOCUMENT]
-TITLE: 基本 - 本文を Markdown で書く
+TITLE: 本文を Markdown で書く
 UID: DOC-MARKUP-MD
 VERSION: 1.0
 OPTIONS:
@@ -23,7 +23,7 @@ OPTIONS:
 無い。 節ごとや要求ごとに切り替えることはできない。
 
 効く範囲は**その文書の複数行フィールド全部**である。 `STATEMENT` も
-`RATIONALE` も、 文法で足した `EXPECTED` のような欄も対象になる。
+`RATIONALE` も、 文法で足した `GIVEN` のような欄も対象になる。
 `UID:` のような 1 行の欄は関係しない。
 
 **ブラウザの画面からこれを設定する手段は無い。** 文書設定の編集画面が持つのは
@@ -46,7 +46,7 @@ STATEMENT: >>>
 **`[DOCUMENT_FROM_FILE]` も使えなくなる。** そのため
 **この文書には図を取り込めない。** 図を持つ文書では宣言しないこと。
 
-**これが `01-guide-for-human.sdoc` を Markdown にしていない理由である。** あちらは
+**これが `00-guide-for-human.sdoc` を Markdown にしていない理由である。** あちらは
 画像と取り込みの両方を使っている。
 <<<
 
@@ -65,7 +65,7 @@ STATEMENT: >>>
 | simple | 耐える | 不要 |
 | パイプ | 耐える | **MARKUP: Markdown が必要** |
 
-上の表は列幅を揃えていないが、 そのまま通っている。 `01-guide-for-human.sdoc` の
+上の表は列幅を揃えていないが、 そのまま通っている。 `00-guide-for-human.sdoc` の
 grid 形式の表と見比べること。 **手で表を書き足していく文書では、 この差が
 そのまま作業量の差になる。**
 
@@ -82,15 +82,18 @@ TITLE: 要求も同じように書ける
 [TEXT]
 STATEMENT: >>>
 本文の書き方が変わるだけなので、 要求ノードの書き方は他の文書と同じである。
-下の 1 件は `02-upper.sdoc` の `SYS-001` に繋がっている。
+下の 1 件は `01-upper.sdoc` の `SYS-001` に繋がっている。 **この要求は
+`.sdoc` の一式にしか無い** — `MARKUP: Markdown` を持てるのが `.sdoc` だけで
+あり、 この文書自体が `.md` の一式に存在しないためである。
 <<<
 
 [REQUIREMENT]
 UID: SW-005
 STATUS: Draft
 TITLE: 変換結果の要約表示
+REVIEW_STATUS: NotReviewed
 STATEMENT: >>>
-本ツールは、 変換の完了後に、 次の 3 点を標準出力へ 1 行で表示すること。
+変換が完了したとき、 本ツールは、 次の 3 点を標準出力へ 1 行で表示すること。
 
 - 入力ファイルの名前
 - 出力ファイルの名前

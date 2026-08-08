@@ -171,7 +171,10 @@ jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
 #    passive        a form of "be" followed by a past participle
 #    negative       "shall not" / "must not" / "never" appears. The EARS
 #                   unwanted-behaviour pattern uses this legitimately, so expect
-#                   rows here.
+#                   rows here. The two-word patterns match across whitespace: a
+#                   .sdoc STATEMENT wraps, and a line break landing between
+#                   "shall" and "not" hid the row on one sample and not the
+#                   other (measured).
 #
 #    English carries no no-subject rule: an English sentence states its subject,
 #    so the omission the Japanese rule looks for cannot happen.
@@ -185,7 +188,7 @@ jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
     (if ($t | test("^\\s*(when|while|if|where)\\b"; "i") | not)
         and ($t | test("\\b(when|while|if|where)\\b"; "i")) then "ears-order" else empty end),
     (if ($t | test("\\b(is|are|was|were|be|been|being)\\s+([a-z]+ed|written|given|taken|shown|known|seen|done|made|held|kept|sent|put|left|built|thrown|drawn|chosen|driven|broken)\\b"; "i")) then "passive" else empty end),
-    (if ($t | test("\\b(shall not|must not|never)\\b"; "i")) then "negative" else empty end) ] as $why
+    (if ($t | test("\\b(shall\\s+not|must\\s+not|never)\\b"; "i")) then "negative" else empty end) ] as $why
 | select(($why | length) > 0)
 | $doc + "  " + $n.UID + "  " + ($why | join(","))' \
   "$JSON" >> "$TMP/wording"

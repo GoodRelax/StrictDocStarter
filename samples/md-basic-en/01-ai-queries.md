@@ -630,7 +630,7 @@ jq -r '.DOCUMENTS[] | select(.UID == "DOC-LOWER") | recurse(.NODES[]?) | (.STATE
 
 ```text
 def convert(src: str, dst: str) -> None:
-    tmp = dst + ".part"          # in the same directory as dst
+    tmp = dst + ".part"          # create it in the same directory as dst
     (6 more lines)
 ```
 

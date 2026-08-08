@@ -18,10 +18,19 @@ ELEMENTS:
   - TITLE: TITLE
     TYPE: String
     REQUIRED: True
+  - TITLE: REVIEW_STATUS
+    TYPE: SingleChoice(NotReviewed, NoFinding, Open, Fixed, WontFix)
+    REQUIRED: True
   - TITLE: STATEMENT
     TYPE: String
     REQUIRED: True
   - TITLE: RATIONALE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_ACTION
     TYPE: String
     REQUIRED: False
   RELATIONS:
@@ -35,32 +44,24 @@ ELEMENTS:
   - TITLE: TITLE
     TYPE: String
     REQUIRED: True
-  - TITLE: STATEMENT
+  - TITLE: TEST_RESULT
+    TYPE: SingleChoice(NotRun, Passed, Failed, Blocked)
+    REQUIRED: True
+  - TITLE: ISSUE_KEY
+    TYPE: String
+    REQUIRED: False
+  - TITLE: GIVEN
     TYPE: String
     REQUIRED: True
-  - TITLE: EXPECTED
+  - TITLE: WHEN
     TYPE: String
     REQUIRED: True
+  - TITLE: THEN
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TEST_REMARK
+    TYPE: String
+    REQUIRED: False
   RELATIONS:
   - TYPE: Parent
     ROLE: Verifies
-- TAG: FINDING
-  FIELDS:
-  - TITLE: UID
-    TYPE: String
-    REQUIRED: True
-  - TITLE: TITLE
-    TYPE: String
-    REQUIRED: True
-  - TITLE: SEVERITY
-    TYPE: SingleChoice(Major, Minor, Question)
-    REQUIRED: True
-  - TITLE: RESOLUTION
-    TYPE: SingleChoice(Open, Fixed, Rejected)
-    REQUIRED: True
-  - TITLE: STATEMENT
-    TYPE: String
-    REQUIRED: True
-  RELATIONS:
-  - TYPE: Parent
-    ROLE: Reviews
