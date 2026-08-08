@@ -592,15 +592,17 @@ counting method when you measure again.
 Line count and token count do not track each other cleanly (one figure runs 114 tokens at
 17 lines, another runs 124 tokens at 6 lines). We still take the line count. When in doubt, move it out.
 
-We measured what you gain by moving a figure out as well. In this sample:
+We measured what you gain by moving a figure out as well. Against the cost of reading
+every `.md` in the set:
 
-| What you pull | tokens |
+| What you pull | Share of reading everything |
 |---|---:|
-| The requirement list alone | 74 |
-| The large figure alone, named by UID | 233 |
-| Every `TEXT` node (figures and math included) | about 36,000 |
+| The requirement list alone | under 0.2 % |
+| The large figure alone, named by UID | about 0.5 % |
+| Every `TEXT` node (figures and math included) | over 90 % |
 
 As long as you pull requirements, the reader pays not one token for a figure you moved into its own document.
+Naming that one figure costs over three times what the whole requirement list costs.
 You name it by UID only when you need it. This is why we cut at 16 lines.
 
 How to build the separate document - StrictDoc parses a `.md` file as a document wherever it sits,
@@ -882,10 +884,10 @@ Zero hits is normal.
 **Type**: SECTION
 
 **When you need only a part of the specification, do not read the `.md` files.**
-Reading the whole specification of this worked example (`03` through `05` and
-`_assets/`) costs about 5,200 tokens, and about 12,500 tokens once you include
-`02-guide-for-human.md`. Convert it to JSON and pull the list of requirements
-with `jq`, and the same answer costs 74 tokens.
+Reading the whole specification of this worked example (`03` through `07` and
+`_assets/`) costs a little under a fifth of reading every `.md` in the set, and
+about a third of it once you include `02-guide-for-human.md`. Convert it to JSON
+and pull the list of requirements with `jq`, and the same answer costs under 0.2 %.
 
 This ban covers only "reading in order to learn". You may open a file to rewrite it.
 When your job is to fix an existing specification, the correct procedure is to
@@ -927,7 +929,8 @@ You may write json and html to the same `<output dir>` (measured). StrictDoc spl
 After you edit a `.md`, run this `strictdoc export` again.
 StrictDoc does not update the JSON on its own.
 
-**Do not read this `index.json` directly** - it holds about 55,000 tokens.
+**Do not read this `index.json` directly** - it is bigger than the whole `.md` set,
+about one and a half times it.
 The file exists only for `jq` to read.
 
 **StrictDoc has a query language of its own, but it does not affect the JSON output.**
@@ -1459,6 +1462,6 @@ input folder (measured). It is a side effect of loading the configuration. You m
 ---
 
 Read `01-ai-queries.md` only when the above does not cover your need. It sorts 32 queries by
-purpose and shows the output of each one (about 6,900 tokens). It holds the table of contents,
+purpose and shows the output of each one (about 8,000 tokens). It holds the table of contents,
 a filter by chapter, transitive children, a filter by ROLE, the detection of an orphan
 requirement, the detection of a duplicate UID, and more.

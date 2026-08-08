@@ -315,9 +315,10 @@ just lines up empty.
 
 **Type**: SECTION
 
-The `Table` view grows wider the more fields the grammar adds. With everything shown, the
-table was 3078 px wide against a 1280 px window (measured on 0.27.1). `COLUMNS`, at the
-right of the header, is the button that keeps only the columns you want.
+The `Table` view grows wider the more fields the grammar adds, and wider again the longer
+the text in a cell. With everything shown the table outruns the window and you read it by
+scrolling sideways. `COLUMNS`, at the right of the header, is the button that keeps only
+the columns you want.
 
 ![The COLUMNS panel. The column names run down it, each with an eye mark](_assets/browser-25-table-columns.png)
 
@@ -496,8 +497,8 @@ That one lives in the `...` in the header. It holds exactly two things.
 ![The header menu. Edit grammar and Delete document](_assets/browser-19-document-actions.png)
 
 Choose `Edit grammar` and you can edit that document's own grammar in a table, one type
-per section. **An imported grammar, however, cannot be edited.** All nine documents in
-this set import `basic.sgra`, so choosing it only produces this notice.
+per section. **An imported grammar, however, cannot be edited.** The ten documents in this
+set that carry a grammar all import `basic.sgra`, so choosing it only produces this notice.
 
 ![The grammar screen. The notice that an imported grammar cannot be edited](_assets/browser-20-grammar.png)
 

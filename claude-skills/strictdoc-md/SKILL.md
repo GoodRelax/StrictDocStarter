@@ -28,14 +28,16 @@ traps in section 4.**
 
 ## 2. Reading - never open the `.md` files
 
-**Export to JSON once, then query it.** On a sample of nine documents the costs
-measured like this:
+**Export to JSON once, then query it.** Measured on the bundled `md-basic` samples,
+against the cost of reading every `.md` in the folder:
 
-| What you read | tokens |
+| What you read | Cost against reading every `.md` |
 |---|---:|
-| The requirement list through jq | **74** |
-| Every `.md` in the folder | 40,000 |
-| `index.json` itself | 56,000 |
+| The requirement list through jq | **under 0.2 %** |
+| `index.json` whole | **more than every `.md` put together** |
+
+Reading the JSON whole costs you more than the `.md` files it came from. It exists
+for `jq` to read, not for you.
 
 **Write the output next to the specification, at
 `<specification folder>/output/strictdoc`.** That is where `launch-strictdoc.bat`

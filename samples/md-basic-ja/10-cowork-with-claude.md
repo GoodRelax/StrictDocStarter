@@ -50,8 +50,8 @@ claude-skills/strictdoc-md を私の環境で使えるようにして
 
 これがいちばん効く 1 点である。
 
-仕様書を `.md` のまま読ませると、 この一式だけで 64,000 tokens を超える。
-JSON へ書き出して `jq` で必要な部分だけ引けば、 同じ答えが 100 tokens 弱で出る。
+仕様書を `.md` のまま読ませると、 この一式だけで数万 tokens かかる。
+JSON へ書き出して `jq` で必要な部分だけ引けば、 同じ答えがその 0.2 % 未満で出る。
 
 ```text
 strictdoc export <仕様書のフォルダ> --formats=json --output-dir <出力先>

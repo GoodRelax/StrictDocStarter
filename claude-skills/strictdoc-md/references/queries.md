@@ -11,10 +11,10 @@ worked example in `samples/md-basic-en` and produced the output shown.
 ## 3. Pull only the part of the specification you need
 
 **When you need only a part of the specification, do not read the `.md` files.**
-Reading the whole specification of this worked example (`03` through `05` and
-`_assets/`) costs about 5,200 tokens, and about 12,500 tokens once you include
-`02-guide-for-human.md`. Convert it to JSON and pull the list of requirements
-with `jq`, and the same answer costs 74 tokens.
+Reading the whole specification of this worked example (`03` through `07` and
+`_assets/`) costs a little under a fifth of reading every `.md` in the set, and
+about a third of it once you include `02-guide-for-human.md`. Convert it to JSON
+and pull the list of requirements with `jq`, and the same answer costs under 0.2 %.
 
 **★ This ban covers only "reading in order to learn". You may open a file to rewrite it.**
 When your job is to fix an existing specification, the correct procedure is to
@@ -54,7 +54,8 @@ error: TraceabilityIndex: the document "A" imports a grammar from a file that do
 **After you edit a `.md`, run this `strictdoc export` again.**
 StrictDoc does not update the JSON on its own.
 
-**Do not read this `index.json` directly** - it holds about 56,000 tokens.
+**Do not read this `index.json` directly** - it is bigger than the whole `.md` set,
+about one and a half times it.
 The file exists only for `jq` to read.
 
 **StrictDoc has a query language of its own, but it does not affect the JSON output.**

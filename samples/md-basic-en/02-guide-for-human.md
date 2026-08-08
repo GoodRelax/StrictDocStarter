@@ -128,7 +128,8 @@ StrictDoc would render each line as a separate paragraph, and this mark prevents
 ```
 
 We move `Grammar` into an external file so that it stays the same across documents.
-Eleven documents in this sample set read the same `basic.sgra`. That file declares four
+`01-ai-queries.md` and the two documents under `_assets/` declare no grammar and run on
+StrictDoc's default; the other ten read the same `basic.sgra`. That file declares four
 node types.
 
 - `SECTION` - a chapter. You can nest it

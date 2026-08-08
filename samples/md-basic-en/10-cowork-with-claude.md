@@ -52,9 +52,9 @@ nothing.
 
 This is the one point that pays for itself the most.
 
-Read the specification as `.md` and this set alone costs more than 55,000 tokens.
+Read the specification as `.md` and this set alone costs tens of thousands of tokens.
 Export it to JSON and pull only what you need with `jq`, and the same answer costs
-under 100.
+under 0.2 % of that.
 
 ```text
 strictdoc export <specification folder> --formats=json --output-dir <output dir>
