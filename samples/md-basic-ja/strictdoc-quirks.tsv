@@ -15,3 +15,4 @@ date	sd_version	step	symptom	workaround	where
 2026-08-08	0.27.1	export-json	Wrong field order for requirement, with TITLE named in the Hint	declare TITLE after the built-in meta fields MID/UID/LEVEL/STATUS/TAGS and before every custom field; json stops too, not just sdoc	basic.sgra
 2026-08-08	0.27.1	export-json	Invalid requirement field: Trigger, from prose inside a STATEMENT	an ASCII-only bold label ending in a colon is read as a field; mix in non-ASCII or drop the colon	04-usecases.md
 2026-08-08	0.27.1	export-json	Relations must directly follow requirement metadata without an empty line	attach **Relations**: to the metadata block, or put it after **Statement**: where a blank line is allowed	04-usecases.md
+2026-08-08	0.27.1	export-json	references parent requirement which doesn't exist, naming a UID the other file still declares	a run of ~ at the start of a line opens a Markdown fence and hides every node below it; grep the named file for stray tildes	05-upper.md

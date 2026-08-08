@@ -25,10 +25,18 @@ Four verdicts separate the cases:
             number must equal how many lines the claim dropped. The count is
             checked, not trusted
   excerpt   every claimed line appears in the real output, in order, and the
-            claim is shorter. Representative rows lifted out of a long listing
+            claim covers no more than half of it. Representative rows lifted
+            out of a long listing
   reflowed  the claim is the real output with whitespace inserted. `jq -c`
             prints one long line that an author wraps by hand to read it
   STALE     anything else
+
+The half in `excerpt` is what stops a listing that grew from passing as a
+selection: an outdated full paste is a subsequence of the new output, so the
+subsequence test alone cannot tell "I chose these rows" from "I never came
+back". It let a listing of 11 documents stand after the sample grew to 13. An
+author who wants to show more than half must paste the whole output or end the
+claim with an elision line, whose count this script checks.
 
 Only STALE fails. Exit code is 0 when nothing is stale, 1 otherwise, so this can
 gate a build the way ascii-audit.py and verify-jq.py do.
@@ -56,6 +64,11 @@ PLACEHOLDER = re.compile("<[^\\s\\d<>()|&;'\"$`][^<>()|&;'\"$`]{0,60}>")
 # Matching the shape rather than the words keeps this file ASCII and keeps it
 # working whatever language the sample is written in.
 ELISION = re.compile(r"^\s*\(.*[0-9]+.*\)\s*$")
+# How much of the real output an "excerpt" may cover. Every deliberate excerpt
+# in this repository sits between 0.10 and 0.30; the stale listing that got
+# through covered 0.85. Half is the round number between the two, and it states
+# a rule an author can hold in their head: an excerpt shows a minority.
+EXCERPT_MAX_SHARE = 0.5
 COMMAND_TIMEOUT_SECONDS = 120
 
 
@@ -197,6 +210,15 @@ def classify(claimed, actual):
         return "elided", "{0} shown, {1} dropped".format(len(shown), dropped)
 
     if len(claimed) < len(actual) and is_subsequence(claimed, actual):
+        if len(claimed) > EXCERPT_MAX_SHARE * len(actual):
+            dropped = len(actual) - len(claimed)
+            return "STALE", (
+                "shows {0} of {1} line(s): too much of the output to read as an "
+                "excerpt. Paste all {1}, or end the block with an elision line "
+                'such as "({2} more line{3})"'.format(
+                    len(claimed), len(actual), dropped, "" if dropped == 1 else "s"
+                )
+            )
         return "excerpt", "{0} of {1} line(s)".format(len(claimed), len(actual))
 
     if squeeze(claimed) == squeeze(actual):
