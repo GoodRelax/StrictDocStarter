@@ -1441,7 +1441,7 @@ input folder** (measured). It is a side effect of loading the configuration. You
 
 ---
 
-Read `01-ai-queries.md` only when the above does not cover your need. It sorts 34 queries by
+Read `01-ai-queries.md` only when the above does not cover your need. It sorts 32 queries by
 purpose and shows the output of each one (about 6,900 tokens). It holds the table of contents,
 a filter by chapter, transitive children, a filter by ROLE, the detection of an orphan
 requirement, the detection of a duplicate UID, and more.

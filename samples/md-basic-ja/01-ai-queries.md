@@ -69,7 +69,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":148,"TEST_CASE":4,"TEXT":149,"USE_CASE":1}
+{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":146,"TEST_CASE":4,"TEXT":147,"USE_CASE":1}
 ```
 
 ### A3. 目次
@@ -322,43 +322,18 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | (.RELATIONS // [])[] | select(.TYPE=
 
 このサンプルでは 0 件 (どの要求も誰かが指している)。
 
-### D19. 存在しない UID を指している関係 (リンク切れ)
-
-**Type**: SECTION
-
-**このクエリは JSON に当てる限り決して発火しない。** StrictDoc は関係を解決できない
-時点で export を止め、 JSON を 1 バイトも書かないためである (実測)。
+**リンク切れと UID の重複にクエリは要らない。** どちらも StrictDoc が関係を解決する
+段階で export を止め、 JSON を 1 バイトも書かないためである (実測)。 JSON が手元に
+ある時点で、 その 2 つは無い。 かつて D19 と D20 として置いていたが、 発火し得ない
+ので消した (番号は欠番のままにしてある)。
 
 ```text
 error: [DocumentIndex.create] Requirement SW-001 references parent requirement which doesn't exist: SYS-999.
-```
-
-つまりリンク切れの検査は export そのものである。 通ったなら関係は全部解決している。
-クエリを残してあるのは、 集合の差を取るこの形が他の検査にも使えるからである。
-
-```bash
-jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) | .UID] as $ids
-| .DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) as $n
-| ($n.RELATIONS // [])[] | select(.VALUE | IN($ids[]) | not) | $n.UID + " -> " + .VALUE' <json>
-```
-
-### D20. UID の重複
-
-**Type**: SECTION
-
-**これも JSON に当てる限り発火しない。** UID が重なると StrictDoc は D19 と同じ段階で
-止まる。 同じ文書の中でも、 文書をまたいでも止まる (実測。 メッセージだけが違う)。
-
-```text
 error: DocumentIndex: two nodes with the same UID exist in the same document: SW-002 in "下位要求".
 error: DocumentIndex: two nodes with the same UID exist in two different documents: SW-002 in "下位要求" and "テストケース".
 ```
 
-```bash
-jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) | .UID] | group_by(.) | map(select(length>1) | .[0])' <json>
-```
-
-`[]` が正常である。 D19 と同じく、 export が通った時点で結果は決まっている。
+UID の重複は、 同じ文書の中でも文書をまたいでも止まる (メッセージだけが違う)。
 
 ---
 
@@ -645,7 +620,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":55,"json":5,"markdown":3,"mermaid":6,"python":4,"text":76}
+{"bash":53,"json":5,"markdown":3,"mermaid":6,"python":4,"text":75}
 ```
 
 `mermaid` もここに出る。 図もコードフェンスだからである。

@@ -66,7 +66,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":9,"REQUIREMENT":7,"SECTION":97,"TEST_CASE":4,"TEXT":98}
+{"DOCUMENT":9,"REQUIREMENT":7,"SECTION":95,"TEST_CASE":4,"TEXT":96}
 ```
 
 ### A3. The table of contents
@@ -306,27 +306,19 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | (.RELATIONS // [])[] | select(.TYPE=
 
 This sample returns 0 entries (something points to every requirement).
 
-### D19. Relations that point to a UID that does not exist (broken links)
+**Broken links and duplicate UIDs need no query.** StrictDoc stops the export
+while it resolves relations and writes no JSON at all (measured). By the time a
+JSON exists, neither defect is in it. These were D19 and D20; they were removed
+because they can never fire, and the numbers are left as gaps.
 
-**Type**: SECTION
-
-```bash
-jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) | .UID] as $ids
-| .DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) as $n
-| ($n.RELATIONS // [])[] | select(.VALUE | IN($ids[]) | not) | $n.UID + " -> " + .VALUE' <json>
+```text
+error: [DocumentIndex.create] Requirement SW-001 references parent requirement which doesn't exist: SYS-999.
+error: DocumentIndex: two nodes with the same UID exist in the same document: SW-002 in "Lower-level requirements".
+error: DocumentIndex: two nodes with the same UID exist in two different documents: SW-002 in "Lower-level requirements" and "Test cases".
 ```
 
-This sample returns 0 entries. **0 entries is the normal result.**
-
-### D20. Duplicate UIDs
-
-**Type**: SECTION
-
-```bash
-jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) | .UID] | group_by(.) | map(select(length>1) | .[0])' <json>
-```
-
-`[]` is the normal result.
+A duplicate UID stops the export inside one document and across two, with a
+different message for each.
 
 ---
 
@@ -616,7 +608,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":58,"json":5,"markdown":3,"mermaid":5,"python":4,"text":51}
+{"bash":56,"json":5,"markdown":3,"mermaid":5,"python":4,"text":52}
 ```
 
 **`mermaid` shows up here too.** A figure is a code fence as well.
