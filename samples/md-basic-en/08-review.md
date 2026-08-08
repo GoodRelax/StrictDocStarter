@@ -8,7 +8,7 @@
 
 **This set writes a finding on the requirement itself.** You can also raise a
 finding as a node of its own and tie it to the requirement with a relation, but we
-do not. Chapter 3 gives the reason.
+do not. "Why we do not use a separate node" gives the reason.
 
 We added these three fields to the requirement. `basic.sgra` declares them on
 `REQUIREMENT`.
@@ -72,7 +72,7 @@ the end of the node.**
 **REVIEW_ACTION**: We added a failed read to the checks SW-002 performs.
 ```
 
-**★ Never change the order of the fields you write as paragraphs.** Once the order
+**Never change the order of the fields you write as paragraphs.** Once the order
 `basic.sgra` declares and the order you wrote in `.md` disagree, the export stops
 like this. **A single-line field inside the metadata block does survive being
 reordered - StrictDoc quietly sorts it back into the declared order** (measured).
@@ -81,7 +81,7 @@ reordered - StrictDoc quietly sorts it back into the declared order** (measured)
 Semantic error: Wrong field order for requirement: [UID, STATUS, TITLE, REVIEW_STATUS, ...]
 ```
 
-**★ Spell the key the way the grammar does.** `**Review_comment**:` fails with
+**Spell the key the way the grammar does.** `**Review_comment**:` fails with
 `Invalid requirement field`. Only these eight words ignore case:
 `Statement`, `Title`, `Status`, `Rationale`, `Comment`, `Level`, `Tags`, `Prefix`.
 
@@ -150,7 +150,7 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS == "NotReviewed
 
 **Type**: SECTION
 
-The seven requirements of `03-upper.md` and `04-lower.md` show all five states
+The seven requirements of `04-upper.md` and `06-lower.md` show all five states
 between them.
 
 | UID | `REVIEW_STATUS` | What it illustrates |
@@ -165,6 +165,6 @@ between them.
 
 **A test case carries no `REVIEW_STATUS`.** `basic.sgra` declares the three fields
 on `REQUIREMENT` alone. A test case carries `TEST_RESULT`, `ISSUE_KEY` and
-`TEST_REMARK` instead - `05-tests.md` shows you how to write them. Once you want
+`TEST_REMARK` instead - `07-tests.md` shows you how to write them. Once you want
 to review the wording of the tests as well, add the same three fields to
 `TEST_CASE`. **What you edit is the grammar file, not the individual document.**

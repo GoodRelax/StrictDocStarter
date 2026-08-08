@@ -53,9 +53,13 @@ the scenarios that need them.
 **The relation type stays `Parent`, and `Role` changes what it means.** Here we
 attached `Verifies`. You must declare a `Role` in the grammar before you use it.
 
-These four test cases cover the four software requirements of `04-lower.md` one
+These four test cases cover the four software requirements of `06-lower.md` one
 for one. The **traceability matrix** screen in the left toolbar shows you at a
 glance whether the coverage holds.
+
+The same four also verify `UC-001` in `03-usecases.md`. Each `GIVEN` / `WHEN` /
+`THEN` is written at the acceptance height - "the user runs the tool" - so the
+four line up one for one with the four threads of the use case.
 
 ## What Gherkin is
 
@@ -77,7 +81,7 @@ exit with an error" as one sentence, and a reader cannot tell what to prepare in
 order to try it. Split it three ways and what to prepare, what to press and what
 to look at each become decided.
 
-**★ A StrictDoc field cannot repeat.** Gherkin's `And` and `But` cannot become
+**A StrictDoc field cannot repeat.** Gherkin's `And` and `But` cannot become
 fields of their own, so **you write the extra lines inside `GIVEN`.**
 
 ```text
@@ -115,6 +119,9 @@ heading.
 - **Type**: `Parent` \
   **ID**: `SW-001` \
   **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `UC-001` \
+  **Role**: `Verifies`
 
 ## An unexpected format is rejected
 
@@ -133,6 +140,9 @@ heading.
 - **Type**: `Parent` \
   **ID**: `SW-002` \
   **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `UC-001` \
+  **Role**: `Verifies`
 
 ## An existing file is not overwritten
 
@@ -149,6 +159,9 @@ heading.
 **Relations**:
 - **Type**: `Parent` \
   **ID**: `SW-003` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `UC-001` \
   **Role**: `Verifies`
 
 ## An interruption leaves no partial file
@@ -169,4 +182,7 @@ heading.
 **Relations**:
 - **Type**: `Parent` \
   **ID**: `SW-004` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `UC-001` \
   **Role**: `Verifies`

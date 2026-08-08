@@ -4,7 +4,7 @@
 **UID**: DOC-UPPER \
 **Version**: 1.0
 
-This document states **what we build** and nothing else. It leaves how we build it to `04-lower.md`.
+This document states **what we build** and nothing else. It leaves how we build it to `06-lower.md`.
 
 This paragraph is free text, not a requirement, so it carries no UID. **StrictDoc
 reads a paragraph that sits under a heading as the statement of a requirement.**
@@ -18,7 +18,7 @@ Only one rule decides whether you attach a UID - **attach one when you want to l
 
 **Type**: SECTION
 
-Every requirement in this document and in `04-lower.md` follows one of the five
+Every requirement in this document and in `06-lower.md` follows one of the five
 **EARS** patterns. EARS narrows the shape of a requirement sentence down to five
 forms. That narrowing stops you dropping the condition, and it stops you packing
 two requirements into one sentence.
@@ -83,7 +83,7 @@ you write `If ... Then ...` in place of `When`.
 | `WHEN` | **It applies at that instant.** It has no duration |
 | `IF ... THEN` | It applies to unwanted input or an unwanted situation |
 
-**★ Stack two conditions at most.** Nobody can enumerate the combinations behind a
+**Stack two conditions at most.** Nobody can enumerate the combinations behind a
 sentence that stacks three. **A requirement that needs three is telling you it is
 really two requirements.**
 
@@ -115,6 +115,10 @@ it** - stacking has no value of its own.
 
 **Rationale**: This requirement is the reason the tool exists. If we drop it, every other requirement loses its meaning.
 
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `UC-001`
+
 ## Rejecting unexpected input
 
 **UID**: SYS-002 \
@@ -127,6 +131,10 @@ it** - stacking has no value of its own.
 
 **REVIEW_ACTION**: We rewrote SW-002 so that it opens with the condition. The head of the sentence now names the input the tool refuses.
 
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `UC-001`
+
 ## Protecting an existing file
 
 **UID**: SYS-003 \
@@ -138,3 +146,7 @@ it** - stacking has no value of its own.
 **Rationale**: If the tool destroys an existing file without warning, the user never notices the irreversible act. The tool keeps its default on the safe side.
 
 **REVIEW_COMMENT**: The requirement says "shall not overwrite" and stops there. Nobody decided what the tool does instead once it finds a file of the same name - abort, or write under another name?
+
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `UC-001`

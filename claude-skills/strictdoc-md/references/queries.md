@@ -189,8 +189,13 @@ jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW' '($skip | sp
 ````
 
 ```text
+DOC-USECASES  1  table
+DOC-USECASES  2.1  code,table
+DOC-USECASES  3.1  code,table
 DOC-UPPER  2.1  table
 DOC-UPPER  2.2.1  code,table
+DOC-ARCH  2.1  figure
+DOC-ARCH  3.1  table
 DOC-LOWER  6.1  figure,math,code,table
 DOC-TESTS  1  code
 DOC-TESTS  2.1  code,table
@@ -239,6 +244,7 @@ DOC-AI-QUERIES  1 lines  keep it inline  ← the same
 DOC-AI-QUERIES  1 lines  keep it inline
 DOC-AI-QUERIES  1 lines  keep it inline
 DOC-GUIDE  8 lines  keep it inline
+DOC-ARCH  7 lines  keep it inline
 DOC-LOWER  8 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
@@ -477,9 +483,9 @@ jq -r -f <query file>.jq <json>
 
 **A project sometimes mixes in a document that doubles as an explanation of the notation.**
 Such a document carries figures, formulas, code and tables to explain them, so it always skews
-an aggregate such as "how many figures does this set hold". **This worked example has three
-explanatory documents** (`DOC-AI-GUIDE` = this guide, `DOC-AI-QUERIES`, `DOC-GUIDE`).
-**These three take up 78 of the 82 lines that example 13 prints** (measured).
+an aggregate such as "how many figures does this set hold". **This worked example has four
+explanatory documents** (`DOC-AI-GUIDE` = this guide, `DOC-AI-QUERIES`, `DOC-GUIDE`,
+`DOC-REVIEW`). **These four take up 82 of the 94 lines that example 13 prints** (measured).
 
 **A query finds those documents mechanically, as "a document that holds no node with a UID".**
 That means a document that holds nothing but free text and chapters.
@@ -492,6 +498,7 @@ jq -r '.DOCUMENTS[] | select([recurse(.NODES[]?) | select(._NODE_TYPE != "DOCUME
 DOC-AI-GUIDE  Markdown StrictDoc specifications - a guide for AI
 DOC-AI-QUERIES  jq query collection - for AI
 DOC-GUIDE  Read this first
+DOC-ARCH  System structure
 DOC-REVIEW  How we review
 DOC-FIG-STATE  Large figure - conversion state machine
 DOC-NOTE  Terminology map
@@ -573,7 +580,9 @@ jq -r '.DOCUMENTS[] | (.UID // "-") + "  " + .TITLE' <json>
 DOC-AI-GUIDE  Markdown StrictDoc specifications - a guide for AI
 DOC-AI-QUERIES  jq query collection - for AI
 DOC-GUIDE  Read this first
+DOC-USECASES  Use cases
 DOC-UPPER  System requirements
+DOC-ARCH  System structure
 DOC-LOWER  Software requirements
 DOC-TESTS  Test cases
 DOC-REVIEW  How we review
@@ -594,7 +603,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":9,"REQUIREMENT":7,"SECTION":95,"TEST_CASE":4,"TEXT":96}
+{"DOCUMENT":11,"REQUIREMENT":7,"SECTION":100,"TEST_CASE":4,"TEXT":103,"USE_CASE":1}
 ```
 
 ### A3. The table of contents
@@ -622,7 +631,9 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
  "SECTION":["NODES","TITLE","_NODE_TYPE","_TOC"],
  "TEST_CASE":["GIVEN","ISSUE_KEY","RELATIONS","TEST_REMARK","TEST_RESULT","THEN",
               "TITLE","UID","WHEN","_NODE_TYPE","_TOC"],
- "TEXT":["STATEMENT","_NODE_TYPE","_TOC"]}
+ "TEXT":["STATEMENT","_NODE_TYPE","_TOC"],
+ "USE_CASE":["REVIEW_COMMENT","REVIEW_STATUS","STATEMENT","TITLE","UC_LEVEL","UID",
+             "_NODE_TYPE","_TOC"]}
 ```
 
 `-c` makes jq print one line; the block above wraps it for reading. All five node types
@@ -675,6 +686,7 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.TITLE? and (.TITLE | test("co
 
 ```text
 -  Step 1 - Convert to JSON
+UC-001  Convert an input file into the requested format
 SYS-001  Converting a file
 SW-002  Checking the input format
 SW-003  Checking the destination
@@ -720,6 +732,7 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE and .UID)] as $al
 ```text
 SW-001
 SYS-001
+UC-001
 ```
 
 ### C13. Direct children (reverse lookup)
@@ -949,12 +962,12 @@ DOC-FIG-STATE  1  figure
 DOC-NOTE  1  table
 ```
 
-(9 representative rows out of 91. **Four explanatory documents take up 84 of them** -
-this document, `00-ai-guide.md`, `02-guide-for-human.md` and `06-review.md`. A document
+(9 representative rows out of 94. **Four explanatory documents take up 82 of them** -
+this document, `00-ai-guide.md`, `02-guide-for-human.md` and `08-review.md`. A document
 that explains the notation carries that notation in bulk, so pass `--arg skip` as
-example 13 does when you count. The specification itself produces only 7 rows - the
-`DOC-UPPER`, `DOC-LOWER`, `DOC-TESTS`, `DOC-FIG-STATE` and `DOC-NOTE` rows above - and
-the other 2 rows above are samples lifted out of an explanatory document)
+example 13 does when you count. The specification itself produces only 12 rows -
+`DOC-USECASES`, `DOC-UPPER`, `DOC-ARCH`, `DOC-LOWER`, `DOC-TESTS`, `DOC-FIG-STATE` and
+`DOC-NOTE` - and the other 2 rows above are samples lifted out of an explanatory document)
 
 The second column shows the `UID` when the node has one and the `_TOC` hierarchical number
 when it does not. **Free text carries no UID**, so use `_TOC` to point at a position.
@@ -1014,6 +1027,7 @@ DOC-AI-QUERIES  1 lines  keep it inline
 DOC-AI-QUERIES  1 lines  keep it inline
 DOC-AI-QUERIES  1 lines  keep it inline
 DOC-GUIDE  8 lines  keep it inline
+DOC-ARCH  7 lines  keep it inline
 DOC-LOWER  8 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
@@ -1068,7 +1082,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":56,"json":5,"markdown":3,"mermaid":5,"python":4,"text":52}
+{"bash":56,"json":5,"markdown":3,"mermaid":6,"python":4,"text":54}
 ```
 
 **`mermaid` shows up here too.** A figure is a code fence as well.
@@ -1180,7 +1194,7 @@ samples/md-basic-ja/_assets/fig-state.md
 ```
 
 **A file that only mentions the UID does not show up.** The query above matches the
-`**UID**:` declaration, so `04-lower.md`, which only references it with
+`**UID**:` declaration, so `06-lower.md`, which only references it with
 `[LINK: DOC-FIG-STATE]`, drops out.
 
 **3. Edit that `.md` directly.** Replace the fence content.

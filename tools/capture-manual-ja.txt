@@ -7,11 +7,11 @@
 #
 # key = value. Write a line break as the two characters \n.
 # Change a value here and the screenshots say something different; the prose in
-# samples/md-basic-ja/07-browser-guide.md quotes "sentence", so keep them equal.
+# samples/md-basic-ja/09-browser-guide.md quotes "sentence", so keep them equal.
 
 sentence = \n\nこの一文はブラウザから足した。
 new_uid = SW-900
 new_title = 例
 new_statement = 例。
 document_title = 例 - 新しい文書
-document_path = 09-example.md
+document_path = 11-example.md

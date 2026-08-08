@@ -3,15 +3,15 @@
 **UID**: DOC-AI-QUERIES \
 **Version**: 1.0
 
-**This document expands "3. Extract only the parts you need from a specification" of `00-ai-guide.md`.**
+**This document expands "Pull only the part of the specification you need" of `00-ai-guide.md`.**
 `00-ai-guide.md` already carries the main queries. **If those are enough, skip this document.**
 
 We ran every query below against the JSON that `strictdoc export --formats=json` produced
 from `samples/md-basic-en`, and we checked each output. `<json>` means `<output dir>/json/index.json`.
 
-**★ The `DOC-*` and `SW-*` names in this document belong to this worked example.**
+**The `DOC-*` and `SW-*` names in this document belong to this worked example.**
 `00-ai-guide.md` collects the substitutions for another project in a table under
-"★ What to replace when you use this in another project".
+"What to replace when you use this in another project".
 **You do not need to rewrite the shape of a query.** Each query takes the values that
 depend on this worked example from outside through `--arg`.
 
@@ -43,7 +43,9 @@ jq -r '.DOCUMENTS[] | (.UID // "-") + "  " + .TITLE' <json>
 DOC-AI-GUIDE  Markdown StrictDoc specifications - a guide for AI
 DOC-AI-QUERIES  jq query collection - for AI
 DOC-GUIDE  Read this first
+DOC-USECASES  Use cases
 DOC-UPPER  System requirements
+DOC-ARCH  System structure
 DOC-LOWER  Software requirements
 DOC-TESTS  Test cases
 DOC-REVIEW  How we review
@@ -51,11 +53,12 @@ DOC-FIG-STATE  Large figure - conversion state machine
 DOC-NOTE  Terminology map
 ```
 
-**The query prints 9 entries.** `DOC-AI-GUIDE` and `DOC-AI-QUERIES` are guides for AI,
-`DOC-GUIDE` is an explanatory document for humans, `DOC-REVIEW` explains how the review
-runs, `DOC-NOTE` is the terminology table in `_assets/note.md`, and `DOC-FIG-STATE` is the
-large figure in `_assets/fig-state.md`. **None of these 6 holds a requirement.**
-StrictDoc parses every `.md` file as a document no matter where the file sits.
+**The query prints 11 entries.** `DOC-AI-GUIDE` and `DOC-AI-QUERIES` are guides for AI,
+`DOC-GUIDE` is an explanatory document for humans, `DOC-ARCH` is the map of the system
+structure, `DOC-REVIEW` explains how the review runs, `DOC-NOTE` is the terminology table
+in `_assets/note.md`, and `DOC-FIG-STATE` is the large figure in `_assets/fig-state.md`.
+**None of these 7 holds a requirement.** StrictDoc parses every `.md` file as a document
+no matter where the file sits.
 
 ### A2. Counts by node type
 
@@ -66,7 +69,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":9,"REQUIREMENT":7,"SECTION":95,"TEST_CASE":4,"TEXT":96}
+{"DOCUMENT":11,"REQUIREMENT":7,"SECTION":100,"TEST_CASE":4,"TEXT":103,"USE_CASE":1}
 ```
 
 ### A3. The table of contents
@@ -98,11 +101,13 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
  "SECTION":["NODES","TITLE","_NODE_TYPE","_TOC"],
  "TEST_CASE":["GIVEN","ISSUE_KEY","RELATIONS","TEST_REMARK","TEST_RESULT","THEN",
               "TITLE","UID","WHEN","_NODE_TYPE","_TOC"],
- "TEXT":["STATEMENT","_NODE_TYPE","_TOC"]}
+ "TEXT":["STATEMENT","_NODE_TYPE","_TOC"],
+ "USE_CASE":["REVIEW_COMMENT","REVIEW_STATUS","STATEMENT","TITLE","UC_LEVEL","UID",
+             "_NODE_TYPE","_TOC"]}
 ```
 
-`-c` makes jq print one line; the block above wraps it for reading. All five node types
-show up. `basic.sgra` defines two of them, `REQUIREMENT` and `TEST_CASE`; StrictDoc builds
+`-c` makes jq print one line; the block above wraps it for reading. All six node types
+show up. `basic.sgra` defines three of them - `REQUIREMENT`, `USE_CASE` and `TEST_CASE`; StrictDoc builds
 `DOCUMENT`, `SECTION` and `TEXT` from the structure of the Markdown.
 
 ---
@@ -160,6 +165,7 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.TITLE? and (.TITLE | test("co
 
 ```text
 -  Step 1 - Convert to JSON
+UC-001  Convert an input file into the requested format
 SYS-001  Converting a file
 SW-002  Checking the input format
 SW-003  Checking the destination
@@ -215,6 +221,7 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE and .UID)] as $al
 ```text
 SW-001
 SYS-001
+UC-001
 ```
 
 ### C13. Direct children (reverse lookup)
@@ -481,7 +488,7 @@ DOC-NOTE  1  table
 ```
 
 (9 representative rows out of 91. **Four explanatory documents take up 84 of them** -
-this document, `00-ai-guide.md`, `02-guide-for-human.md` and `06-review.md`. A document
+this document, `00-ai-guide.md`, `02-guide-for-human.md` and `08-review.md`. A document
 that explains the notation carries that notation in bulk, so pass `--arg skip` as
 `00-ai-guide.md` example 13 does when you count. The specification itself produces only
 7 rows - the `DOC-UPPER`, `DOC-LOWER`, `DOC-TESTS`, `DOC-FIG-STATE` and `DOC-NOTE` rows
@@ -490,7 +497,7 @@ above - and the other 2 rows above are samples lifted out of an explanatory docu
 The second column shows the `UID` when the node has one and the `_TOC` hierarchical number
 when it does not. **Free text carries no UID**, so use `_TOC` to point at a position.
 
-**★ Read the language name one fence at a time.** When you cut the text on ` ``` `, every
+**Read the language name one fence at a time.** When you cut the text on ` ``` `, every
 odd-numbered piece is fence content, so its first line is the language name. **Never decide
 by asking whether the whole node contains `mermaid`.** When a figure and code share one
 node, that test drops the code. `DOC-LOWER 6.1` has exactly that shape (a figure, math, and
@@ -549,6 +556,7 @@ DOC-AI-QUERIES  1 lines  keep it inline
 DOC-AI-QUERIES  1 lines  keep it inline
 DOC-AI-QUERIES  1 lines  keep it inline
 DOC-GUIDE  8 lines  keep it inline
+DOC-ARCH  7 lines  keep it inline
 DOC-LOWER  8 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
@@ -608,7 +616,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":56,"json":5,"markdown":3,"mermaid":5,"python":4,"text":52}
+{"bash":56,"json":5,"markdown":3,"mermaid":6,"python":4,"text":54}
 ```
 
 **`mermaid` shows up here too.** A figure is a code fence as well.
@@ -728,7 +736,7 @@ samples/md-basic-ja/_assets/fig-state.md
 ```
 
 **A file that only mentions the UID does not show up.** The query above matches the
-`**UID**:` declaration, so `04-lower.md`, which only references it with
+`**UID**:` declaration, so `06-lower.md`, which only references it with
 `[LINK: DOC-FIG-STATE]`, drops out.
 
 **3. Edit that `.md` directly.** Replace the fence content.

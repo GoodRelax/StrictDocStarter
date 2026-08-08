@@ -9,15 +9,15 @@ but this guide does not cover it.
 
 **This one guide is enough.** You do not need to open another explanatory document
 or an existing specification. The same holds when you use an existing grammar and
-**when you write a whole new grammar from scratch** (section 1.1 carries a grammar
+**when you write a whole new grammar from scratch** ("Writing a grammar file (`.sgra`)" carries a grammar
 file template in a form you can use as it stands).
 
 **You can define a Claude Code SKILL from the English translation of this guide.**
 If you translate the rules and the worked examples separately, you can move the rules
 into `SKILL.md` and the queries and worked examples into `references/` as they are.
 
-**★ When you hit an error that this guide does not list, do not stop: log one line
-and move on.** Chapter 0 tells you how. **Never chase the cause on the spot.**
+**When you hit an error that this guide does not list, do not stop: log one line
+and move on.** "When you hit an error that this guide does not cover" tells you how. **Never chase the cause on the spot.**
 
 The explanations below use `samples/md-basic-en` as their worked example. **The same
 rules apply to every Markdown StrictDoc project.**
@@ -30,34 +30,36 @@ document.** This guide is no exception: it becomes one document, `DOC-AI-GUIDE`.
 | `00-ai-guide.md` | This guide | `DOC-AI-GUIDE` (no requirements) |
 | `01-ai-queries.md` | The detailed version of this guide's queries | `DOC-AI-QUERIES` (no requirements) |
 | `02-guide-for-human.md` | The explanatory document for humans. **An AI does not need to read it** | `DOC-GUIDE` (no requirements) |
-| `03-upper.md` | 3 system requirements | `DOC-UPPER` |
-| `04-lower.md` | 4 software requirements. They link up to the system requirements | `DOC-LOWER` |
-| `05-tests.md` | 4 test cases. They link up to the software requirements | `DOC-TESTS` |
-| `06-review.md` | How we review. A finding goes on the requirement itself | `DOC-REVIEW` (no requirements) |
+| `03-usecases.md` | 1 use case (Cockburn form, sea level). The parent of the system requirements | `DOC-USECASES` |
+| `04-upper.md` | 3 system requirements | `DOC-UPPER` |
+| `05-architecture.md` | The map of the system structure. It holds no requirement | `DOC-ARCH` (no requirements) |
+| `06-lower.md` | 4 software requirements. They link up to the system requirements | `DOC-LOWER` |
+| `07-tests.md` | 4 test cases. They link up to the software requirements | `DOC-TESTS` |
+| `08-review.md` | How we review. A finding goes on the requirement itself | `DOC-REVIEW` (no requirements) |
 | `_assets/note.md` | A terminology table. A link target | `DOC-NOTE` (no requirements) |
 | `_assets/fig-state.md` | One large figure. A link target | `DOC-FIG-STATE` (no requirements) |
 | `basic.sgra` | The grammar definition. You declare node types, fields and `Role` here | — |
 | `strictdoc_config.py` | The project settings | — |
 
 **The numbers give the reading order.** `00` and `01` are for an AI, `02` is for a human,
-`03` to `05` are the specification itself, and `06` tells you how the review runs.
+`03` to `07` are the specification itself, and `08` tells you how the review runs.
 The files inside `_assets/` carry no number.
 
-**Example 1, further down, returns 9 documents.** They are every row of the table above
-that carries a UID. Six of them - `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` /
-`DOC-REVIEW` / `DOC-NOTE` / `DOC-FIG-STATE` - hold no requirements, so they never mix
-in when you count requirements.
+**Example 1, further down, returns 11 documents.** They are every row of the table above
+that carries a UID. Seven of them - `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` /
+`DOC-ARCH` / `DOC-REVIEW` / `DOC-NOTE` / `DOC-FIG-STATE` - hold no requirements, so they
+never mix in when you count requirements.
 
-**★ This guide and `01-ai-queries.md` are themselves StrictDoc documents.**
+**This guide and `01-ai-queries.md` are themselves StrictDoc documents.**
 That is why every heading carries `**Type**: SECTION`. Without it StrictDoc reads the
 text below the heading as the body of a requirement and stops (this is the rule from
-chapter 1, unchanged). **And the contents of this guide land in the JSON too.** A query
+"Writing a specification", unchanged). **And the contents of this guide land in the JSON too.** A query
 that counts figures or code mixes this guide in, so when you count, follow
-"Exclude the explanatory documents when you count" in chapter 3.
+"Exclude the explanatory documents when you aggregate".
 
 The command examples assume that you run them in Git Bash.
 
-## ★ What to substitute when you use this guide on another project
+## What to substitute when you use this guide on another project
 
 **Type**: SECTION
 
@@ -74,23 +76,25 @@ below shows. **You do not need to substitute the rules themselves.**
 | `SYS-*` / `SW-*` / `TC-*` | The UIDs of requirements and tests | The other project's numbering. **Look it up with example 3** |
 | `DOC-FIG-` | **The prefix for the UID of a figure document** | **You decide it.** Pass it to the audit query with `--arg figprefix` |
 | `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` / `DOC-REVIEW` | **The UIDs of the explanatory documents** | The other project's explanatory documents. Exclude them with `--arg skip` when you count |
-| File names such as `03-upper.md` | The file name of a document | **They never land in the JSON.** Look them up with the `grep` in example 16 |
-| `_assets` | The place for attachments | **Fixed. You cannot change it** (2.8) |
-| `strictdoc-quirks.tsv` | The quirk log | Create one under the same name (0.1) |
+| File names such as `04-upper.md` | The file name of a document | **They never land in the JSON.** Look them up with the `grep` in example 16 |
+| `_assets` | The place for attachments | **Fixed. You cannot change it** ("Attachments") |
+| `strictdoc-quirks.tsv` | The quirk log | Create one under the same name ("How to write the log") |
 
 **These two alone are conventions that you decide yourself. They are not part of the
 StrictDoc specification.**
 
 - **The prefix for the UID of a figure document** - the audit query needs it to tell
-  which figures you already moved out (2.1)
+  which figures you already moved out
+  ("Figures - move a figure past 15 lines into its own document")
 - **Which documents you treat as explanatory** - the queries that count notation need
-  it in order to exclude them (chapter 3)
+  it in order to exclude them
+  ("Pull only the part of the specification you need")
 
 **You pass both of them to the query as an argument.** Never rewrite the body of the query.
 
 ---
 
-## 0. When you hit an error that this guide does not cover
+## When you hit an error that this guide does not cover
 
 **Type**: SECTION
 
@@ -104,12 +108,12 @@ behaves differently. The other project may also write things in an unusual way.
 2. **Add exactly one line to `strictdoc-quirks.tsv`**
 3. **Move on to the next task**
 
-**★ Never chase the cause on the spot.** If you dig in, you never finish the work you
+**Never chase the cause on the spot.** If you dig in, you never finish the work you
 came for. **Read the collected lines together later and use them as the material for
 fixing this guide.** Do not fix them one at a time: clear them all at once when the
 version goes up or when the lines pile up.
 
-### 0.1 How to write the log
+### How to write the log
 
 **Type**: SECTION
 
@@ -136,13 +140,13 @@ printf 'date\tsd_version\tstep\tsymptom\tworkaround\twhere\n' > <specification f
 Add one line. **Append with `>>`. A single `>` erases the log you already have.**
 
 ```bash
-printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%F)" "0.27.1" "export-html" "error: string index out of range" "put a character after the closing dollar" "04-lower.md" >> <specification folder>/strictdoc-quirks.tsv
+printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%F)" "0.27.1" "export-html" "error: string index out of range" "put a character after the closing dollar" "06-lower.md" >> <specification folder>/strictdoc-quirks.tsv
 ```
 
 **Write it in ASCII English.** You do that so a machine can process it later, and
 because the error that lands in `symptom` is English.
 
-### 0.2 What to log and what not to log
+### What to log and what not to log
 
 **Type**: SECTION
 
@@ -155,7 +159,7 @@ because the error that lands in `symptom` is English.
 **When you cannot decide, write it down.** One line costs little, and the knowledge
 you lose never comes back.
 
-### 0.3 How to use the log you collected
+### How to use the log you collected
 
 **Type**: SECTION
 
@@ -174,7 +178,7 @@ sort -t"$(printf '\t')" -k2,2 -k1,1 <specification folder>/strictdoc-quirks.tsv
 
 ---
 
-## 1. Writing a specification
+## Writing a specification
 
 **Type**: SECTION
 
@@ -249,7 +253,7 @@ that declares only `SECTION` and `REQUIREMENT`, and the free text still became a
 **StrictDoc prints an error on two lines. The first line carries the file name.**
 
 ```text
-error: could not parse file: C:\...\04-lower.md.
+error: could not parse file: C:\...\06-lower.md.
 Semantic error: Invalid node type: SECTION.
 ```
 
@@ -259,7 +263,7 @@ Semantic error: Invalid node type: SECTION.
 error: A process in the process pool was terminated abruptly while the future was running or pending.
 ```
 
-**★ When you see this error, run the export again with `--no-parallelization`. StrictDoc then
+**When you see this error, run the export again with `--no-parallelization`. StrictDoc then
 prints the real error** (measured).
 
 ```bash
@@ -277,7 +281,7 @@ fail to carry the real error out of the child process and swallow it (a defect i
 0.27.1: it fails to construct the exception class). **`--debug` only prints a stack trace and
 never prints the location. `--no-parallelization` gets you there faster.**
 
-**Only two errors hide their location from you: this one and the `string index out of range` in 2.3.**
+**Only two errors hide their location from you: this one and the `string index out of range` in "The `$` trap".**
 For every other error, the first line tells you where it is.
 
 ### Rules that a worked example does not show you
@@ -328,7 +332,7 @@ For every other error, the first line tells you where it is.
   `strictdoc_config.py`.** Never list a whole folder such as `_assets/**`. If you do, StrictDoc
   stops copying the images too, and the export reports success while every image in the HTML
   returns 404
-- **Chapter 2 collects how to write figures, math, code, tables and images.** They hold many
+- **"Writing figures, math, and code" collects how to write figures, math, code, tables and images.** They hold many
   traps, so read it before you write any of them
 - **Add a node type, a field or a `Role` to the `.sgra`.**
   Never add one to an individual document
@@ -346,16 +350,16 @@ For every other error, the first line tells you where it is.
 `basic.sgra`). Only the extension has to be `.sgra`.
 **StrictDoc reads the `.sgra` too and logs `Reading SDOC:` for it, but it never becomes a document.**
 
-### 1.1 Writing a grammar file (`.sgra`)
+### Writing a grammar file (`.sgra`)
 
 **Type**: SECTION
 
 **When you start a new project, you always end up writing your own `.sgra`.**
 Below is the smallest template that you can use as it stands. **This template pairs with the `.md`
-template in chapter 1.** We pasted both as they stand and ran `--formats=json` and
+template in "Writing a specification".** We pasted both as they stand and ran `--formats=json` and
 `--formats=html`; both passed (measured).
 
-**★ Always use the two templates as a pair.** Leave one field the `.md` template writes out of the
+**Always use the two templates as a pair.** Leave one field the `.md` template writes out of the
 `.sgra` and StrictDoc stops the export. Below is the error we measured after dropping the
 `REVIEW_STATUS` declaration (the `Hint:` line prints the fields the grammar does declare).
 Once you swap either side for something else, compare the two orders and check them against
@@ -498,7 +502,7 @@ strictdoc export <specification folder> --formats=json --output-dir <output dir>
 **The export passes without a `strictdoc_config.py`.** Put one directly in this folder only when
 you need `exclude_doc_paths` or a screen setting (do not put it in the parent folder; StrictDoc does not read it there).
 
-**★ Restart the server after you edit `strictdoc_config.py`** (measured).
+**Restart the server after you edit `strictdoc_config.py`** (measured).
 **StrictDoc reads this file exactly once, at startup.** When you edit a document's `.md`, the
 server picks the change up in under a second, but **it never picks up the project settings again.**
 
@@ -515,7 +519,7 @@ settings, so the output folder stays stale too.** When in doubt, stop the server
 
 ---
 
-## 2. Writing figures, math, and code
+## Writing figures, math, and code
 
 **Type**: SECTION
 
@@ -532,12 +536,12 @@ succeeded and produced the HTML we intended.
 | `![alt](_assets/x.svg)` | **passes** | `<img>` |
 | `[LINK: UID]` | **passes** | `<a href="....html#UID">🔗 title</a>` |
 | RST's `.. math::` | **does not pass** | `<p>.. math::</p>` - just a paragraph |
-| `[DOCUMENT_FROM_FILE]` | **does not pass** | see 2.6 below |
+| `[DOCUMENT_FROM_FILE]` | **does not pass** | see "Never write `[DOCUMENT_FROM_FILE]`" below |
 
 **StrictDoc bundles MathJax and Mermaid into the output folder** (`_static/mathjax/tex-mml-chtml.js` /
 `_static/mermaid/mermaid.min.js`). StrictDoc makes no outside connection. You add nothing to the configuration.
 
-### 2.1 Figures - move a figure past 15 lines into its own document
+### Figures - move a figure past 15 lines into its own document
 
 **Type**: SECTION
 
@@ -565,7 +569,7 @@ flowchart LR
 ```
 ````
 
-**This count matches the query in example 14 of chapter 3 exactly.** The query drops blank
+**This count matches the query in example 14 exactly.** The query drops blank
 lines as well. You can count by hand, or you can measure with the query after you write the
 figure. Both give the same number.
 
@@ -625,7 +629,7 @@ We moved the large figure, which covers interruption and cleanup, into its own d
 page the link points to; StrictDoc does not expand it into the body. StrictDoc also builds the text
 of `[LINK:]` from the title of the target, so **you cannot choose that text.**
 
-**★ Rule: give a figure document one shared prefix, in its file name and in its UID.**
+**Rule: give a figure document one shared prefix, in its file name and in its UID.**
 StrictDoc does not fix the prefix itself; **each project agrees on its own.**
 
 | | Rule | What this worked example agrees on |
@@ -643,7 +647,7 @@ agreement that lets a person spot a figure in a file listing.
 **When you add a figure to a project that already exists, match the prefix that project uses.**
 List the documents with example 1 and you see which UIDs the figure documents carry.
 **If the project has no prefix, pick one yourself and write it down in the document that
-corresponds to `02-guide-for-human.md`, not in the log in 0.1.**
+corresponds to `02-guide-for-human.md`, not in the log of "How to write the log".**
 
 **Side effect**: `_assets/*.md` shows up in the document list. In this worked example, `DOC-NOTE`
 and `DOC-FIG-STATE` are the two. **We accept this** (no way to hide them exists; see below).
@@ -662,7 +666,7 @@ error: DocumentIndex: the inline link references an object with an UID that does
 **This error does not belong to the silent kind.** Even when you want to hide a figure from the list,
 you cannot use this method.
 
-### 2.2 Math - only `$` and `$$`
+### Math - only `$` and `$$`
 
 **Type**: SECTION
 
@@ -682,7 +686,7 @@ the `_` in `T_a` never turns into an `<em>`.
 **Outside a formula, though, Markdown collapses `\\` into a single `\`** - that is ordinary Markdown
 escaping, not a defect.
 
-### 2.3 ★ The `$` trap - the export stops for no apparent reason
+### The `$` trap - the export stops for no apparent reason
 
 **Type**: SECTION
 
@@ -732,7 +736,7 @@ strictdoc export <specification folder> --formats=html --output-dir <output dir>
 ```
 
 Once the JSON exists, you can hunt the dangerous lines by machine before you build the HTML.
-**Zero hits is normal.** The query sits in **example 17** of chapter 3 (G33 in the detailed version).
+**Zero hits is normal.** The query sits in **example 17** (G33 in the detailed version).
 
 **Do not close a table cell with a lone `$`.** You have two ways out, and **you take the first one.**
 
@@ -741,7 +745,7 @@ Once the JSON exists, you can hunt the dangerous lines by machine before you bui
 | `\| $T$ s \|` (add a unit or a word) | `<span class="math ...">` | **It fits inside the text. Use this one** |
 | `\| $$T$$ \|` (make it a block) | `<div class="math ...">` | It becomes a line of its own inside the cell and centers itself |
 
-### 2.4 Code - always write the language name
+### Code - always write the language name
 
 **Type**: SECTION
 
@@ -760,7 +764,7 @@ We accept this.**
 gives a later reader the only clue for telling what kind of code this is. G31 in
 `01-ai-queries.md` cannot pick up a fence that carries no language name.
 
-### 2.5 StrictDoc interprets nothing inside a fence
+### StrictDoc interprets nothing inside a fence
 
 **Type**: SECTION
 
@@ -773,7 +777,7 @@ become a link; it comes out as plain text. Inside a fence, `$`, `|` and `**` all
 **When you want to write ` ``` ` in the body, as a query does, open the fence with four backticks.**
 Three backticks close the fence partway through. StrictDoc reads a four-backtick fence correctly too (measured).
 
-### 2.6 Never write `[DOCUMENT_FROM_FILE]`
+### Never write `[DOCUMENT_FROM_FILE]`
 
 **Type**: SECTION
 
@@ -788,7 +792,7 @@ silently depending on how you write it** (measured).
 
 **The export succeeds in every case.** When you want to split content into its own document, use the `[LINK:]` from 2.1.
 
-### 2.7 Tables
+### Tables
 
 **Type**: SECTION
 
@@ -801,7 +805,7 @@ silently depending on how you write it** (measured).
 ```
 
 **A table passes even when you drop the pipes at both ends** (measured), but **always write them.**
-Drop them and the table-checking query in chapter 3 cannot find the row.
+Drop them and the table-checking query in "Pull only the part of the specification you need" cannot find the row.
 
 **Alignment markers (`:---` / `:---:` / `---:`) and empty cells pass.**
 **You can use `` `code` ``, `**bold**` and `[link](path)` inside a cell** (measured).
@@ -809,7 +813,7 @@ Drop them and the table-checking query in chapter 3 cannot find the row.
 **You can put a table in the `STATEMENT` of a requirement.** The JSON holds it exactly as you wrote it,
 so you can pull the table out on its own, rewrite it and write it back (example 19).
 
-#### 2.7.1 Three ways to write a table that breaks silently
+#### Three ways to write a table that breaks silently
 
 **Type**: SECTION
 
@@ -821,7 +825,7 @@ so you can pull the table out on its own, rewrite it and write it back (example 
 | The row holds fewer cells than the header | Markdown pads with empty cells. The harm is small |
 | **An unescaped `\|` inside a cell** | The column splits right there |
 
-**★ A code span does not protect `|`.** It differs from `$` here.
+**A code span does not protect `|`.** It differs from `$` here.
 
 | How you write it | Result |
 |---|---|
@@ -834,9 +838,9 @@ so you can pull the table out on its own, rewrite it and write it back (example 
 **The JSON keeps a broken row exactly as you wrote it** (measured). **So you can detect it with
 example 20 before you look at the HTML. Zero hits is normal.**
 
-**Do not end a cell with `$`** (2.3). **This one alone stops the export.**
+**Do not end a cell with `$`** ("The `$` trap"). **This one alone stops the export.**
 
-### 2.8 Attachments
+### Attachments
 
 **Type**: SECTION
 
@@ -851,7 +855,7 @@ This mechanism does not serve images alone.
 We put `.csv`, `.pdf` and `.zip` files in `_assets/` and ran the export: **all three reached the
 output, and every link resolved** (measured). **An SVG stays sharp when you zoom in, so make SVG the default for a figure image.**
 
-**★ An attachment breaks silently in two ways. The export reports success.**
+**An attachment breaks silently in two ways. The export reports success.**
 
 | How it breaks | What happens |
 |---|---|
@@ -862,7 +866,7 @@ output, and every link resolved** (measured). **An SVG stays sharp when you zoom
 `attachments/`, and StrictDoc does not scan it (measured; the source writes the name directly as
 `find_directories(..., "_assets")`).
 
-**Neither one prints anything in the export log.** So run **example 18** of chapter 3 every time.
+**Neither one prints anything in the export log.** So run **example 18** every time.
 **Zero hits is normal.**
 
 - **Never hand `exclude_doc_paths` a folder such as `_assets/**`.**
@@ -871,7 +875,7 @@ output, and every link resolved** (measured). **An SVG stays sharp when you zoom
 
 ---
 
-## 3. Pull only the part of the specification you need
+## Pull only the part of the specification you need
 
 **Type**: SECTION
 
@@ -881,9 +885,9 @@ Reading the whole specification of this worked example (`03` through `05` and
 `02-guide-for-human.md`. Convert it to JSON and pull the list of requirements
 with `jq`, and the same answer costs 74 tokens.
 
-**★ This ban covers only "reading in order to learn". You may open a file to rewrite it.**
+**This ban covers only "reading in order to learn". You may open a file to rewrite it.**
 When your job is to fix an existing specification, the correct procedure is to
-open the target `.md` and edit it (3.1 collects the steps).
+open the target `.md` and edit it ("Rewriting an existing specification" collects the steps).
 **You cannot mechanically write back from JSON to `.md`** -
 the JSON holds no file paths.
 
@@ -944,7 +948,7 @@ The structure of the JSON:
       "RELATIONS": [{"TYPE": "Parent", "VALUE": "...", "ROLE": "..."}]}]}]}
 ```
 
-**★ Figures, math and code land almost entirely in free-text nodes with `_NODE_TYPE == "TEXT"`.**
+**Figures, math and code land almost entirely in free-text nodes with `_NODE_TYPE == "TEXT"`.**
 You can write them in the `STATEMENT` of a requirement, but they normally sit in free text.
 **A `TEXT` node has no `UID`.** To point at a place, use `_TOC` (a hierarchical number
 such as `2.1.1`). When you tell a person where something is, give all three:
@@ -1040,7 +1044,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")] 
 **Type**: SECTION
 
 **These two use a fence of four backticks.** The query body itself contains
-` ``` ` (2.5).
+` ``` ` ("StrictDoc interprets nothing inside a fence").
 
 **13. Where the figures, math, code, tables, and images are.** The second column
 holds the `UID`, or `_TOC` when the node has none.
@@ -1062,8 +1066,13 @@ jq -r --arg skip 'DOC-AI-GUIDE,DOC-AI-QUERIES,DOC-GUIDE,DOC-REVIEW' '($skip | sp
 ````
 
 ```text
+DOC-USECASES  1  table
+DOC-USECASES  2.1  code,table
+DOC-USECASES  3.1  code,table
 DOC-UPPER  2.1  table
 DOC-UPPER  2.2.1  code,table
+DOC-ARCH  2.1  figure
+DOC-ARCH  3.1  table
 DOC-LOWER  6.1  figure,math,code,table
 DOC-TESTS  1  code
 DOC-TESTS  2.1  code,table
@@ -1075,7 +1084,7 @@ DOC-NOTE  1  table
 worked example has four explanatory documents (`DOC-AI-GUIDE` = this document,
 `DOC-AI-QUERIES`, `DOC-GUIDE` and `DOC-REVIEW`). **In the other project, list the documents with
 example 1 first, find the ones that double as an explanation of the notation, and
-pass those** (chapter 3, "Exclude explanatory documents when you count", tells you
+pass those** ("Exclude the explanatory documents when you aggregate" tells you
 how to find them).
 
 **Without it the query returns 91 rows, and 84 of them come from the explanatory
@@ -1112,6 +1121,7 @@ DOC-AI-QUERIES  1 lines  keep it inline  ← the same
 DOC-AI-QUERIES  1 lines  keep it inline
 DOC-AI-QUERIES  1 lines  keep it inline
 DOC-GUIDE  8 lines  keep it inline
+DOC-ARCH  7 lines  keep it inline
 DOC-LOWER  8 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
@@ -1198,7 +1208,7 @@ an example.** **An explanatory document contains the very strings it explains.**
 whether a returned file is a specification or a guide from the table at the top of
 this document.
 
-**17. Lines that hold the `$` trap (2.3). 0 rows is the normal result.** Run this
+**17. Lines that hold the `$` trap ("The `$` trap"). 0 rows is the normal result.** Run this
 every time you add a figure or a formula.
 
 ````bash
@@ -1225,18 +1235,18 @@ really sit inside a fence** (measured). None of those 141 ends with `$` today, s
 costs 0 false positives right now - and that turns non-zero the moment somebody writes
 one.
 
-**★ `map(rtrimstr("\r"))` is not decoration.** StrictDoc keeps the CRLF of the source
+**`map(rtrimstr("\r"))` is not decoration.** StrictDoc keeps the CRLF of the source
 file inside `STATEMENT`, so every line arrives ending in CR and the anchored `" *$"`
 never matches. Leave it out and this query reports 0 rows on a document whose HTML
 export dies on that very line (measured).
 
-**★ 0 rows from this query does not prove you are safe.** It detects only **the trap
+**0 rows from this query does not prove you are safe.** It detects only **the trap
 that fails the export** (a paragraph or a cell that ends with `$`). **The other trap
-in 2.3 - the one where `The cost runs from $100 to $200` turns into math - does not
+in "The `$` trap" - the one where `The cost runs from $100 to $200` turns into math - does not
 fail the export, so this query never shows it.** Whenever you write an amount of
 money or an environment variable, look at the HTML with your own eyes.
 
-**18. Check that the attachments arrived (2.8). 0 rows is the normal result.**
+**18. Check that the attachments arrived ("Attachments"). 0 rows is the normal result.**
 **This one query catches both a missing target and a file you put outside `_assets/`.**
 
 It judges every reference that `jq` lists by whether the file exists **on the
@@ -1299,15 +1309,15 @@ jq -r --arg doc DOC-LOWER --arg at 6.1 '.DOCUMENTS[] | select(.UID == $doc) | re
 | Path | - | The three stages `input \| convert \| output` |
 ```
 
-**This table is a worked example that obeys every rule in 2.7.** The word "bytes"
+**This table is a worked example that obeys every rule in "Tables".** The word "bytes"
 follows the math, a `|` inside a cell is escaped as `\|`, and a pipe stands at both
 ends of the row.
 
 **Pass the position with `--arg`.** You never rewrite the body of the query, so you
 reuse the same one everywhere. **This does not pick up a table that lacks a pipe at
-both ends** (2.7).
+both ends** ("Tables").
 
-**20. Find the tables that break (2.7.1). 0 rows is the normal result.** Run this
+**20. Find the tables that break ("Three ways to write a table that breaks silently"). 0 rows is the normal result.** Run this
 every time you add a table.
 
 ````bash
@@ -1366,7 +1376,7 @@ jq -r -f <query file>.jq <json>
 Such a document carries figures, formulas, code and tables to explain them, so it always skews
 an aggregate such as "how many figures does this set hold". **This worked example has four
 explanatory documents** (`DOC-AI-GUIDE` = this guide, `DOC-AI-QUERIES`, `DOC-GUIDE`,
-`DOC-REVIEW`). **These four take up 78 of the 82 lines that example 13 prints** (measured).
+`DOC-REVIEW`). **These four take up 82 of the 94 lines that example 13 prints** (measured).
 
 **A query finds those documents mechanically, as "a document that holds no node with a UID".**
 That means a document that holds nothing but free text and chapters.
@@ -1379,6 +1389,7 @@ jq -r '.DOCUMENTS[] | select([recurse(.NODES[]?) | select(._NODE_TYPE != "DOCUME
 DOC-AI-GUIDE  Markdown StrictDoc specifications - a guide for AI
 DOC-AI-QUERIES  jq query collection - for AI
 DOC-GUIDE  Read this first
+DOC-ARCH  System structure
 DOC-REVIEW  How we review
 DOC-FIG-STATE  Large figure - conversion state machine
 DOC-NOTE  Terminology map
@@ -1400,7 +1411,7 @@ You do not need it when you only use them to locate something.
 
 ---
 
-## 3.1 Rewriting an existing specification
+### Rewriting an existing specification
 
 **Type**: SECTION
 
@@ -1416,7 +1427,7 @@ pull out its content.
 the text back (the blank lines around it, and the CRLF that jq on Windows emits).
 
 **4. Measure the line count again when you touch a figure** - example 14. **When it reaches 16
-lines or more, follow 2.1, move it out into `_assets/fig-*.md`, and leave a `[LINK:]` in its
+lines or more, follow "Figures - move a figure past 15 lines into its own document", move it out into `_assets/fig-*.md`, and leave a `[LINK:]` in its
 old place.**
 
 **5. Fix the free text around a figure once you move that figure out of the body.** A sentence

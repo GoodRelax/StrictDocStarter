@@ -11,9 +11,9 @@ StrictDoc resolves it from the UID.
 
 | What this sample calls it | What StrictDoc calls it | What it actually is |
 | --- | --- | --- |
-| system requirement | REQUIREMENT | `SYS-*` in `03-upper.md` |
-| software requirement | REQUIREMENT | `SW-*` in `04-lower.md` |
-| test case | TEST_CASE | `TC-*` in `05-tests.md` |
+| system requirement | REQUIREMENT | `SYS-*` in `04-upper.md` |
+| software requirement | REQUIREMENT | `SW-*` in `06-lower.md` |
+| test case | TEST_CASE | `TC-*` in `07-tests.md` |
 | review result | a field of REQUIREMENT | `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` |
 | free text | TEXT | a paragraph that carries no UID |
 | chapter | SECTION | a heading that declares `**Type**: SECTION` |

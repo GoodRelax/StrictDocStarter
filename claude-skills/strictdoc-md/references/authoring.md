@@ -78,7 +78,7 @@ that declares only `SECTION` and `REQUIREMENT`, and the free text still became a
 **StrictDoc prints an error on two lines. The first line carries the file name.**
 
 ```text
-error: could not parse file: C:\...\04-lower.md.
+error: could not parse file: C:\...\06-lower.md.
 Semantic error: Invalid node type: SECTION.
 ```
 

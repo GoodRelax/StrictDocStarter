@@ -38,9 +38,9 @@ long time, `.sdoc` sits on the safer side.
 The files line up like this.
 
 **The numbers give the reading order.** `00` and `01` address an AI, `02`
-addresses a human, `03` to `05` hold the specification itself, and `06` tells you
-how the review runs. **The seven `.md` files here and the two under `_assets/` -
-nine in all - become StrictDoc documents.**
+addresses a human, `03` to `07` hold the specification itself, and `08` tells you
+how the review runs. **The nine `.md` files here and the two under `_assets/` -
+eleven in all - become StrictDoc documents.**
 
 - `00-ai-guide.md` — **the guide you hand to an AI.** It compresses this document
   down to the writing rules and the way to query the JSON. A human does not have
@@ -49,11 +49,15 @@ nine in all - become StrictDoc documents.**
 - `01-ai-queries.md` — the detailed version of the above. A jq query collection.
   This one also addresses an AI
 - `02-guide-for-human.md` — this document. The reading order and the writing rules
-- `03-upper.md` — 3 system requirements. What we build
-- `04-lower.md` — 4 software requirements. How we implement it. It links up to
+- `03-usecases.md` — 1 use case. How a user uses the tool, in the Cockburn form.
+  The system requirements come out of it
+- `04-upper.md` — 3 system requirements. What we build
+- `05-architecture.md` — the system structure. The map of what we assemble, and how,
+  to satisfy the system requirements. It holds no requirement
+- `06-lower.md` — 4 software requirements. How we implement it. It links up to
   the system requirements
-- `05-tests.md` — 4 test cases. They link to the software requirements
-- `06-review.md` — **how the review runs.** A finding goes on the requirement itself
+- `07-tests.md` — 4 test cases. They link to the software requirements
+- `08-review.md` — **how the review runs.** A finding goes on the requirement itself
 - `basic.sgra` — the grammar definition every document shares
 - `strictdoc_config.py` — the project configuration. **StrictDoc reads it only
   directly under this folder**
@@ -120,18 +124,20 @@ StrictDoc would render each line as a separate paragraph, and this mark prevents
 ```
 
 **We move `Grammar` into an external file so that it stays the same across documents.**
-Seven documents in this sample set read the same `basic.sgra`. That file declares three
+Nine documents in this sample set read the same `basic.sgra`. That file declares four
 node types.
 
 - `SECTION` - a chapter. You can nest it
 - `REQUIREMENT` - a requirement. `UID` / `STATUS` / `TITLE` / `REVIEW_STATUS` /
   `STATEMENT` / `RATIONALE` / `REVIEW_COMMENT` / `REVIEW_ACTION`
+- `USE_CASE` - a use case. `UID` / `TITLE` / `UC_LEVEL` / `REVIEW_STATUS` /
+  `STATEMENT` / `REVIEW_COMMENT` / `REVIEW_ACTION`
 - `TEST_CASE` - a test case. It carries the Gherkin words `GIVEN` / `WHEN` / `THEN`
   plus `TEST_RESULT` / `ISSUE_KEY` / `TEST_REMARK`. **It carries no `STATEMENT`**
 
 **`TEST_CASE` is not a standard StrictDoc concept.** We added it in the grammar. The
 same goes for the three `REVIEW_*` fields, which the standard `REQUIREMENT` does not
-have - `06-review.md` shows you how to use them.
+have - `08-review.md` shows you how to use them.
 **Never add a field to a single document.** Each document would take a different shape,
 and no one could tell where anything is. When you need a new field, add it to
 `basic.sgra`.
@@ -169,12 +175,22 @@ matter. **A mix of `.md` and `.sdoc` behaves the same way.** This sample set rea
 does cross files.
 
 ```text
-03-upper.md   SYS-001   SYS-002   SYS-003
-                 |         |         |
-04-lower.md   SW-001    SW-002    SW-003 / SW-004
-                 |         |         |
-05-tests.md   TC-001    TC-002    TC-003 / TC-004
+03-usecases.md            UC-001 (UserGoal)
+                             |
+04-upper.md   SYS-001     SYS-002     SYS-003
+                 |           |           |
+06-lower.md   SW-001      SW-002      SW-003 / SW-004
+                 |           |           |
+07-tests.md   TC-001      TC-002      TC-003 / TC-004
+                 `-----------+-----------'
+                             |
+                          UC-001 (named again, as the acceptance check)
 ```
+
+The root is the single `UC-001` and the leaves are the four tests. One thread runs from
+the user's goal down to verification. The tests name `UC-001` a second time because the
+same four cover the software requirements one for one while also tracing the main success
+scenario and the three extensions of the use case.
 
 **A `Role` gives the relation a meaning.** You can leave the type as `Parent`.
 
@@ -185,7 +201,7 @@ does cross files.
   **Role**: `Verifies`
 ```
 
-`05-tests.md` uses `Verifies`.
+`07-tests.md` uses `Verifies`.
 **Declare a `Role` in the grammar before you use it.** StrictDoc fails on any value you
 have not declared.
 
@@ -365,7 +381,7 @@ $$
 S_{need} = S_{out} + S_{tmp} = 2 \times S_{out}
 $$
 
-We use the expression above in `04-lower.md`. To embed it in a sentence, you write it as
+We use the expression above in `06-lower.md`. To embed it in a sentence, you write it as
 $S_{need}$ instead.
 
 ### Traps you hit with math
@@ -519,7 +535,7 @@ breaks an array apart. `.DOCUMENTS[]` means "each item of `DOCUMENTS` in the
 input." The `.` is not an option but the filter itself, and it sits in the middle
 of `jq [options] <filter> [file]`.
 
-**`REVIEW_STATUS` is a field the grammar added to `REQUIREMENT`.** `06-review.md`
+**`REVIEW_STATUS` is a field the grammar added to `REQUIREMENT`.** `08-review.md`
 gives the meaning of each state and lists the values. **When you want to filter by
 node type instead, the key is `_NODE_TYPE`, and the leading underscore makes it
 easy to mistype.** Run the filter against this set and it prints this.
@@ -670,7 +686,7 @@ UID → STATUS → TITLE → your single-line custom fields → STATEMENT
 **`basic.sgra` declares its fields in this order.** Break the order and the export
 stops on the spot. Keep this order when you write a grammar of your own.
 
-**★ This set does not make the round trip to `.sdoc`, though** (measured on
+**This set does not make the round trip to `.sdoc`, though** (measured on
 0.27.1). `--formats=sdoc` writes all 9 documents out, but reading that output back
 stops for two reasons, and **neither one has anything to do with the declaration
 order.**

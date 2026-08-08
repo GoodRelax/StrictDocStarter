@@ -50,7 +50,7 @@ printf 'date\tsd_version\tstep\tsymptom\tworkaround\twhere\n' > <specification f
 Add one line. **Append with `>>`. A single `>` erases the log you already have.**
 
 ```bash
-printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%F)" "0.27.1" "export-html" "error: string index out of range" "put a character after the closing dollar" "04-lower.md" >> <specification folder>/strictdoc-quirks.tsv
+printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%F)" "0.27.1" "export-html" "error: string index out of range" "put a character after the closing dollar" "06-lower.md" >> <specification folder>/strictdoc-quirks.tsv
 ```
 
 **Write it in ASCII English.** You do that so a machine can process it later, and
