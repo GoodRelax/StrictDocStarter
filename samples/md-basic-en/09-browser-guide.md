@@ -152,8 +152,6 @@ Type runs down the menu, position runs across. The grammar of this set offers fi
 | `USE_CASE` | A use case. A type `basic.sgra` added |
 | `TEST_CASE` | A test case. A type `basic.sgra` added |
 
-The picture in this chapter was taken before `USE_CASE` was added, so it shows only four.
-
 `TEST_CASE` appears because this set carries `basic.sgra`. A document with no grammar
 offers only `TEXT`, `SECTION` and `REQUIREMENT`.
 
@@ -447,10 +445,10 @@ There are four things to remember.
 It shrinks to 25 % and grows to 100 %. It never grows past its original size. There is no
 button that resets it, so reload the page when you get lost.
 
-![Deep Traceability shrunk to 60 %. System requirements, software requirements and tests fit on one screen](_assets/browser-27-deep-trace-zoom.png)
+![Deep Traceability shrunk to 60 %. A use case, a system requirement, a software requirement and a test line up across one screen](_assets/browser-27-deep-trace-zoom.png)
 
-You shrink it to fit the chain from system requirements through software requirements to
-tests onto one screen. Fold the side panels first and the usable width grows further.
+You shrink it to fit one whole chain - use case, system requirement, software requirement,
+test - across the screen. Fold the side panels first and the usable width grows further.
 
 ### The tree map - no zoom. Press a tile to go in
 
