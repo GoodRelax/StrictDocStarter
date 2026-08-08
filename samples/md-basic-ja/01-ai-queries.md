@@ -326,23 +326,39 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | (.RELATIONS // [])[] | select(.TYPE=
 
 **Type**: SECTION
 
+**このクエリは JSON に当てる限り決して発火しない。** StrictDoc は関係を解決できない
+時点で export を止め、 JSON を 1 バイトも書かないためである (実測)。
+
+```text
+error: [DocumentIndex.create] Requirement SW-001 references parent requirement which doesn't exist: SYS-999.
+```
+
+つまりリンク切れの検査は export そのものである。 通ったなら関係は全部解決している。
+クエリを残してあるのは、 集合の差を取るこの形が他の検査にも使えるからである。
+
 ```bash
 jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) | .UID] as $ids
 | .DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) as $n
 | ($n.RELATIONS // [])[] | select(.VALUE | IN($ids[]) | not) | $n.UID + " -> " + .VALUE' <json>
 ```
 
-このサンプルでは 0 件。0 件が正常である。
-
 ### D20. UID の重複
 
 **Type**: SECTION
+
+**これも JSON に当てる限り発火しない。** UID が重なると StrictDoc は D19 と同じ段階で
+止まる。 同じ文書の中でも、 文書をまたいでも止まる (実測。 メッセージだけが違う)。
+
+```text
+error: DocumentIndex: two nodes with the same UID exist in the same document: SW-002 in "下位要求".
+error: DocumentIndex: two nodes with the same UID exist in two different documents: SW-002 in "下位要求" and "テストケース".
+```
 
 ```bash
 jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.UID?) | .UID] | group_by(.) | map(select(length>1) | .[0])' <json>
 ```
 
-`[]` が正常。
+`[]` が正常である。 D19 と同じく、 export が通った時点で結果は決まっている。
 
 ---
 
@@ -507,7 +523,7 @@ DOC-FIG-STATE  1  図
 DOC-NOTE  1  表
 ```
 
-(全 130 行のうち代表を 15 行抜いた。118 行を 6 つの解説文書が占める — 本書・
+(全 129 行のうち代表を 15 行抜いた。117 行を 6 つの解説文書が占める — 本書・
 `00-ai-guide.md`・`02-guide-for-human.md`・`08-review.md`・`09-browser-guide.md`・
 `10-cowork-with-claude.md`。記法を説明する文書は記法を大量に抱えるためである。
 仕様書本体は 12 行しか出さない — `DOC-ARCH` 2 行、 `DOC-USECASES` 3 行、 `DOC-UPPER` 2 行、
@@ -629,7 +645,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":55,"json":5,"markdown":3,"mermaid":6,"python":4,"text":74}
+{"bash":55,"json":5,"markdown":3,"mermaid":6,"python":4,"text":76}
 ```
 
 `mermaid` もここに出る。 図もコードフェンスだからである。
