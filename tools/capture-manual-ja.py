@@ -1,4 +1,4 @@
-"""Re-take every screenshot in samples/md-basic-ja/07-browser-guide.md.
+"""Re-take every screenshot in samples/md-basic-ja/09-browser-guide.md.
 
 The guide teaches which button to press, so its pictures go stale the moment
 StrictDoc moves one. Re-running this puts the arrows back where they belong,
@@ -316,7 +316,7 @@ def main():
     options.add_argument("--lang=ja-JP")
     driver = webdriver.Chrome(options=options)
     s = Shooter(driver, out)
-    doc = base + "/md-basic-ja/04-lower.html"
+    doc = base + "/md-basic-ja/06-lower.html"
 
     try:
         # 00 the map of the screen, kept whole so the reader can place things
@@ -453,8 +453,8 @@ def main():
 
         # 14 - 18 whole pages, kept whole because the layout is the point
         for name, path in (
-            ("browser-14-table-view", "/md-basic-ja/04-lower-TABLE.html"),
-            ("browser-15-trace-view", "/md-basic-ja/04-lower-TRACE.html"),
+            ("browser-14-table-view", "/md-basic-ja/06-lower-TABLE.html"),
+            ("browser-15-trace-view", "/md-basic-ja/06-lower-TRACE.html"),
             ("browser-16-matrix", "/traceability_matrix.html"),
             ("browser-17-tree-map", "/tree_map.html"),
             ("browser-18-statistics", "/project_statistics.html"),

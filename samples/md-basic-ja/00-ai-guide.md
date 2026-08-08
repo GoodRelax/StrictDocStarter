@@ -27,21 +27,23 @@ Markdown 形式の StrictDoc プロジェクトにも当てはまる。**
 | `00-ai-guide.md` | 本書 | `DOC-AI-GUIDE` (要求は無い) |
 | `01-ai-queries.md` | 本書のクエリの詳細版 | `DOC-AI-QUERIES` (要求は無い) |
 | `02-guide-for-human.md` | 人間向けの解説書。**AI は読まなくてよい** | `DOC-GUIDE` (要求は無い) |
-| `03-upper.md` | 上位要求 3 件 | `DOC-UPPER` |
-| `04-lower.md` | 下位要求 4 件。上位要求へ繋がる | `DOC-LOWER` |
-| `05-tests.md` | テストケース 4 件。下位要求へ繋がる | `DOC-TESTS` |
-| `06-review.md` | レビューの進め方。指摘は要求そのものに書く | `DOC-REVIEW` (要求は無い) |
-| `07-browser-guide.md` | ブラウザ操作の手引き | `DOC-BROWSER` (要求は無い) |
-| `08-cowork-with-claude.md` | AI と組んで書く方法 | `DOC-COWORK` (要求は無い) |
+| `03-architecture.md` | システム構成の見取り図。要求は持たない | `DOC-ARCH` (要求は無い) |
+| `04-usecases.md` | ユースケース 2 件 (Cockburn 形式)。上位要求へ繋がる | `DOC-USECASES` |
+| `05-upper.md` | 上位要求 3 件 | `DOC-UPPER` |
+| `06-lower.md` | 下位要求 4 件。上位要求へ繋がる | `DOC-LOWER` |
+| `07-tests.md` | テストケース 4 件。下位要求へ繋がる | `DOC-TESTS` |
+| `08-review.md` | レビューの進め方。指摘は要求そのものに書く | `DOC-REVIEW` (要求は無い) |
+| `09-browser-guide.md` | ブラウザ操作の手引き | `DOC-BROWSER` (要求は無い) |
+| `10-cowork-with-claude.md` | AI と組んで書く方法 | `DOC-COWORK` (要求は無い) |
 | `_assets/note.md` | 用語表。リンク先 | `DOC-NOTE` (要求は無い) |
 | `_assets/fig-state.md` | 大きい図 1 つ。リンク先 | `DOC-FIG-STATE` (要求は無い) |
 | `basic.sgra` | 文法定義。ノード型・フィールド・`Role` はここで宣言する | — |
 | `strictdoc_config.py` | プロジェクト設定 | — |
 
-**番号は読む順である。** `00` と `01` が AI 向け、`02` が人間向け、`03` から `05` が仕様書本体、`06` から `08` が進め方と道具の手引きである。
+**番号は読む順である。** `00` と `01` が AI 向け、`02` が人間向け、`03` から `07` が仕様書本体、`08` から `10` が進め方と道具の手引きである。
 `_assets/` の中は番号を持たない。
 
-**後の用例 1 は文書を 11 件返す。** 上表のうち UID を持つもの全部である。
+**後の用例 1 は文書を 13 件返す。** 上表のうち UID を持つもの全部である。
 そのうち 8 件 — `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` / `DOC-REVIEW` /
 `DOC-BROWSER` / `DOC-COWORK` / `DOC-NOTE` / `DOC-FIG-STATE` — は
 要求を持たないので、要求を数えるときは混ざらない。
@@ -70,7 +72,7 @@ Markdown 形式の StrictDoc プロジェクトにも当てはまる。**
 | `SYS-*` / `SW-*` / `TC-*` | 要求とテストの UID | 相手の採番。**用例 3 で調べる** |
 | `DOC-FIG-` | **図の文書の UID の接頭辞** | **自分で決める。** 監査クエリに `--arg figprefix` で渡す |
 | `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` / `DOC-REVIEW` / `DOC-BROWSER` / `DOC-COWORK` | **解説文書の UID** | 相手の解説文書。集計時に `--arg skip` で除く |
-| `03-upper.md` などのファイル名 | 文書のファイル名 | **JSON には入らない。** 用例 16 の `grep` で調べる |
+| `05-upper.md` などのファイル名 | 文書のファイル名 | **JSON には入らない。** 用例 16 の `grep` で調べる |
 | `_assets` | 添付ファイル置き場 | **固定。変えられない** (2.8) |
 | `strictdoc-quirks.tsv` | 癖の記録 | 同じ名前で作る (0.1) |
 
@@ -126,7 +128,7 @@ printf 'date\tsd_version\tstep\tsymptom\tworkaround\twhere\n' > <仕様書のフ
 1 行足す。**`>>` で追記すること。`>` は既存の記録を消す。**
 
 ```bash
-printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%F)" "0.27.1" "export-html" "error: string index out of range" "put a character after the closing dollar" "04-lower.md" >> <仕様書のフォルダ>/strictdoc-quirks.tsv
+printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%F)" "0.27.1" "export-html" "error: string index out of range" "put a character after the closing dollar" "06-lower.md" >> <仕様書のフォルダ>/strictdoc-quirks.tsv
 ```
 
 **英語 ASCII で書く。** 後で機械にかけるためと、`symptom` に入るエラーが英語だからである。
@@ -236,7 +238,7 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 **エラーは 2 行で出る。1 行目にファイル名が入る。**
 
 ```text
-error: could not parse file: C:\...\04-lower.md.
+error: could not parse file: C:\...\06-lower.md.
 Semantic error: Invalid node type: SECTION.
 ```
 
@@ -285,6 +287,7 @@ Location: C:\...\00-ai-guide.md:54:1
   | 節点型 | 書ける関係 |
   |---|---|
   | `REQUIREMENT` | `Parent` / `Child`。**`Role` は付けられない** |
+  | `USE_CASE` | `Parent`。**`Role` は付けられない** |
   | `TEST_CASE` | `Parent` + `Role: Verifies` |
 - **関係の中だけ `**ID**:` である。** ノードの識別子は `**UID**:` だが、`**Relations**:`
   ブロックの中で相手を指すキーは `**ID**:` になる。`**UID**:` と書くと通らない
@@ -295,10 +298,12 @@ Location: C:\...\00-ai-guide.md:54:1
   同じノードに `**Type**: COMPONENT` と併記もできる (実測)。
   ただし単一行のカスタムフィールドなので、**宣言は `TITLE` の後ろに置く**
 - **`.sgra` の `FIELDS` は必ずこの順で宣言する** (`.md` に書く順ではない)。
-  `UID → STATUS → TITLE → カスタムの単一行フィールド → STATEMENT →
-  RATIONALE などの複数行フィールド`。違反しても json / html の export は通ってしまうが、
-  `--formats=sdoc` で `.sdoc` に変換して読み戻すと `Wrong field order` で停止する。
-  **後から気づけないので、最初からこの順で書くこと**
+  `MID / UID / LEVEL / STATUS / TAGS の組み込みメタ欄 → TITLE →
+  カスタムの単一行フィールド → STATEMENT → RATIONALE などの複数行フィールド`。
+  **`TITLE` は `.md` では見出しから来るため、StrictDoc がこの位置に差し込む。**
+  組み込みメタ欄より前にも、カスタム欄より後ろにも置けない。
+  **違反すると json / html / sdoc のすべてが即座に `Wrong field order` で停止する** (実測)。
+  「json は通るが sdoc で落ちる」ということは起きない
 - **文書の H1 直下に書いて JSON にも残るのは
   `**Grammar**:` `**UID**:` `**Version**:` `**Classification**:` `**Prefix**:` の 5 つだけ**
   (実測)。`**Date**:` や `**Root**:` は**書いても停止しないが JSON から消える。**
@@ -382,6 +387,31 @@ ELEMENTS:
   RELATIONS:
   - TYPE: Parent
   - TYPE: Child
+- TAG: USE_CASE
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: UC_LEVEL
+    TYPE: SingleChoice(Summary, UserGoal, Subfunction)
+    REQUIRED: True
+  - TITLE: REVIEW_STATUS
+    TYPE: SingleChoice(NotReviewed, NoFinding, Open, Fixed, WontFix)
+    REQUIRED: True
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+  - TITLE: REVIEW_COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_ACTION
+    TYPE: String
+    REQUIRED: False
+  RELATIONS:
+  - TYPE: Parent
 - TAG: TEST_CASE
   FIELDS:
   - TITLE: UID

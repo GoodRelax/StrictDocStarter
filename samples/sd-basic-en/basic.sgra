@@ -36,6 +36,31 @@ ELEMENTS:
   RELATIONS:
   - TYPE: Parent
   - TYPE: Child
+- TAG: USE_CASE
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: UC_LEVEL
+    TYPE: SingleChoice(Summary, UserGoal, Subfunction)
+    REQUIRED: True
+  - TITLE: REVIEW_STATUS
+    TYPE: SingleChoice(NotReviewed, NoFinding, Open, Fixed, WontFix)
+    REQUIRED: True
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+  - TITLE: REVIEW_COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_ACTION
+    TYPE: String
+    REQUIRED: False
+  RELATIONS:
+  - TYPE: Parent
 - TAG: TEST_CASE
   FIELDS:
   - TITLE: UID

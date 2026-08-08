@@ -105,10 +105,12 @@ STATEMENT: >>>
 ``sovd-grammar.sgra`` is the same file on the Markdown side and the ``.sdoc`` side. **What
 Markdown needs decides the grammar, and the .sdoc side follows.**
 
-**In Markdown, TITLE is declared right after UID.** ``TITLE`` comes from the heading, so StrictDoc
-places it ahead of the other single-line fields. Break that and it stops with
-``Wrong field order``. The original declared ``TITLE`` after ``LAYER``, so the ``TITLE`` line was
-moved up in 132 ``REQUIREMENT`` and ``API`` nodes.
+**In Markdown, TITLE has a fixed position.** ``TITLE`` comes from the heading, so StrictDoc
+inserts it itself: **after the built-in meta fields (``MID`` / ``UID`` / ``LEVEL`` / ``STATUS`` /
+``TAGS``) and before every custom field.** Break that and it stops with ``Wrong field order``.
+This set carries no meta field other than ``UID``, so ``TITLE`` ends up right after it. The
+original declared ``TITLE`` after ``LAYER``, so the ``TITLE`` line was moved up in 132
+``REQUIREMENT`` and ``API`` nodes.
 
 **The field name LEVEL is unusable.** It collides with StrictDoc's built-in ``Level`` (the
 table-of-contents level). **The export succeeds and the TOC numbering is overwritten by that

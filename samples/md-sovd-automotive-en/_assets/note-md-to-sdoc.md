@@ -42,10 +42,12 @@ default, so every RST directive arrives verbatim. This set rewrote five of them.
 
 **Type**: SECTION
 
-**In `.md` the title comes from the heading, and StrictDoc places it right after
-`UID`.** So **the grammar has to declare `TITLE` right after `UID`** as well. The
-original `sovd-grammar.sgra` declared it after `LAYER`, and the converted `.md`
-stopped like this.
+**In `.md` the title comes from the heading, so StrictDoc inserts `TITLE` itself.**
+The position is fixed: **after the built-in meta fields (`MID` / `UID` / `LEVEL` /
+`STATUS` / `TAGS`) and before every custom field.** So **the grammar has to declare
+its `FIELDS` in that same order.** This set carries no meta field other than `UID`,
+so `TITLE` ends up right after it. The original `sovd-grammar.sgra` declared it
+after `LAYER`, and the converted `.md` stopped like this.
 
 ```text
 Semantic error: Wrong field order for requirement: [UID, TITLE, TYPE, ASIL, LAYER, STATEMENT, VERIFICATION].

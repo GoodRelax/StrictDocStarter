@@ -101,10 +101,13 @@ STATEMENT: >>>
 ``sovd-grammar.sgra`` は Markdown 側と ``.sdoc`` 側で同一である。 **Markdown の
 都合が文法を決めるので、 .sdoc 側がそれに合わせている。**
 
-**Markdown では TITLE を UID の直後に宣言する。** ``TITLE`` は見出しから来るため、
-StrictDoc は他の単一行フィールドより前に置く。 崩すと ``Wrong field order`` で止まる。
-原本は ``TITLE`` を ``LAYER`` の後ろに宣言していたので、 ``REQUIREMENT`` と ``API``
-の 132 ノードで ``TITLE`` の行を前へ移した。
+**Markdown では TITLE の位置が決まっている。** ``TITLE`` は見出しから来るため、
+StrictDoc が自分で差し込む。 **差し込む位置は、 組み込みのメタ欄 (``MID`` / ``UID`` /
+``LEVEL`` / ``STATUS`` / ``TAGS``) の後ろ、 独自の欄すべての前である。** 崩すと
+``Wrong field order`` で止まる。 この一式は ``UID`` 以外のメタ欄を持たないので、
+結果として ``TITLE`` は ``UID`` の直後に来る。 原本は ``TITLE`` を ``LAYER`` の
+後ろに宣言していたので、 ``REQUIREMENT`` と ``API`` の 132 ノードで ``TITLE`` の
+行を前へ移した。
 
 **LEVEL というフィールド名は使えない。** StrictDoc 組み込みの ``Level``
 (目次の水準) と衝突する。 **export は成功したまま目次の番号がその値で上書きされる。**

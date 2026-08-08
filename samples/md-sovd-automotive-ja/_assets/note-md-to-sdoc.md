@@ -41,10 +41,12 @@ strictdoc export <仕様書のフォルダ> --formats=markdown --output-dir <出
 
 **Type**: SECTION
 
-**`.md` では `TITLE` を見出しから取るため、 StrictDoc は `TITLE` を `UID` の直後に
-置く。** したがって **文法の `FIELDS` も `TITLE` を `UID` の直後に宣言する**必要が
-ある。 原本の `sovd-grammar.sgra` は `TITLE` を `LAYER` の後ろに宣言していたので、
-変換した `.md` はこう言って止まった。
+**`.md` では `TITLE` を見出しから取るため、 StrictDoc が `TITLE` を自分で差し込む。**
+差し込む位置は決まっている — **組み込みのメタ欄 (`MID` / `UID` / `LEVEL` / `STATUS` /
+`TAGS`) の後ろ、 独自の欄すべての前**である。 したがって **文法の `FIELDS` も同じ順に
+宣言する**必要がある。 この一式は `UID` 以外のメタ欄を持たないので、 結果として
+`TITLE` は `UID` の直後に来る。 原本の `sovd-grammar.sgra` は `TITLE` を `LAYER` の
+後ろに宣言していたので、 変換した `.md` はこう言って止まった。
 
 ```text
 Semantic error: Wrong field order for requirement: [UID, TITLE, TYPE, ASIL, LAYER, STATEMENT, VERIFICATION].

@@ -67,7 +67,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":11,"REQUIREMENT":7,"SECTION":139,"TEST_CASE":4,"TEXT":138}
+{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":144,"TEST_CASE":4,"TEXT":145,"USE_CASE":2}
 ```
 
 ### A3. 目次
@@ -98,7 +98,9 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
  "SECTION":["NODES","TITLE","_NODE_TYPE","_TOC"],
  "TEST_CASE":["GIVEN","ISSUE_KEY","RELATIONS","TEST_REMARK","TEST_RESULT","THEN",
               "TITLE","UID","WHEN","_NODE_TYPE","_TOC"],
- "TEXT":["STATEMENT","_NODE_TYPE","_TOC"]}
+ "TEXT":["STATEMENT","_NODE_TYPE","_TOC"],
+ "USE_CASE":["RELATIONS","REVIEW_ACTION","REVIEW_COMMENT","REVIEW_STATUS","STATEMENT",
+             "TITLE","UC_LEVEL","UID","_NODE_TYPE","_TOC"]}
 ```
 
 `-c` を付けたので jq は 1 行で出す。上は読みやすさのために折り返してある。
@@ -485,8 +487,8 @@ DOC-NOTE  1  表
 ```
 
 (全 122 行のうち代表を 10 行抜いた。**115 行を 6 つの解説文書が占める** — 本書・
-`00-ai-guide.md`・`02-guide-for-human.md`・`06-review.md`・`07-browser-guide.md`・
-`08-cowork-with-claude.md`。記法を説明する文書は記法を大量に抱えるためである。
+`00-ai-guide.md`・`02-guide-for-human.md`・`08-review.md`・`09-browser-guide.md`・
+`10-cowork-with-claude.md`。記法を説明する文書は記法を大量に抱えるためである。
 中身の文書は 7 行しか出さない — 上の `DOC-UPPER` 2 行、`DOC-LOWER`、`DOC-TESTS` 2 行、
 `DOC-FIG-STATE`、`DOC-NOTE` がそれで、残る 3 行は解説文書から抜いた見本である)
 
@@ -609,7 +611,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":58,"json":5,"markdown":3,"mermaid":5,"python":4,"text":73}
+{"bash":58,"json":5,"markdown":3,"mermaid":6,"python":4,"text":74}
 ```
 
 **`mermaid` もここに出る。** 図もコードフェンスだからである。
@@ -655,7 +657,7 @@ DOC-BROWSER  _assets/browser-21-new-document-menu.png
 ```
 
 (先頭 11 行を出した。**全 38 行である。** うち 28 行を `DOC-BROWSER` が占める —
-`07-browser-guide.md` は画面写真 `_assets/browser-*.png` を 27 枚貼っており、
+`09-browser-guide.md` は画面写真 `_assets/browser-*.png` を 27 枚貼っており、
 残る 1 行は書式の見本に書いた `_assets/図の名前.png` である。
 ほかの 10 行は解説文書の書式説明と `02-guide-for-human.md` の `_assets/flow.svg` である)
 
@@ -739,7 +741,7 @@ samples/md-basic-ja/_assets/fig-state.md
 `grep` はフェンスの中と外を区別しないので、**記法を説明する一式では当たりを目で選ること**。
 
 **UID を書いてあるだけのファイルは出ない。** 上のクエリは `**UID**:` の宣言に
-一致するので、`[LINK: DOC-FIG-STATE]` で参照しているだけの `04-lower.md` は外れる。
+一致するので、`[LINK: DOC-FIG-STATE]` で参照しているだけの `06-lower.md` は外れる。
 `output/` を消してから当てること。消さないと export した控えも当たる。
 
 **3. その `.md` を直接編集する。** フェンスの中身を差し替える。

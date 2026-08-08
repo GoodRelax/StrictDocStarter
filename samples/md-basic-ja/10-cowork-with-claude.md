@@ -349,7 +349,7 @@ export が通っている時点で、 出てきた宛先は全部実在する。
 | `ISSUE_KEY` | 障害票の番号 |
 | `TEST_REMARK` | 補足 |
 
-要求へは `Parent` の関係に `Verifies` の役割を付けて張る。 現物は `05-tests.md` にある。
+要求へは `Parent` の関係に `Verifies` の役割を付けて張る。 現物は `07-tests.md` にある。
 
 **★ 型の行を忘れると、 StrictDoc はその節を要求として読む。** 節の先頭に
 `**Type**: TEST_CASE` を書くこと。 忘れると `Invalid requirement field: TEST_RESULT` で
@@ -441,7 +441,7 @@ DOC-LOWER	SW-003	NotReviewed	出力先の確認
 `strictdoc-quirks.tsv` に 1 行だけ書き足して先へ進むこと。 版が上がったときや
 行が溜まったときに読み返し、 手引きを直す材料にする。 **いま 7 行ある。**
 
-ブラウザからの操作は `07-browser-guide.md` にある。
+ブラウザからの操作は `09-browser-guide.md` にある。
 
 ## 付録 - 手で入れる
 

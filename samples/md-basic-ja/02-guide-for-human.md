@@ -33,21 +33,25 @@
 ファイルの並びは次のとおり。
 
 **番号は読む順である。** `00` と `01` が AI 向け、 `02` が人間向け、
-`03` から `06` が仕様書の本体、 `07` と `08` が道具の使い方である。
-**`.md` の 9 つと `_assets/` の 2 つ、 合わせて 11 個が StrictDoc の文書になる。**
+`03` から `08` が仕様書の本体、 `09` と `10` が道具の使い方である。
+**`.md` の 11 個と `_assets/` の 2 つ、 合わせて 13 個が StrictDoc の文書になる。**
 
 - `00-ai-guide.md` — **AI に渡す手引き。** 本書の内容を、 書き方の規則と JSON の
   引き方だけに絞って圧縮したもの。 人間が読む必要は無いが、 **左の一覧から開いて
   中身を確かめられる**（この一式は AI 向けの文書も隠さない方針である）
 - `01-ai-queries.md` — 上の詳細版。 jq のクエリ集。 これも AI 向け
 - `02-guide-for-human.md` — 本書。 読む順と書き方
-- `03-upper.md` — 上位要求 3 件。 何を作るか
-- `04-lower.md` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
-- `05-tests.md` — テストケース 4 件。 下位へ結ぶ
-- `06-review.md` — **レビューの進め方。** 指摘は要求そのものに書く
-- `07-browser-guide.md` — **ブラウザから仕様書を作り、 直し、 見る方法。**
+- `03-architecture.md` — **システム構成。** 何をどう組んで上位要求を満たすかの見取り図。
+  要求は持たない
+- `04-usecases.md` — **ユースケース 2 件。** 利用者がどう使うかを Cockburn の形式で書く。
+  上位要求へ結ぶ
+- `05-upper.md` — 上位要求 3 件。 何を作るか
+- `06-lower.md` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
+- `07-tests.md` — テストケース 4 件。 下位へ結ぶ
+- `08-review.md` — **レビューの進め方。** 指摘は要求そのものに書く
+- `09-browser-guide.md` — **ブラウザから仕様書を作り、 直し、 見る方法。**
   `strictdoc server` の画面の手引きで、 画面の写真が入っている
-- `08-cowork-with-claude.md` — **同梱の `strictdoc-md` スキルで、 Claude Code に
+- `10-cowork-with-claude.md` — **同梱の `strictdoc-md` スキルで、 Claude Code に
   仕様書を書かせ、 調べさせ、 レビューさせる方法**
 - `basic.sgra` — 全文書が共有する文法定義
 - `strictdoc_config.py` — プロジェクト設定。 **StrictDoc はこのフォルダの直下しか見ない**
@@ -111,20 +115,65 @@
 ```
 
 **`Grammar` を外部ファイルに出す理由は、 文書をまたいで揃えるためである。**
-この一式では 7 つの文書が同じ `basic.sgra` を読む。 宣言しているのは 3 つの
+この一式では 10 の文書が同じ `basic.sgra` を読む。 宣言しているのは 4 つの
 ノード型である。
 
 - `SECTION` — 章。 入れ子にできる
 - `REQUIREMENT` — 要求。 `UID` / `STATUS` / `TITLE` / `REVIEW_STATUS` /
   `STATEMENT` / `RATIONALE` / `REVIEW_COMMENT` / `REVIEW_ACTION`
+- `USE_CASE` — ユースケース。 `UID` / `TITLE` / `UC_LEVEL` / `REVIEW_STATUS` /
+  `STATEMENT` / `REVIEW_COMMENT` / `REVIEW_ACTION`
 - `TEST_CASE` — テストケース。 Gherkin の `GIVEN` / `WHEN` / `THEN` と、
   `TEST_RESULT` / `ISSUE_KEY` / `TEST_REMARK` を持つ。 **`STATEMENT` は持たない**
 
-**`TEST_CASE` は StrictDoc の標準概念ではない。** 文法で足したものである。
-`REVIEW_*` の 3 項目も同じで、 標準の `REQUIREMENT` には無い。 使い方は
-`06-review.md` にある。
-**個別の文書にフィールドを足してはならない。** 文書ごとに違う形になり、 どこに
-何があるか誰も分からなくなる。 足すときは `basic.sgra` に足す。
+### ★ ノード型もフィールドも好きなだけ足してよい
+
+**Type**: SECTION
+
+**StrictDoc が最初から持っているノード型は `SECTION` と `TEXT` と `REQUIREMENT` の
+3 つだけである。** 上の一覧のうち **`USE_CASE` と `TEST_CASE` は、 この一式が
+`basic.sgra` で作ったものである。** `REQUIREMENT` に付いている `REVIEW_STATUS` /
+`REVIEW_COMMENT` / `REVIEW_ACTION` と、 `USE_CASE` の `UC_LEVEL` も同じで、
+標準には無い。
+
+**つまり、 自分の仕事に要る型と欄は自分で足す。** 部品・リスク・変更要求・
+安全目標 — 何を作ってもよい。 **StrictDoc 側に許可を求める必要は無く、 上限も無い。**
+書き方は `.sgra` に 1 ブロック足すだけである。
+
+```text
+- TAG: RISK                       <- 型の名前。 `.md` では **Type**: RISK と書く
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: SEVERITY               <- 値を 3 つに閉じる。 綴り間違いを StrictDoc が拒む
+    TYPE: SingleChoice(Low, Middle, High)
+    REQUIRED: True
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+  RELATIONS:
+  - TYPE: Parent
+```
+
+**足すかどうかの基準は UID と同じである — 後から名前で引きたいなら欄にする。**
+引かないものは本文に書けばよい。 `04-usecases.md` はこの基準で `UC_LEVEL` だけを
+欄にし、 Cockburn の残りの項目は全部本文に書いている。 **欄を増やすほど良いのではない。
+増えた欄は、 本文と食い違ったときにどちらを信じるのかという問いを連れてくる。**
+
+**守るべき規則は 4 つだけである。**
+
+| 規則 | 理由 |
+|---|---|
+| **足すのは `.sgra` であって個別の文書ではない** | 文書ごとに違う形になり、 どこに何があるか誰も分からなくなる |
+| **`TITLE` は `MID` / `UID` / `LEVEL` / `STATUS` / `TAGS` の後ろ、 独自の欄すべての前に置く** | `.md` の `TITLE` は見出しから来るため、 StrictDoc がこの位置に差し込む。 崩すと `Wrong field order` で止まる (実測) |
+| **本文欄の名前は `STATEMENT` にする** | StrictDoc は本文に当たる欄の名前を決め打ちで探す |
+| **`LEVEL` という名前は使わない** | 組み込みの `Level` (目次の水準) と衝突する。 **export は成功したまま目次の番号が壊れる** (実測)。 `UC_LEVEL` のように前置きを付ける |
+
+**使い方は `08-review.md` にある** (`REVIEW_*` の 3 項目)。
 
 **`.md` 固有の落とし穴が 4 つある。 いずれも export 全体を止める。**
 
@@ -158,11 +207,11 @@
 混ざっていても同じである。** この一式が実際にファイルをまたいでいる。
 
 ```text
-03-upper.md   SYS-001   SYS-002   SYS-003
+05-upper.md   SYS-001   SYS-002   SYS-003
                  |         |         |
-04-lower.md   SW-001    SW-002    SW-003 / SW-004
+06-lower.md   SW-001    SW-002    SW-003 / SW-004
                  |         |         |
-05-tests.md   TC-001    TC-002    TC-003 / TC-004
+07-tests.md   TC-001    TC-002    TC-003 / TC-004
 ```
 
 **`Role` を足すと関係に意味が付く。** 種類は `Parent` のままでよい。
@@ -174,7 +223,7 @@
   **Role**: `Verifies`
 ```
 
-`05-tests.md` が `Verifies` を使っている。
+`07-tests.md` が `Verifies` を使っている。
 **`Role` は使う前に文法側で宣言しておく。** 宣言していない値を書くと落ちる。
 
 繋がりの確認は画面で行う。 文書の上の **VIEWS** から
@@ -340,7 +389,7 @@ $$
 S_{need} = S_{out} + S_{tmp} = 2 \times S_{out}
 $$
 
-上は `04-lower.md` で使っている式で、 文の中に埋めるなら $S_{need}$ のように書く。
+上は `06-lower.md` で使っている式で、 文の中に埋めるなら $S_{need}$ のように書く。
 
 ### 数式で踏む罠
 
@@ -481,7 +530,7 @@ jq -r -f q-open-findings.jq out/json/index.json
 の真ん中に来る。
 
 **`REVIEW_STATUS` は文法が `REQUIREMENT` に足した項目である。** 状態の意味と値は
-`06-review.md` にある。 **ノード型で絞りたいときのキーは `_NODE_TYPE` で、
+`08-review.md` にある。 **ノード型で絞りたいときのキーは `_NODE_TYPE` で、
 先頭に下線が付くので書き間違えやすい。** この一式に当てた実際の出力はこうなる。
 
 ```text
@@ -625,7 +674,7 @@ UID → STATUS → TITLE → カスタムの単一行フィールド → STATEME
 自分の文法を作るときは、 この順序を崩さないこと。
 
 **★ ただし、 この一式は `.sdoc` へ往復できない** (0.27.1 で実測)。
-`--formats=sdoc` は 11 文書とも書き出すが、 その出力の読み戻しは 2 つの理由で
+`--formats=sdoc` は 13 文書とも書き出すが、 その出力の読み戻しは 2 つの理由で
 止まる。 **どちらも宣言順とは関係が無い。**
 
 - **`.sgra` が一緒に複製されない。** 生成した `.sdoc` は `basic.sgra` を名指しするが、

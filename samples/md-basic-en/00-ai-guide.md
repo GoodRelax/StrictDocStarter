@@ -311,7 +311,8 @@ For every other error, the first line tells you where it is.
   that also carries `**Type**: COMPONENT` (measured). It is a single-line custom field, so
   **declare it after `TITLE`**
 - **Declare `FIELDS` in `.sgra` in this order** (it is not the order you write them in `.md`).
-  `UID → STATUS → TITLE → your own single-line fields → STATEMENT →
+  `MID / UID / LEVEL / STATUS / TAGS (the built-in meta fields) → TITLE →
+  your own single-line fields → STATEMENT →
   multi-line fields such as RATIONALE`. **Break the order and json, html and sdoc all stop on the
   spot** (measured). The error is
   `Semantic error: Wrong field order for requirement: [...]`, and the `Hint:` line names the field
@@ -403,6 +404,31 @@ ELEMENTS:
   RELATIONS:
   - TYPE: Parent
   - TYPE: Child
+- TAG: USE_CASE
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: UC_LEVEL
+    TYPE: SingleChoice(Summary, UserGoal, Subfunction)
+    REQUIRED: True
+  - TITLE: REVIEW_STATUS
+    TYPE: SingleChoice(NotReviewed, NoFinding, Open, Fixed, WontFix)
+    REQUIRED: True
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+  - TITLE: REVIEW_COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_ACTION
+    TYPE: String
+    REQUIRED: False
+  RELATIONS:
+  - TYPE: Parent
 - TAG: TEST_CASE
   FIELDS:
   - TITLE: UID
@@ -455,7 +481,8 @@ How to read it:
 - **You may declare a field named `TYPE`.** Only the spelling `Type` is reserved.
   Write it as `**TYPE**:` in the `.md`, and declare it after `TITLE`
 - **The order in which you declare the fields constrains the `.md` side.** Declare them in the order
-  `UID → STATUS → TITLE → your own single-line fields → STATEMENT →
+  `MID / UID / LEVEL / STATUS / TAGS (the built-in meta fields) → TITLE →
+  your own single-line fields → STATEMENT →
   multi-line fields such as RATIONALE`. **In any other order json, html and sdoc all stop on the
   spot** (measured). The `Hint:` line names the field that broke it and prints the declared order
 - **`--formats=json` already tells you whether the order is right.** "json passes but sdoc fails"
