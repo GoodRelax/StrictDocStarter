@@ -6,12 +6,11 @@
 本書は、 AI が Markdown 形式の StrictDoc 仕様書を書き、 そこから必要な情報を
 取り出すための手引きである。 StrictDoc には `.sdoc` 形式もあるが、 本書は扱わない。
 
-本書 1 つで足りる。 ほかの解説文書も、 既存の仕様書も開かなくてよい。
-既にある文法を使う場合も、 文法ごと新しく起こす場合も同じである
+仕様書を書くだけなら本書 1 つで足りる。 ほかの解説文書も、 既存の仕様書も
+開かなくてよい。 既にある文法を使う場合も、 文法ごと新しく起こす場合も同じである
 (文法ファイルの雛形は 1.1 にそのまま使える形で載せてある)。
-
-本書の英訳版から Claude Code の SKILL を定義できる。 規則と実例を分けて訳せば、
-`SKILL.md` に規則を、 `references/` にクエリと実例を置く形にそのまま移せる。
+**書いたあとの検査には `01-ai-queries.md` が要る。** 本書は検査の名前 (G29 / G33 /
+G35 / G37 など) だけを指し、 クエリの本体はあちらが持っているためである。
 
 本書に載っていないエラーに当たったら、 止まらずに 1 行だけ記録して先へ進むこと。
 やり方は 0 章にある。**その場で原因を追ってはならない。**
@@ -195,6 +194,9 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 
 **Rationale**: そう決めた理由。
 
+**Relations**:
+- **Type**: `Parent` \n  **ID**: `SYS-001`
+
 ## テストケースの名前
 
 **Type**: TEST_CASE \
@@ -223,8 +225,9 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 | 規則 | 違反時のエラーメッセージ |
 |---|---|
 | ファイルの先頭を H1 で始める。1 ファイルに 1 つだけ | `the document must start with an H1 heading` |
+| 要求ではない章に `**Type**: SECTION` を書く | `Semantic error: Node is missing a field that is required by grammar: UID.` (Hint に欄の並びが出る) |
 | 見出しのレベルを飛ばさない。 `#` の次に `###` を置いてはならない | `heading level forward jumps are not allowed: L1 -> L3` |
-| 見出しの直後に空行を 2 つ以上置かない | `two or more consecutive empty lines are not allowed` |
+| 空行を 2 つ以上続けない (フェンスと引用の中を除く) | `two or more consecutive empty lines are not allowed outside of code blocks and blockquotes` |
 | フィールド名は文法どおりの綴りで書く | `Invalid requirement field` |
 | `TYPE` という名前のフィールドは `**TYPE**:` と大文字で書く | `**Type**:` はノード型の指定子として先に抜き取られる |
 | 宣言されていない `Role` を書かない | `Semantic error: Requirement relation type/role is not registered: Parent / Verifies` |
@@ -306,7 +309,8 @@ Location: C:\...\00-ai-guide.md:54:1
   「json は通るが sdoc で落ちる」ということは起きない
 - 文書の H1 直下に書いて JSON にも残るのは
   `**Grammar**:` `**UID**:` `**Version**:` `**Classification**:` `**Prefix**:` の 5 つだけ
-  (実測)。`**Date**:` や `**Root**:` は書いても停止しないが JSON から消える。
+  (実測。JSON では `GRAMMAR` `UID` `VERSION` `CLASSIFICATION` `PREFIX` になる)。
+  `**Date**:` や `**Root**:` は書いても停止しないが JSON から消える。
   機械で引けなくなるので、 後から引きたい情報を文書レベルに置いてはならない
 - StrictDoc はフォルダ内の `.md` を、 置き場所に関係なくすべて文書として解析する。 `_assets/` の中も
   例外ではないため、 そこに置く `.md` にも H1 が必要である
@@ -458,16 +462,10 @@ ELEMENTS:
 
 規則:
 
-- `SECTION` は宣言が要る。`TEXT` は要らない (組み込み)
 - `TAG` と `TITLE` の名前は、 `.md` 側の綴りとそのまま一致させる。 `GIVEN` と
   宣言したら `.md` にも `**GIVEN**:` と書く。`**Given**:` は停止する
-- `TYPE` という名前のフィールドは宣言してよい。 予約語は `Type` という綴りだけである。
-  `.md` には `**TYPE**:` と大文字で書き、 宣言は `TITLE` の後ろに置く
-- フィールドの宣言順が `.md` 側の制約になる。 `UID → STATUS → TITLE →
-  カスタムの単一行フィールド → STATEMENT → RATIONALE などの複数行フィールド` の順に宣言する。
-  この順でないと json / html / sdoc のすべてが即座に停止する (実測)。
-  エラーは `Semantic error: Wrong field order for requirement: [...]` で、
-  `Hint:` が宣言済みの順まで教えるので直し方はその場で分かる
+- フィールドの宣言順が `.md` 側の制約になる。 順と違反時の停止は 1 章にある。
+  `TYPE` という名前のフィールドを宣言するなら、 その宣言も `TITLE` の後ろに置く
 - 順が正しいかは `--formats=json` を通せば分かる。 「json は通るが sdoc で落ちる」
   ということは起きない。 `--formats=sdoc` も往復の確認には使えない —
   生成した `.sdoc` が名指しする `.sgra` は一緒に複製されず、 さらに
@@ -555,17 +553,10 @@ flowchart LR
 明確に小さくするか、 迷わず外に出すかのどちらかにする。
 
 行数で決めているのは、 書いている最中に道具無しで判定できるからである。
-本当に効かせたいのは読む側の負担で、 その実測値は次のとおり。本書が載せる
-tokens は tiktoken の `o200k_base` で数えた値である。 測り直すときも同じ数え方を使うこと。
-
-| 中身 | tokens |
-|---|---:|
-| 地の文 1 段落 | 15〜50 |
-| 6〜15 行の Mermaid 図 | 124〜179 |
-| 16〜24 行の Mermaid 図 | 110〜228 |
-
-行数とトークン数は綺麗には比例しない (17 行で 114 tokens の図もあれば、 6 行で
-124 tokens の図もある)。それでも行数を採る。迷ったら外に出す。
+本当に効かせたいのは読む側の負担 (tokens) だが、 行数とは綺麗に比例しない —
+17 行で 114 tokens の図もあれば、 6 行で 124 tokens の図もある (実測)。
+それでも行数を採る。迷ったら外に出す。本書が載せる tokens は tiktoken の
+`o200k_base` で数えた値である。 測り直すときも同じ数え方を使うこと。
 
 外に出す利得も実測してある。このサンプルで:
 
@@ -573,7 +564,7 @@ tokens は tiktoken の `o200k_base` で数えた値である。 測り直すと
 |---|---:|
 | 要求の一覧だけ | 91 |
 | 大きい図だけを名指しで | 334 |
-| 全 `TEXT` ノード (図も数式も込み) | 約 60,000 |
+| 全 `TEXT` ノード (図も数式も込み) | 約 61,000 |
 
 要求を引いている限り、 読む側は別文書にした図の分を 1 トークンも払わない。
 必要なときだけ UID で名指しする。これが 16 行で切る理由である。
@@ -855,7 +846,7 @@ G37 で検出できる。0 件が正常。
 
 **仕様書の一部だけが必要なとき、 `.md` ファイルを読んではならない。**
 この実例の仕様書 (`03` 〜 `07` と `_assets/`) を全部読むと約 11,000 tokens、
-`02-guide-for-human.md` まで含めると約 21,000 tokens を消費する。
+`02-guide-for-human.md` まで含めると約 22,000 tokens を消費する。
 JSON に変換して `jq` で取り出せば、 要求の一覧は 100 tokens ほどで済む。
 
 この禁止は「知るために読む」ことだけを指す。書き換えるなら開いてよい。
@@ -878,17 +869,18 @@ strictdoc export <仕様書のフォルダ> --formats=json --output-dir <出力�
 
 StrictDoc は `<出力先>/json/index.json` を作る。以下ではこのファイルを `<json>` と表記する。
 
-**`<出力先>` は仕様書のフォルダの外にすること。** `%TEMP%` 配下など、 作業用の場所を使う。
-
-正確には、 危ないのは `--formats=sdoc` のときだけである (実測)。json / html の出力は
-StrictDoc が自分で読み飛ばすので、 中に置いても壊れない。しかし `sdoc` は解析できる
-`.sdoc` を書き出すため、 それが次回の入力として拾われ、 export 全体が止まる。
+**`--formats=sdoc` のときだけは `<出力先>` を仕様書のフォルダの外にすること** (実測)。
+`sdoc` は解析できる `.sdoc` を書き出すため、 それが次回の入力として拾われ、
+export 全体が止まる。
 
 ```text
 error: TraceabilityIndex: the document "A" imports a grammar from a file that does not exist: "basic.sgra".
 ```
 
-形式ごとに覚え分けるより、 常に外に出すほうが安全である。
+json と html は中に置いても壊れない (実測)。StrictDoc は自分の出力先を文書の探索から
+外すので、 `<仕様書のフォルダ>/output/strictdoc` のように中へ書いてよい。
+迷うなら `%TEMP%` 配下など外の作業用の場所を使えば、 形式を問わず安全である。
+サーバ (`strictdoc server`) の出力先には別の規則がある — `09-browser-guide.md`。
 
 json と html は同じ `<出力先>` に出してよい (実測)。`<出力先>/json/` と
 `<出力先>/html/` に分かれるので、 上書きし合わない。
@@ -896,7 +888,7 @@ json と html は同じ `<出力先>` に出してよい (実測)。`<出力先>
 `.md` を修正したら、 再度この `strictdoc export` を実行すること。
 StrictDoc は JSON を自動では更新しない。
 
-**この `index.json` を直接読んではならない** — 約 206,000 tokens ある。
+**この `index.json` を直接読んではならない** — 約 209,000 tokens ある。
 `jq` に読ませるためだけのファイルである。
 
 StrictDoc 自身にも問い合わせ言語があるが、 JSON 出力には効かない。
@@ -941,7 +933,7 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT") | 
 - `--included-documents` を付けてはならない。 取り込んだ文書が重複し、
   同じ UID が 2 か所に現れる
 - `DATE` と `METADATA:` は JSON に含まれない。文書レベルのメタ情報は
-  `UID` / `VERSION` / `CLASSIFICATION` / `PREFIX` / `ROOT` のみ
+  `GRAMMAR` / `UID` / `VERSION` / `CLASSIFICATION` / `PREFIX` のみ (`ROOT` は消える)
 - `-r` を付けると `jq` は人が読む行を出力し、 付けなければ JSON のまま出力する。
   プログラムで処理するなら付けない
 - StrictDoc は `index.json` の中で日本語を `\uXXXX` に変換して書くが、 `jq` は
@@ -1027,7 +1019,7 @@ G27 から G29 も、 集計に使うならこの `select` を足すこと。
 
 ---
 
-## 3.1 既にある仕様書を書き換える
+### 3.1 既にある仕様書を書き換える
 
 **Type**: SECTION
 
@@ -1038,8 +1030,8 @@ G27 から G29 も、 集計に使うならこの `select` を足すこと。
 
 2. どのファイルかを突き止める — G34 の `grep`。ここまでは `.md` を開かない。
 
-3. その `.md` を開いて書き換える。 貼り戻すときは G34 の罠 2 つに注意すること
-(前後の空行・Windows の jq が出す CRLF)。
+3. その `.md` を開いて書き換える。 貼り戻すときは 2 つに注意すること — フェンスの
+前後の空行を消さないこと、 Windows の `jq` が行末に付ける CR を持ち込まないこと。
 
 4. 図を触ったなら行数を測り直す — G29。16 行以上になったら 2.1 に従って
 `_assets/fig-*.md` へ出し、 元の場所には `[LINK:]` を残す。

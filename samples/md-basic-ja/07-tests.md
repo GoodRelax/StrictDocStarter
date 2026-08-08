@@ -25,23 +25,14 @@
 **THEN**: 〜が〜する。
 ```
 
-**ここに `.md` 固有の落とし穴が 4 つある。**
+`**Type**:` と綴りの大文字小文字、 そして欄を並べる順の 3 つは、
+`02-guide-for-human.md` の「ノード型もフィールドも好きなだけ足してよい」と
+`08-review.md` の「書き方」にある。 **`TEST_CASE` にだけ効く落とし穴が 1 つある。**
 
-1. StrictDoc が型の指定に使うのは `Type` という綴りだけである。 文法に `TYPE` と
-   いう名前のフィールドを作ってもよく、 `**TYPE**:` と大文字で書けば通る (実測)。
-   `**Type**:` と書いた瞬間だけノード型の指定になる。
-2. カスタムフィールドのキーは文法どおりの大文字で書く。 `GIVEN` は通るが
-   `Given` は落ちる。 一方 `Statement` や `Title` などの組み込み 8 語だけは
-   大文字小文字を問わない。 この非対称は覚えるしかない。
-3. 段落になるフィールドは、 文法の宣言順に並べる。 順番が違うと StrictDoc は
-   `Wrong field order for requirement` を出して停止する。 1 行で済むフィールドは
-   見出しの直下のかたまりに置き、 段落になるフィールドはそのかたまりの後ろに置く。
-   かたまりの中の単一行のフィールドは順を入れ替えても通る — StrictDoc が黙って
-   文法の順へ並べ直す (実測。 `08-review.md` に同じ測定がある)。
-4. この文法の `TEST_CASE` は `STATEMENT` を持たないので、 その中に地の文を書けない。
-   StrictDoc は `.md` の地の文を `Statement` と解釈する。 そのため `TEST_CASE` の中に
-   地の文を置くと、 StrictDoc は `Semantic error: Invalid requirement field: STATEMENT`
-   を出して停止する (0.27.1 で実測)。 説明は `TEST_REMARK` に書く。
+この文法の `TEST_CASE` は `STATEMENT` を持たないので、 その中に地の文を書けない。
+StrictDoc は `.md` の地の文を `Statement` と解釈する。 そのため `TEST_CASE` の中に
+地の文を置くと、 StrictDoc は `Semantic error: Invalid requirement field: STATEMENT`
+を出して停止する (0.27.1 で実測)。 説明は `TEST_REMARK` に書く。
 
 `TEST_RESULT` は必須で、 `NotRun` `Passed` `Failed` `Blocked` の 4 択である。
 `ISSUE_KEY` と `TEST_REMARK` は任意なので、 必要なシナリオにだけ書く。
@@ -54,9 +45,11 @@
 
 同じ 4 件が `04-usecases.md` の `UC-001` も検証している。 各テストの
 `GIVEN` / `WHEN` / `THEN` はどれも「利用者が本ツールを実行する」という受入の高さで
-書いてあり、 `UC-001` の 4 本の筋道と 1 対 1 で並ぶためである。
+書いてあり、 主成功シナリオ 1 本と拡張 3 本に 1 対 1 で並ぶためである。
+拡張は `UC-001` の本文ではなく、 `04-usecases.md` の「ユースケースは要求の上に置く」の
+対応表にある。
 
-| テスト | 下位要求 | `UC-001` のどこ |
+| テスト | 下位要求 | `04-usecases.md` のどこ |
 |---|---|---|
 | `TC-001` | `SW-001` | 主成功シナリオ |
 | `TC-002` | `SW-002` | 拡張 2a |

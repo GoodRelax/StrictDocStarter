@@ -69,7 +69,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":147,"TEST_CASE":4,"TEXT":148,"USE_CASE":1}
+{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":148,"TEST_CASE":4,"TEXT":149,"USE_CASE":1}
 ```
 
 ### A3. 目次
@@ -567,14 +567,14 @@ DOC-AI-GUIDE  3 行  本文でよい
 DOC-AI-QUERIES  1 行  本文でよい
 DOC-AI-QUERIES  1 行  本文でよい
 DOC-AI-QUERIES  1 行  本文でよい
-DOC-GUIDE  8 行  本文でよい
+DOC-GUIDE  7 行  本文でよい
 DOC-ARCH  7 行  本文でよい
 DOC-LOWER  8 行  本文でよい
 DOC-BROWSER  1 行  本文でよい
 DOC-FIG-STATE  19 行  外に出す
 ```
 
-全 17 行を出した。`1 行` の並びは図ではない。 解説文書はクエリの本文にフェンス記号と
+全 13 行を出した。`1 行` の並びは図ではない。 解説文書はクエリの本文にフェンス記号と
 `mermaid` という言語名を並べて書いており、 このクエリはそれを図の断片として拾ってしまう。
 記法を説明する文書を測るときは、 この種の自己参照が必ず混ざる。
 
@@ -626,7 +626,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":55,"json":5,"markdown":3,"mermaid":6,"python":4,"text":73}
+{"bash":55,"json":5,"markdown":3,"mermaid":6,"python":4,"text":74}
 ```
 
 `mermaid` もここに出る。 図もコードフェンスだからである。

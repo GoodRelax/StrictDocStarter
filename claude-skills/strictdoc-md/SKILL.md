@@ -49,10 +49,12 @@ strictdoc export <specification folder> --formats=json --output-dir <specificati
 That writes `<specification folder>/output/strictdoc/json/index.json`, which the
 rest of this skill calls `<json>`.
 
-**Output inside the specification folder is safe.** StrictDoc passes its own
-output directory to the file finder as an ignored directory, so it never reads
-what it just wrote - measured across repeated exports and with the output folder
-named `output`, `build` and `kekka` alike.
+**Output inside the specification folder is safe for `json` and `html`.**
+StrictDoc passes its own output directory to the file finder as an ignored
+directory, so it never reads what it just wrote - measured across repeated
+exports and with the output folder named `output`, `build` and `kekka` alike.
+**`--formats=sdoc` is the exception: write it outside the specification folder.**
+It emits `.sdoc` files, which the next run parses as input and stops on.
 
 **Never read `index.json` directly.** Re-export after every edit; StrictDoc does
 not refresh it.

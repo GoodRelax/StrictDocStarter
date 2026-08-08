@@ -59,13 +59,13 @@
   <g class="txt" text-anchor="middle">
     <text x="85"  y="63">input file</text>
     <text x="280" y="63">format check</text>
-    <text x="475" y="63">convert</text>
+    <text x="475" y="63">destination check</text>
     <text x="670" y="63">output file</text>
   </g>
   <g class="sub" text-anchor="middle" font-size="11">
     <text x="280" y="81">SW-002</text>
-    <text x="475" y="81">SW-001</text>
-    <text x="670" y="81">SW-003 / SW-004</text>
+    <text x="475" y="81">SW-003</text>
+    <text x="670" y="81">SW-001 / SW-004</text>
   </g>
 
   <g class="flow" marker-end="url(#arrow)">
@@ -77,19 +77,19 @@
   <!-- guard branches -->
   <g class="stop-box">
     <rect x="215" y="160" width="130" height="46" rx="6"/>
-    <rect x="605" y="160" width="130" height="46" rx="6"/>
+    <rect x="410" y="160" width="130" height="46" rx="6"/>
   </g>
   <g class="stop-txt" text-anchor="middle">
     <text x="280" y="188">stop</text>
-    <text x="670" y="188">stop</text>
+    <text x="475" y="188">stop</text>
   </g>
 
   <g class="stop-arw" marker-end="url(#arrow-stop)" stroke-dasharray="5 4">
     <path d="M 280 92 L 280 155"/>
-    <path d="M 670 92 L 670 155"/>
+    <path d="M 475 92 L 475 155"/>
   </g>
   <g class="stop-lbl" font-size="11">
     <text x="290" y="128">unexpected format</text>
-    <text x="680" y="128">output exists</text>
+    <text x="485" y="128">output exists</text>
   </g>
 </svg>
