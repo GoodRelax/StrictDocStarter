@@ -67,7 +67,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":145,"TEST_CASE":4,"TEXT":146,"USE_CASE":2}
+{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":145,"TEST_CASE":4,"TEXT":146,"USE_CASE":1}
 ```
 
 ### A3. 目次
@@ -99,8 +99,8 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
  "TEST_CASE":["GIVEN","ISSUE_KEY","RELATIONS","TEST_REMARK","TEST_RESULT","THEN",
               "TITLE","UID","WHEN","_NODE_TYPE","_TOC"],
  "TEXT":["STATEMENT","_NODE_TYPE","_TOC"],
- "USE_CASE":["RELATIONS","REVIEW_ACTION","REVIEW_COMMENT","REVIEW_STATUS","STATEMENT",
-             "TITLE","UC_LEVEL","UID","_NODE_TYPE","_TOC"]}
+ "USE_CASE":["REVIEW_COMMENT","REVIEW_STATUS","STATEMENT","TITLE","UC_LEVEL","UID",
+             "_NODE_TYPE","_TOC"]}
 ```
 
 `-c` を付けたので jq は 1 行で出す。上は読みやすさのために折り返してある。

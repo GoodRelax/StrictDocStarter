@@ -28,7 +28,7 @@ Markdown 形式の StrictDoc プロジェクトにも当てはまる。**
 | `01-ai-queries.md` | 本書のクエリの詳細版 | `DOC-AI-QUERIES` (要求は無い) |
 | `02-guide-for-human.md` | 人間向けの解説書。**AI は読まなくてよい** | `DOC-GUIDE` (要求は無い) |
 | `03-architecture.md` | システム構成の見取り図。要求は持たない | `DOC-ARCH` (要求は無い) |
-| `04-usecases.md` | ユースケース 2 件 (Cockburn 形式)。上位要求へ繋がる | `DOC-USECASES` |
+| `04-usecases.md` | ユースケース 1 件 (Cockburn 形式、海面レベル)。**上位要求の親** | `DOC-USECASES` |
 | `05-upper.md` | 上位要求 3 件 | `DOC-UPPER` |
 | `06-lower.md` | 下位要求 4 件。上位要求へ繋がる | `DOC-LOWER` |
 | `07-tests.md` | テストケース 4 件。下位要求へ繋がる | `DOC-TESTS` |

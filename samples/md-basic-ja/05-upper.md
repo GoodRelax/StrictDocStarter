@@ -115,7 +115,7 @@ WHERE <feature>, WHILE <state>, WHEN <trigger>, the <system> shall <response>.
 
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `UC-002`
+  **ID**: `UC-001`
 
 ## 想定外の入力の拒否
 
@@ -127,7 +127,7 @@ WHERE <feature>, WHILE <state>, WHEN <trigger>, the <system> shall <response>.
 
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `UC-002`
+  **ID**: `UC-001`
 
 **REVIEW_COMMENT**: 下位要求 SW-002 が、 変換を拒む条件を「検査する」という手順としてしか書いておらず、 どの入力を拒むのかを文の先頭から読み取れなかった。
 
@@ -145,6 +145,6 @@ WHERE <feature>, WHILE <state>, WHEN <trigger>, the <system> shall <response>.
 
 **Relations**:
 - **Type**: `Parent` \
-  **ID**: `UC-002`
+  **ID**: `UC-001`
 
 **REVIEW_COMMENT**: 「上書きしない」とだけ書いてあるが、 同名のファイルがあったときに何をするのかが決まっていない。 中断か、 別名か。
