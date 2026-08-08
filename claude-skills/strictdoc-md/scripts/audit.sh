@@ -169,9 +169,13 @@ jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
 #    6b. English.
 #    ears-shape     the sentence carries no "shall". English EARS states a
 #                   requirement with that one word
-#    ears-order     the sentence opens with something other than WHEN / WHILE /
+#    ears-order     a sentence opens with something other than WHEN / WHILE /
 #                   IF / WHERE, yet one of those words appears later in it, so
-#                   the condition sits behind the subject
+#                   the condition sits behind the subject. The test runs per
+#                   sentence: a statement whose second sentence legitimately
+#                   opens with "If" was otherwise flagged for the first one
+#                   (measured, 3 rows of the SOVD sample). The Japanese pass
+#                   already scopes itself to one sentence with [^。]*
 #    passive        a form of "be" followed by a past participle
 #    negative       "shall not" / "must not" / "never" appears. The EARS
 #                   unwanted-behaviour pattern uses this legitimately, so expect
@@ -189,8 +193,10 @@ jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
 | . as $n | ($n.STATEMENT | gsub("\r"; "")) as $t
 | select($t | test("[぀-ヿ一-鿿]") | not)
 | [ (if ($t | test("\\bshall\\b"; "i") | not) then "ears-shape" else empty end),
-    (if ($t | test("^\\s*(when|while|if|where)\\b"; "i") | not)
-        and ($t | test("\\b(when|while|if|where)\\b"; "i")) then "ears-order" else empty end),
+    (if ($t | gsub("\n"; " ") | split(". ")
+         | map((test("^\\s*(when|while|if|where)\\b"; "i") | not)
+               and test("\\b(when|while|if|where)\\b"; "i")) | any)
+        then "ears-order" else empty end),
     (if ($t | test("\\b(is|are|was|were|be|been|being)\\s+([a-z]+ed|written|given|taken|shown|known|seen|done|made|held|kept|sent|put|left|built|thrown|drawn|chosen|driven|broken)\\b"; "i")) then "passive" else empty end),
     (if ($t | test("\\b(shall\\s+not|must\\s+not|never)\\b"; "i")) then "negative" else empty end) ] as $why
 | select(($why | length) > 0)

@@ -1,0 +1,1712 @@
+# SOVD Test Specification (Test Specification / Strategy)
+
+**Grammar**: sovd-grammar.sgra \
+**UID**: DOC-SOVD-TESTSPEC \
+**Version**: 1.0
+
+This document is the **test specification** for SOVD. As the right-hand side of the V-model, it
+defines tests at each level (unit / integration / system / acceptance) and traces them to the
+verification targets via the ``Verifies`` relation.
+
+**Granularity rule: 1 behavior = 1 scenario = 1 test = 1 verdict.** This lets you record
+"one related test PASSed while another FAILed" individually (the test-case granularity of
+Cucumber/ISTQB). Only pure data variations of the same behavior are consolidated into a single
+test using ``Scenario Outline`` + ``Examples``. Each test is written as executable Gherkin with
+concrete inputs and expected results. Test results are separated into
+`11-test-results.md` (1 specification : N executions).
+
+## 5.1 Test Strategy
+
+**Type**: SECTION
+
+| Level | Target artifact | Verifies target | Policy |
+|---|---|---|---|
+| Unit | Component / class (08) | COMPONENT | One scenario per component behavior. Branch / boundary coverage |
+| Integration | Inter-module (L2) | L2 requirements | Integration points of major bridges / flows |
+| System | System requirements (L1) | L1 requirements | End-to-end of major functions |
+| Acceptance | Stakeholder / API (L0 / 09) | L0 requirements / API | All use cases |
+
+Fixed data: DID ``0xF40C`` = engine speed (rpm, Engine ECU addr ``0x10``),
+``0xF40D`` = vehicle speed, DTC ``P0301`` = misfire.
+
+## 5.2 Unit Tests
+
+**Type**: SECTION
+
+### TokenVerifier - a valid JWT is accepted
+
+**Type**: TEST \
+**UID**: UT-001 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-005` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: JWT verification by TokenVerifier
+  Scenario: a valid JWT yields valid=true
+    Given the OEM public key is in the trust store
+    And a JWT with exp=now+30min / scope="read:did" / a correct signature
+    When verify(jwt) is called
+    Then valid=true and claims.scope contains "read:did"
+```
+
+### TokenVerifier - a tampered signature is rejected
+
+**Type**: TEST \
+**UID**: UT-002 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-005` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: JWT verification by TokenVerifier
+  Scenario: a tampered signature yields valid=false
+    Given a JWT whose payload was altered by 1 byte, making it inconsistent with the signature
+    When verify(jwt) is called
+    Then valid=false and reason="invalid_signature"
+```
+
+### TokenVerifier - an expired token is rejected
+
+**Type**: TEST \
+**UID**: UT-003 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-005` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: JWT verification by TokenVerifier
+  Scenario: an expired token yields valid=false
+    Given a JWT with exp=now-1min
+    When verify(jwt) is called
+    Then valid=false and reason="expired"
+```
+
+### TokenCache - evicts the oldest entry on capacity overflow
+
+**Type**: TEST \
+**UID**: UT-004 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-006` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: LRU of TokenCache
+  Scenario: the oldest entry is dropped at the 1025th
+    Given an empty TokenCache (limit 1,024 entries / 256 KB)
+    When 1,025 distinct tokens are put
+    Then the count is 1,024, the 1st entry misses on get, and memory stays within 256 KB
+```
+
+### TokenCache - hits while retained
+
+**Type**: TEST \
+**UID**: UT-005 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-006` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Lookup in TokenCache
+  Scenario: an already-put token hits
+    Given a token T has been put
+    When get(T) is called
+    Then the verified result is returned as a hit
+```
+
+### ScopeAuthorizer - decides scope sufficiency/insufficiency
+
+**Type**: TEST \
+**UID**: UT-006 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-002` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Authorization decision by ScopeAuthorizer
+  Scenario Outline: sufficient is allowed, insufficient is rejected with a reason
+    Given required=<required> / token_scopes=<scopes>
+    When authorize(required, scopes) is called
+    Then the result is <decision> (on deny, reason=<reason>)
+
+    Examples:
+      | required  | scopes            | decision | reason             |
+      | read:did  | read:did read:dtc | allow    | -                  |
+      | read:did  | read:dtc          | deny     | insufficient_scope |
+      | write:dtc | read:dtc          | deny     | insufficient_scope |
+```
+
+### TlsTerminator - loads the trust store at startup
+
+**Type**: TEST \
+**UID**: UT-007 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-001` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Trust store of TlsTerminator
+  Scenario: it is loaded at startup
+    Given the trust store has 1 CA certificate
+    When loadTrustStore() (startup) is run
+    Then the number of loaded CAs = 1
+```
+
+### TlsTerminator - notifies a failure event on an invalid certificate
+
+**Type**: TEST \
+**UID**: UT-008 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-001` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Handshake of TlsTerminator
+  Scenario: an expired certificate triggers a failure notification
+    Given an expired server certificate
+    When a TLS 1.3 handshake is attempted
+    Then it fails and notifies the upper layer with "handshake_failed"
+```
+
+### UdsClient - returns a normal response
+
+**Type**: TEST \
+**UID**: UT-009 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-003` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Send/receive of UdsClient
+  Scenario: normal response
+    Given a stub ECU returns 0x62 F40C 0338 for 0x22 F40C
+    When readDataByIdentifier(0x10, 0xF40C) is called
+    Then the returned byte sequence is 0338 (=824)
+```
+
+### UdsClient - times out after retries when there is no response
+
+**Type**: TEST \
+**UID**: UT-010 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-003` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Timeout of UdsClient
+  Scenario: no response
+    Given a stub ECU does not respond (P2=50ms)
+    When send(frame) is called
+    Then a Timeout error is returned after the prescribed number of retries
+```
+
+### UdsClient - propagates the NRC
+
+**Type**: TEST \
+**UID**: UT-011 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-003` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: NRC handling of UdsClient
+  Scenario: NRC 0x31
+    Given a stub ECU returns NRC 0x31 (requestOutOfRange)
+    When send(frame) is called
+    Then NRC=0x31 is propagated to the caller
+```
+
+### JsonSerializer - converts each type to ASAM JSON
+
+**Type**: TEST \
+**UID**: UT-012 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-004` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Type conversion of JsonSerializer
+  Scenario Outline: output per type
+    Given a value <in> (type <type>)
+    When serialize(value) is called
+    Then the output JSON is <out>
+
+    Examples:
+      | type   | in        | out    |
+      | int    | 824       | 824    |
+      | float  | 12.5      | 12.5   |
+      | float  | NaN       | null   |
+      | float  | Infinity  | null   |
+      | bytes  | 0x03 0x38 | "0338" |
+```
+
+### DidResolver - resolves a known DID
+
+**Type**: TEST \
+**UID**: UT-013 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-008` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Resolution by DidResolver
+  Scenario: known DID
+    Given the mapping 0xF40C -> Engine ECU (addr 0x10)
+    When resolve(0xF40C) is called
+    Then addr 0x10 is returned (1 hash, O(1))
+```
+
+### DidResolver - an unknown DID is an error
+
+**Type**: TEST \
+**UID**: UT-014 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-008` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Resolution by DidResolver
+  Scenario: unknown DID
+    Given 0x9999 is unregistered
+    When resolve(0x9999) is called
+    Then NotFound is returned and it does not crash
+```
+
+### DataCache - hits within TTL
+
+**Type**: TEST \
+**UID**: UT-015 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-009` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: TTL of DataCache
+  Scenario: within TTL
+    Given (0xF40C -> 824) has been put with TTL=100ms
+    When get(0xF40C) is called 50ms later
+    Then 824 is returned as a hit (no ECU communication)
+```
+
+### DataCache - misses after TTL elapses
+
+**Type**: TEST \
+**UID**: UT-016 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-009` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: TTL of DataCache
+  Scenario: TTL elapsed
+    Given (0xF40C -> 824) has been put with TTL=100ms
+    When get(0xF40C) is called 150ms later
+    Then it misses and re-fetches from the ECU
+```
+
+### DtcParser - parses a single DTC
+
+**Type**: TEST \
+**UID**: UT-017 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-010` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Parsing by DtcParser
+  Scenario: 1 entry
+    Given the response "59 02 FF 43 01 21 2F" (P0301 / status 0x2F)
+    When parse(bytes) is called
+    Then [(code="P0301", status=0x2F)] is returned
+```
+
+### DtcParser - an empty response yields an empty list
+
+**Type**: TEST \
+**UID**: UT-018 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-010` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Parsing by DtcParser
+  Scenario: 0 entries
+    Given a response with 0 DTCs "59 02 FF"
+    When parse(bytes) is called
+    Then an empty list is returned (not treated as an error)
+```
+
+### FreezeFrameDecoder - decodes to (did,value)
+
+**Type**: TEST \
+**UID**: UT-019 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-011` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Decoding by FreezeFrameDecoder
+  Scenario: decode
+    Given a 0x19/04 payload (0xF40C=0x0C80, 0xF40D=0x00)
+    When decode(payload) is called
+    Then [(0xF40C, 3200), (0xF40D, 0)] is returned
+```
+
+### SpeedReader - reflects the latest vehicle speed within 10ms
+
+**Type**: TEST \
+**UID**: UT-020 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-012` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Periodic update of SpeedReader
+  Scenario: latest value
+    Given the CAN vehicle speed changes to 0 km/h
+    When currentSpeed() is called 10ms later
+    Then 0 km/h is returned
+```
+
+### DtcHistoryStore - overwrites the oldest entry on capacity overflow
+
+**Type**: TEST \
+**UID**: UT-021 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-013` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Ring buffer of DtcHistoryStore
+  Scenario: overwrite
+    Given an empty store of capacity 1024
+    When 1,025 entries are pushed
+    Then the count is 1,024 and the 1st entry can no longer be read
+```
+
+### DtcHistoryStore - stays consistent under concurrent reads
+
+**Type**: TEST \
+**UID**: UT-022 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-013` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Concurrency of DtcHistoryStore
+  Scenario: concurrent read
+    Given 1 producer is pushing
+    When multiple consumers read simultaneously
+    Then each read returns a complete entry with no corruption
+```
+
+### PackageDownloader - resumes from a mid-transfer failure and completes
+
+**Type**: TEST \
+**UID**: UT-023 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-014` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Resumption of PackageDownloader
+  Scenario: resume
+    Given 3MB (1MB x 3), where the 2nd chunk fails only on the first attempt
+    When download(url) is called
+    Then it re-fetches with exponential backoff and completes the full 3MB
+```
+
+### PackageDownloader - does not issue duplicate requests at the backoff limit
+
+**Type**: TEST \
+**UID**: UT-024 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-014` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Backoff of PackageDownloader
+  Scenario: no duplicate requests
+    Given all chunks keep failing
+    When download(url) is called
+    Then backoff caps at 30s, and no two outstanding requests for the same chunk exist simultaneously
+```
+
+### SignatureVerifier - a valid ECDSA signature is true
+
+**Type**: TEST \
+**UID**: UT-025 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-015` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Signature verification by SignatureVerifier
+  Scenario: a valid ECDSA P-256 signature
+    Given data and sig signed with a P-256 key
+    When verify(data, sig) is called
+    Then true is returned
+```
+
+### SignatureVerifier - a valid RSA-PSS signature is true
+
+**Type**: TEST \
+**UID**: UT-026 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-015` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Signature verification by SignatureVerifier
+  Scenario: a valid RSA-PSS 2048 signature
+    Given data and sig signed with an RSA-PSS 2048 key
+    When verify(data, sig) is called
+    Then true is returned
+```
+
+### SignatureVerifier - tampering is false
+
+**Type**: TEST \
+**UID**: UT-027 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-015` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Signature verification by SignatureVerifier
+  Scenario: tampering detection
+    Given data was tampered with by 1 byte
+    When verify(data, sig) is called
+    Then false is returned (a pure function that does not change internal state)
+```
+
+### FlashSectorWriter - a normal write does pre-erase + CRC match
+
+**Type**: TEST \
+**UID**: UT-028 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-016` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Writing by FlashSectorWriter
+  Scenario: normal write
+    Given a 64KB sector 0 and write data D
+    When write(0, D) is called
+    Then the sector is erased before writing, and after writing the CRC32 matches D and success is returned
+```
+
+### FlashSectorWriter - a CRC mismatch is an ERROR
+
+**Type**: TEST \
+**UID**: UT-029 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-016` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Verification by FlashSectorWriter
+  Scenario: CRC mismatch
+    Given a bit flip occurs during writing
+    When write(0, D) is called
+    Then ERROR_FLASH_VERIFY is returned
+```
+
+### VehicleStateMonitor - permits only when all conditions hold
+
+**Type**: TEST \
+**UID**: UT-030 \
+**TEST_LEVEL**: Unit
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `ARCH-C-017` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Decision by VehicleStateMonitor
+  Scenario Outline: flash permission
+    Given speed=<spd> / PKB=<pkb> / shift=<shift> / IG=<ig>
+    When isFlashAllowed() is called
+    Then the result is <allowed>
+
+    Examples:
+      | spd | pkb | shift | ig  | allowed |
+      | 0   | ON  | P     | ACC | true    |
+      | 5   | ON  | P     | ACC | false   |
+      | 0   | OFF | P     | ACC | false   |
+      | 0   | ON  | D     | ACC | false   |
+```
+
+## 5.3 Integration Tests
+
+**Type**: SECTION
+
+### Authentication flow integration (token -> verify -> scope)
+
+**Type**: TEST \
+**UID**: IT-001 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L2-002` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-002` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-003` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Integration of the authentication flow
+  Scenario: consistent from issuance to authorization
+    Given the auth EP + TokenVerifier + ScopeAuthorizer are integrated
+    And a valid authorization code and code_verifier
+    When POST /auth/token is called
+    Then a JWT (containing exp/scope/sub) is issued, verified successfully for read:did, and the result is allow
+```
+
+### DID read bridge integration (SOVD -> UDS -> JSON)
+
+**Type**: TEST \
+**UID**: IT-002 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DATA-L2-002` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: DID read bridge
+  Scenario: an rpm read is converted
+    Given DataReadUseCase + DidResolver + UdsClient + JsonSerializer
+    And read:did is authorized and the Engine ECU returns 0x62 F40C 0338
+    When read("engine", 0xF40C) is called
+    Then it is converted to UDS 0x22 F40C and returns {"rpm": 824}
+```
+
+### DTC read bridge integration (UDS 0x19 -> Parser)
+
+**Type**: TEST \
+**UID**: IT-003 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DTC-L2-001` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: DTC read bridge
+  Scenario: aggregate and return
+    Given UdsClient + DtcParser, with Engine reporting P0301 and Brake reporting C0040
+    When an aggregated read is run
+    Then UDS 0x19/02 is issued to each ECU and an aggregated JSON is returned
+```
+
+### DTC clear - blocked by the guard while the vehicle is moving
+
+**Type**: TEST \
+**UID**: IT-004 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DTC-L2-003` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `DTC-L2-004` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Vehicle-speed guard on clear
+  Scenario: while moving
+    Given SpeedReader returns 30 km/h
+    When DELETE /components/engine/faults/P0301 is run
+    Then VehicleSpeedGuard blocks it and UDS 0x14 is not issued (409)
+```
+
+### DTC clear - executed while stationary
+
+**Type**: TEST \
+**UID**: IT-005 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DTC-L2-003` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Clear execution
+  Scenario: while stationary
+    Given SpeedReader returns 0 km/h
+    When the same clear is run
+    Then UDS 0x14 is issued and succeeds
+```
+
+### OTA - a normal package passes verification
+
+**Type**: TEST \
+**UID**: IT-006 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L2-001` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Download + signature verification
+  Scenario: normal
+    Given a package with a matching SHA-256 and a correct OEM signature
+    When the download is run
+    Then the integrity check succeeds, the signature is valid, and it proceeds from Verifying to Installing
+```
+
+### OTA - a tampered package is discarded
+
+**Type**: TEST \
+**UID**: IT-007 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L2-002` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Signature verification
+  Scenario: tampered
+    Given a package with an invalid signature
+    When the download is run
+    Then it is discarded on signature-verification failure and does not proceed to Installing
+```
+
+### OTA flash + emergency abort by the state guard
+
+**Type**: TEST \
+**UID**: IT-008 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L2-004` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: State guard during writing
+  Scenario: abort on condition break
+    Given during Installing (FlashSectorWriter has started writing)
+    When the vehicle speed changes from 0 -> 5 km/h
+    Then VehicleStateGuard detects it on a 50ms cycle, aborts the write as an emergency, and transitions to the safe side
+```
+
+### The authentication endpoint accepts the request
+
+**Type**: TEST \
+**UID**: IT-009 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L2-001` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Authentication endpoint
+  Scenario: Token Request accepted
+    Given the gateway has started
+    When POST /auth/token (OAuth2 Token Request) is received
+    Then it is accepted and processed
+```
+
+### The certificate store integrity is verified at startup
+
+**Type**: TEST \
+**UID**: IT-010 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L2-005` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Certificate store
+  Scenario: integrity verification
+    Given the CA chain is in non-volatile storage
+    When it starts up
+    Then integrity verification is run, and on corruption the startup raises an abnormal notification
+```
+
+### The revocation list is synchronized periodically
+
+**Type**: TEST \
+**UID**: IT-011 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L2-007` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Revocation list synchronization
+  Scenario: at startup / every hour
+    Given a revocation list on the OEM authentication server
+    When the startup trigger and the hourly trigger arrive
+    Then the local revocation cache is updated
+```
+
+### Multiple DIDs are subscribed simultaneously over WebSocket
+
+**Type**: TEST \
+**UID**: IT-012 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DATA-L2-004` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: WebSocket subscription
+  Scenario: 32 DIDs simultaneously
+    Given a WebSocket endpoint
+    When 32 DIDs are subscribed
+    Then each DID is delivered periodically, and up to 32 simultaneous subscriptions are accepted
+```
+
+### A bulk download is returned with gzip compression
+
+**Type**: TEST \
+**UID**: IT-013 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DATA-L2-005` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Bulk compression
+  Scenario: gzip
+    Given a bulk request with Accept-Encoding: gzip
+    When the download is run
+    Then it is transferred compressed with Content-Encoding: gzip
+```
+
+### All DTCs are cleared at once
+
+**Type**: TEST \
+**UID**: IT-014 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DTC-L1-005` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Bulk clear
+  Scenario: clear all while stationary
+    Given multiple DTCs are recorded and the vehicle speed is 0 km/h
+    When DELETE /components/engine/faults (clear all) is called
+    Then all DTCs are cleared after passing the vehicle-speed guard
+```
+
+### DTC master information is bundled in the response
+
+**Type**: TEST \
+**UID**: IT-015 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DTC-L2-005` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: DTC master
+  Scenario: description bundled
+    Given the OEM DTC master table is in NVRAM
+    When the DTC list is retrieved
+    Then a description and recommended action are bundled with each DTC
+```
+
+### Rollback is executed via a bootloader switch
+
+**Type**: TEST \
+**UID**: IT-016 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L2-005` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Rollback execution
+  Scenario: switch
+    Given the partition information of the previous version is retained
+    When a rollback is requested
+    Then the bootloader parameters are rewritten and a reboot is requested
+```
+
+### Progress events are delivered
+
+**Type**: TEST \
+**UID**: IT-017 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L2-006` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Progress event bus
+  Scenario: SSE delivery
+    Given an update is in progress
+    When each phase (download/verify/write/finalize) progresses
+    Then the progress is delivered to SSE via ProgressEventBus
+```
+
+### After a power loss, it resumes from the last safe state
+
+**Type**: TEST \
+**UID**: IT-018 \
+**TEST_LEVEL**: Integration
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L2-007` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Resumable state machine
+  Scenario: power-loss resume
+    Given the update state is saved in non-volatile storage
+    When it reboots after a power loss
+    Then it resumes from the last safe state
+```
+
+## 5.4 System Tests
+
+**Type**: SECTION
+
+### Authenticated data read (end-to-end)
+
+**Type**: TEST \
+**UID**: ST-001 \
+**TEST_LEVEL**: System
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DATA-L1-001` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-001` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Authenticated DID read E2E
+  Scenario: retrieve rpm from the cloud
+    Given a near-production vehicle (TCU+GW+Engine ECU) with a read:did token obtained
+    When GET /components/engine/data/rpm is called with Bearer
+    Then 200 and {"rpm": <value>}, with single-DID p95 within 500ms
+```
+
+### Periodic data stream
+
+**Type**: TEST \
+**UID**: ST-002 \
+**TEST_LEVEL**: System
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DATA-L1-002` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Periodic stream
+  Scenario: receive 32 DIDs periodically
+    Given a read:did token
+    When 32 DIDs are subscribed over SSE/WS
+    Then each DID is delivered at the specified cycle and is stable with 32 simultaneously
+```
+
+### DTC list retrieval and clear
+
+**Type**: TEST \
+**UID**: ST-003 \
+**TEST_LEVEL**: System
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DTC-L1-001` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `DTC-L1-007` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: DTC retrieval and clear
+  Scenario: retrieve -> clear while stationary -> history
+    Given Engine has P0301 and the vehicle speed is 0 km/h
+    When the list is retrieved -> DELETE clear (write:dtc)
+    Then retrieval and clear succeed, and the operation is recorded in the history
+```
+
+### OTA update - a normal update boots on the new version
+
+**Type**: TEST \
+**UID**: ST-004 \
+**TEST_LEVEL**: System
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L1-001` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `SWU-L1-003` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `SWU-L1-008` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: OTA normal update E2E
+  Scenario: normal
+    Given signed new firmware, with the vehicle stationary, in P, and PKB-ON
+    When it is submitted via POST /updates
+    Then it proceeds Downloading->Verifying->Installing->Activated and boots on the new version
+```
+
+### OTA update - keeps the old version on a write failure
+
+**Type**: TEST \
+**UID**: ST-005 \
+**TEST_LEVEL**: System
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L1-003` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `SWU-L1-008` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: OTA failure rollback E2E
+  Scenario: write failure
+    Given during Installing
+    When the flash write fails
+    Then the state becomes RolledBack and it boots on the old version
+```
+
+## 5.5 Acceptance Tests (Gherkin)
+
+**Type**: SECTION
+
+### Successful authenticated DID read
+
+**Type**: TEST \
+**UID**: AT-001 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-001` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `DATA-L1-001` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `API-003` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `UC-001` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `UC-002` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Authenticated DID read
+  Scenario: an authorized mechanic reads rpm
+    Given a mechanic holds a valid JWT with the read:did scope
+    When GET /components/engine/data/rpm is called with Bearer
+    Then 200 and a numeric rpm, with scope verification performed before the DID read
+```
+
+### Rejection of unauthenticated access
+
+**Type**: TEST \
+**UID**: AT-002 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L0-004` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-011` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Rejection of unauthenticated access
+  Scenario: request without a token
+    Given no Authorization header is attached
+    When GET /components/engine/data/rpm is called
+    Then 401, and no vehicle data is included in the body at all
+```
+
+### 403 on insufficient scope
+
+**Type**: TEST \
+**UID**: AT-003 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L2-003` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `DATA-L1-006` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Role-based access control
+  Scenario: a personal-information DID with read:did
+    Given a token with the Mechanic role (read:did)
+    When a DID containing personal information is requested
+    Then 403 Forbidden
+```
+
+### Rejection of a revoked token
+
+**Type**: TEST \
+**UID**: AT-004 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-010` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `API-002` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Token revocation
+  Scenario: re-access after revocation
+    Given a valid token has been issued
+    When POST /auth/revoke revokes it -> GET data with the same token
+    Then 401 Unauthorized
+```
+
+### Rejection of DTC clear while the vehicle is moving
+
+**Type**: TEST \
+**UID**: AT-005 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DTC-L0-004` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `DTC-L1-004` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `API-007` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Prohibition of DTC clear while moving
+  Scenario: vehicle speed > 0
+    Given a vehicle speed of 30 km/h
+    When DELETE /components/engine/faults/P0301
+    Then 409 Conflict, and the DTC is not cleared
+```
+
+### Rejection of a tampered package
+
+**Type**: TEST \
+**UID**: AT-006 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L0-002` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `SWU-L1-002` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `SWU-L0-006` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: OTA tampering detection
+  Scenario: invalid signature
+    Given an update package whose signature was tampered with
+    When it is submitted via POST /updates
+    Then it is discarded, does not transition to Installing, and becomes Failed
+```
+
+### Prohibition of flash writing while the vehicle is moving
+
+**Type**: TEST \
+**UID**: AT-007 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L0-004` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `SWU-L1-004` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Prohibition of updates while moving
+  Scenario: Installing while moving
+    Given the vehicle speed > 0 or the shift is not in P
+    When an update tries to proceed to Installing
+    Then the flash write is not started
+```
+
+### Access token expiry
+
+**Type**: TEST \
+**UID**: AT-008 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-008` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Token expiry
+  Scenario: default 30 minutes
+    Given a token is issued with the default configuration
+    When exp is checked
+    Then exp is 30 minutes from issuance
+```
+
+### Update progress stream (SSE)
+
+**Type**: TEST \
+**UID**: AT-009 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L1-006` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `API-009` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Update progress notification
+  Scenario: subscribe to progress
+    Given an update is in progress
+    When GET /updates/progress is subscribed
+    Then the progress (0..100%) and phase of each ECU are delivered
+```
+
+### Remote retrieval of the fault code list
+
+**Type**: TEST \
+**UID**: AT-010 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `UC-003` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `DTC-L1-001` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `API-005` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Remote retrieval of the DTC list
+  Scenario: retrieve from the field
+    Given a read:dtc token, with Engine reporting P0301 (confirmed)
+    When GET /components/engine/faults is called
+    Then 200, and P0301 is included with status="confirmed"
+```
+
+### Freeze frame retrieval
+
+**Type**: TEST \
+**UID**: AT-011 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DTC-L0-002` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `DTC-L1-002` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `API-006` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Freeze frame retrieval
+  Scenario: snapshot at occurrence
+    Given a read:dtc token, with a freeze frame for P0301 present
+    When GET /components/engine/faults/P0301/freeze-frame is called
+    Then 200, and the DID values at occurrence (rpm, coolant, etc.) are included
+```
+
+### Remote sampling of periodic data
+
+**Type**: TEST \
+**UID**: AT-012 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DATA-L0-002` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `DATA-L1-002` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `API-004` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Periodic sampling
+  Scenario: subscribe to multiple DIDs
+    Given a read:did token
+    When rpm and coolant are subscribed via /components/engine/data/stream
+    Then each DID is push-delivered on a 100ms cycle
+```
+
+### Bulk snapshot retrieval
+
+**Type**: TEST \
+**UID**: AT-013 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DATA-L0-003` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Snapshot retrieval
+  Scenario: all DIDs in 1 transaction
+    Given a read:did token
+    When a snapshot retrieval is requested
+    Then all DID values at the same instant are returned in 1 response
+```
+
+### Interruptible, resumable transfer of large data
+
+**Type**: TEST \
+**UID**: AT-014 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `DATA-L0-004` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `DATA-L1-003` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Bulk download (resumable)
+  Scenario: resume after disconnection
+    Given a read:did token and several hundred MB of logs
+    When the connection drops mid-download -> re-request the remainder with HTTP Range
+    Then all data can be retrieved with no duplication
+```
+
+### Role-based access control (RBAC)
+
+**Type**: TEST \
+**UID**: AT-015 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L0-002` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-004` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Role-based access control
+  Scenario Outline: permission varies by role
+    Given a token for <role>
+    When <operation> is requested
+    Then the result is <result>
+
+    Examples:
+      | role        | operation                       | result |
+      | Mechanic    | read a DID with read:did        | allow  |
+      | Mechanic    | submit an update with write:swupdate | 403    |
+      | OEMEngineer | submit an update with write:swupdate | allow  |
+```
+
+### Can connect over TLS 1.3
+
+**Type**: TEST \
+**UID**: AT-016 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L0-003` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-005` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Protection of the communication channel
+  Scenario: TLS 1.3 connection
+    When a client connects over TLS 1.3
+    Then the handshake succeeds and the diagnostic API is available
+```
+
+### Rejection of a TLS downgrade
+
+**Type**: TEST \
+**UID**: AT-017 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-006` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Downgrade rejection
+  Scenario: TLS 1.2 request
+    When a client requests a downgrade to TLS 1.2
+    Then the vehicle rejects the connection
+```
+
+### Mutual TLS is established (OEM internal)
+
+**Type**: TEST \
+**UID**: AT-018 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-007` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Mutual TLS (mTLS)
+  Scenario: a legitimate client certificate
+    Given a legitimate OEM-issued client certificate (X.509)
+    When connecting with an mTLS configuration
+    Then mutual authentication is established and the connection succeeds
+```
+
+### An invalid client certificate is rejected
+
+**Type**: TEST \
+**UID**: AT-019 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `AUTH-L1-007` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Mutual TLS (mTLS)
+  Scenario: a certificate outside the trust chain
+    Given a client certificate outside the trust chain
+    When connecting with mTLS
+    Then the connection is rejected
+```
+
+### Remote software update via OTA (use case)
+
+**Type**: TEST \
+**UID**: AT-020 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `UC-004` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `API-008` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: OTA remote update
+  Scenario: distribute and boot on the new version
+    Given a write:swupdate token and signed new firmware, with the vehicle stationary, in P, and PKB-ON
+    When it is submitted via POST /updates and the progress is subscribed
+    Then it proceeds to Activated and boots on the new version after the reboot
+```
+
+### Rollback to the previous version
+
+**Type**: TEST \
+**UID**: AT-021 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L0-003` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `SWU-L1-005` \
+  **Role**: `Verifies`
+- **Type**: `Parent` \
+  **ID**: `API-010` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Rollback
+  Scenario: revert to the previous version on an anomaly
+    Given an anomaly is detected after an update
+    When POST /updates/rollback is called
+    Then it rolls back immediately to the previous version, restricting vehicle functions during the process
+```
+
+### Update interruption tolerance (resume from a power loss)
+
+**Type**: TEST \
+**UID**: AT-022 \
+**TEST_LEVEL**: Acceptance
+**Relations**:
+- **Type**: `Parent` \
+  **ID**: `SWU-L1-007` \
+  **Role**: `Verifies`
+
+**Statement**:
+
+```gherkin
+Feature: Update interruption tolerance
+  Scenario: power-loss resume
+    Given a power loss during Downloading
+    When it reboots
+    Then the download resumes from the interruption point, and if it was writing, it restarts from the beginning
+```
+
+## 5.6 Coverage Policy
+
+**Type**: SECTION
+
+The verification coverage of requirements is assessed via the following 3 paths (not every "hole"
+in the matrix is a defect).
+
+- **Direct coverage**: a test ``Verifies`` a requirement/component (the tests in this document).
+- **Transitive coverage**: if the lower-level child requirements/components are verified, the
+  higher-level requirement is backed by them (traceable via DEEP TRACE).
+- **Verified by review / static analysis**: Constraints that do not lend themselves to runtime
+  tests (ASAM SOVD / ISO 14229 conformance, MISRA C, the ASIL D development process, NVRAM wear,
+  floating-point representation, etc.) are confirmed via design review, static analysis, and
+  process audits.
+- **Some NFRs** (memory limits, threading model, etc.) are confirmed via code review + measurement.
+- **Performance NFRs** (latency, response time) are confirmed via the performance aspects of
+  ST-001 and the like.
+
+This sample takes the policy of directly covering all use cases (L0) and the major functional
+system requirements (L1) and APIs, with the remainder backed by transitive coverage or
+review / static analysis.
+
+**Requirement types and their primary verification means (V-model mapping)**
+
+Rather than attaching a dynamic test one-to-one to every requirement, we verify by means suited to
+the nature of each (traceability is needed for all requirements, but test cases are selective). Use
+cases are backed by acceptance tests, the requirements of each layer by the corresponding test
+level, and constraints and some NFRs by review and static analysis.
+
+| Requirement type | Primary verification means | Example (trace) |
+|---|---|---|
+| Use case (L0) | Acceptance test (UAT / Gherkin) -> result | UC-001 <- AT-001 <- TR-AT-001 |
+| System requirement (L1) | System test (ST) | DATA-L1-001 <- ST-001 |
+| ECU SW requirement (L2) | Integration test (IT) | DATA-L2-002 <- IT-002 |
+| Unit / component (L3) | Unit test (UT) | DidResolver <- UT-013 |
+| Constraint | Review, static analysis, process audit | MISRA C / ISO 14229 conformance / ASIL D process |
+| Non-functional (some) | Measurement, code review | Memory limit / threading model |
+| Higher-level requirement | Transitive coverage (backed by child verification) | L0 is indirectly assured by verification of its child L1 group |
