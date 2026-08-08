@@ -494,7 +494,7 @@ DOC-ARCH  2.1  図
 DOC-ARCH  3.1  表
 DOC-USECASES  1  表
 DOC-USECASES  2.1  コード,表
-DOC-USECASES  3.1  表
+DOC-USECASES  3.1  コード,表
 DOC-UPPER  2.1  表
 DOC-UPPER  2.2.1  コード,表
 DOC-LOWER  6.1  図,数式,コード,表
@@ -626,7 +626,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":55,"json":5,"markdown":3,"mermaid":6,"python":4,"text":72}
+{"bash":55,"json":5,"markdown":3,"mermaid":6,"python":4,"text":73}
 ```
 
 `mermaid` もここに出る。 図もコードフェンスだからである。
