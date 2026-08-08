@@ -11,3 +11,4 @@ date	sd_version	step	symptom	workaround	where
 2026-08-08	0.27.1	export-sdoc	Expected 'MID' or 'UID' or ... at the second line of a wrapped value	a wrapped .md field value is written without >>> / <<<; patched the .sdoc original instead of converting	sd-sovd-automotive-*
 2026-08-08	0.27.1	export-json	a paragraph after a node's last field silently joined that field's value	promoted the heading-like paragraph to a section; --- and HTML comments do not separate	08-architecture.md
 2026-08-08	0.27.1	export-html	Inline strong start-string without end-string	RST needs a space or punctuation after the closing **; a Japanese particle butted against it breaks only HTML	sd-sovd-automotive-ja
+2026-08-08	0.27.1	audit	prose explaining `![alt](path)` was counted as a real attachment	drop fenced blocks and inline code spans before scanning	sdoc-patterns

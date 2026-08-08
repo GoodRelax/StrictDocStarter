@@ -71,5 +71,5 @@ def create_config() -> ProjectConfig:
             "TREE_MAP_SCREEN",
         ],
         include_source_paths=["_assets/**"],
-        exclude_doc_paths=["queries/**"],
+        exclude_doc_paths=["queries/README.md"],
     )

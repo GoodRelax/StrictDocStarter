@@ -82,12 +82,26 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as
 report "broken table row" "$TMP/table"
 
 # 3. An attachment that never reached the output 404s in the browser.
+#    Both notations are read: Markdown's ](path) and RST's ".. image::" /
+#    ".. figure::". A check that only knew the Markdown form reported 0 rows on
+#    a deliberately broken .sdoc copy naming two missing images (measured).
+#    Fenced blocks and inline code spans are dropped first. Prose that explains
+#    the syntax - `![alt](path)` in 04-markdown-form.md - is not a reference,
+#    and counting it reported a missing attachment named "path" (measured).
 if [ -d "$HTMLDIR" ]; then
     jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
     | .DOCUMENTS[] | select(.UID | IN($s[]) | not)
     | recurse(.NODES[]?) | ((.STATEMENT? // "") | gsub("\r"; ""))
+    | split("\n")
+    | reduce .[] as $line ({open: 0, out: []};
+        ([$line | scan("^`{3,}")] | (.[0] // "") | length) as $w
+        | if $w > 0
+          then (if .open == 0 then .open = $w elif $w >= .open then .open = 0 else . end)
+          else (if .open == 0 then .out += [$line] else . end)
+          end)
+    | .out[] | gsub("`[^`]*`"; "")
     | ( (split("](") | .[1:][] | split(")")[0]),
-        (split("\n")[] | capture("^ *\\.\\. (?:image|figure):: +(?<p>[^ ]+) *$") | .p) )
+        (capture("^ *\\.\\. (?:image|figure):: +(?<p>[^ ]+) *$") | .p) )
     | select(startswith("http") or startswith("#") | not)' "$JSON" 2>/dev/null \
       | tr -d '\r' | sort -u \
       | while read -r p; do

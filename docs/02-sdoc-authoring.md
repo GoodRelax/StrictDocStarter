@@ -88,7 +88,7 @@ RELATIONS:
   VALUE: REQ-002
   ROLE: Verifies
 - TYPE: File
-  VALUE: _assets/flow-convert.md
+  VALUE: src/convert.c
 ```
 
 | 注意 | 内容 |
