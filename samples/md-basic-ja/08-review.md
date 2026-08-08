@@ -9,7 +9,7 @@
 **この一式は、 指摘を要求そのものに書く。** 指摘を別のノードとして起こし、
 関係で要求へ結ぶやり方もあるが、 採らない。 理由は 3 章にある。
 
-**★ レビューするのは要求だけではない。 ユースケースも同じ 3 項目を持つ**
+**レビューするのは要求だけではない。 ユースケースも同じ 3 項目を持つ**
 (`04-usecases.md`)。 `basic.sgra` は `REQUIREMENT` と `USE_CASE` の両方に宣言している。
 
 **ユースケースを飛ばしてはならない。** ユースケースは要求より上流にあるので、
@@ -78,20 +78,24 @@
 
 **Statement**: もし入力ファイルが利用者の指定した形式でないならば、 本ツールは、 変換を行わないこと。
 
-**REVIEW_COMMENT**: 壊れたファイルを渡されたときの扱いが決まっていなかった。
+**REVIEW_COMMENT**: 下位要求 SW-002 が、 変換を拒む条件を「検査する」という手順としてしか書いておらず、 どの入力を拒むのかを文の先頭から読み取れなかった。
 
-**REVIEW_ACTION**: SW-002 に読み取り失敗も検査の対象として足した。
+**REVIEW_ACTION**: SW-002 を、 条件から始まる形に書き直した。 拒む入力が文の先頭で分かる。
 ```
 
-**★ 段落として書く項目の順を変えてはならない。** `basic.sgra` が宣言した順と
+**段落として書く項目の順を変えてはならない。** `basic.sgra` が宣言した順と
 `.md` に書いた順が食い違うと、 export が次のように止まる。 **メタの塊の中の
 単一行の項目は順を入れ替えても通り、 StrictDoc が黙って文法の順へ並べ直す** (実測)。
 
 ```text
-Semantic error: Wrong field order for requirement: [UID, STATUS, TITLE, REVIEW_STATUS, ...]
+Semantic error: Wrong field order for requirement: [UID, STATUS, TITLE, REVIEW_STATUS, RATIONALE, STATEMENT].
+Hint: Problematic field: RATIONALE. Compare with the document grammar: [UID, STATUS, TITLE, REVIEW_STATUS, STATEMENT, RATIONALE, ...]
 ```
 
-**★ 綴りは文法のとおりに書く。** `**Review_comment**:` は
+**並びはエラーが読み上げてくれる。** 左が `.md` に書いた順、 `Hint:` の右が文法の順で
+ある。 上の例は `Rationale` を `Statement` の前に書いて止めたものである (実測)。
+
+**綴りは文法のとおりに書く。** `**Review_comment**:` は
 `Invalid requirement field` で落ちる。 大文字小文字を問わないのは
 `Statement` `Title` `Status` `Rationale` `Comment` `Level` `Tags` `Prefix`
 の 8 語だけである。
