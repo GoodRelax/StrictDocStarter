@@ -36,19 +36,21 @@ document.** This guide is no exception: it becomes one document, `DOC-AI-GUIDE`.
 | `06-lower.md` | 4 software requirements. They link up to the system requirements | `DOC-LOWER` |
 | `07-tests.md` | 4 test cases. They link up to the software requirements | `DOC-TESTS` |
 | `08-review.md` | How we review. A finding goes on the requirement itself | `DOC-REVIEW` (no requirements) |
+| `09-browser-guide.md` | The guide to driving StrictDoc from the browser | `DOC-BROWSER` (no requirements) |
+| `10-cowork-with-claude.md` | How to write alongside an AI | `DOC-COWORK` (no requirements) |
 | `_assets/note.md` | A terminology table. A link target | `DOC-NOTE` (no requirements) |
 | `_assets/fig-state.md` | One large figure. A link target | `DOC-FIG-STATE` (no requirements) |
 | `basic.sgra` | The grammar definition. You declare node types, fields and `Role` here | — |
 | `strictdoc_config.py` | The project settings | — |
 
 **The numbers give the reading order.** `00` and `01` are for an AI, `02` is for a human,
-`03` to `07` are the specification itself, and `08` tells you how the review runs.
-The files inside `_assets/` carry no number.
+`03` to `07` are the specification itself, and `08` to `10` cover the review, the browser
+and working alongside an AI. The files inside `_assets/` carry no number.
 
-**Example 1, further down, returns 11 documents.** They are every row of the table above
-that carries a UID. Seven of them - `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` /
-`DOC-ARCH` / `DOC-REVIEW` / `DOC-NOTE` / `DOC-FIG-STATE` - hold no requirements, so they
-never mix in when you count requirements.
+**Example 1, further down, returns 13 documents.** They are every row of the table above
+that carries a UID. Nine of them - `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` /
+`DOC-ARCH` / `DOC-REVIEW` / `DOC-BROWSER` / `DOC-COWORK` / `DOC-NOTE` / `DOC-FIG-STATE` -
+hold no requirements, so they never mix in when you count requirements.
 
 **This guide and `01-ai-queries.md` are themselves StrictDoc documents.**
 That is why every heading carries `**Type**: SECTION`. Without it StrictDoc reads the
@@ -1123,6 +1125,7 @@ DOC-AI-QUERIES  1 lines  keep it inline
 DOC-GUIDE  8 lines  keep it inline
 DOC-ARCH  7 lines  keep it inline
 DOC-LOWER  8 lines  keep it inline
+DOC-BROWSER  1 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
 
@@ -1374,9 +1377,10 @@ jq -r -f <query file>.jq <json>
 
 **A project sometimes mixes in a document that doubles as an explanation of the notation.**
 Such a document carries figures, formulas, code and tables to explain them, so it always skews
-an aggregate such as "how many figures does this set hold". **This worked example has four
+an aggregate such as "how many figures does this set hold". **This worked example has six
 explanatory documents** (`DOC-AI-GUIDE` = this guide, `DOC-AI-QUERIES`, `DOC-GUIDE`,
-`DOC-REVIEW`). **These four take up 82 of the 94 lines that example 13 prints** (measured).
+`DOC-REVIEW`, `DOC-BROWSER`, `DOC-COWORK`). **These six take up 113 of the 125 lines that
+example 13 prints** (measured).
 
 **A query finds those documents mechanically, as "a document that holds no node with a UID".**
 That means a document that holds nothing but free text and chapters.
@@ -1391,6 +1395,8 @@ DOC-AI-QUERIES  jq query collection - for AI
 DOC-GUIDE  Read this first
 DOC-ARCH  System structure
 DOC-REVIEW  How we review
+DOC-BROWSER  Driving StrictDoc from the browser
+DOC-COWORK  Working alongside Claude
 DOC-FIG-STATE  Large figure - conversion state machine
 DOC-NOTE  Terminology map
 ```

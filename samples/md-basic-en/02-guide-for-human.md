@@ -38,9 +38,9 @@ long time, `.sdoc` sits on the safer side.
 The files line up like this.
 
 **The numbers give the reading order.** `00` and `01` address an AI, `02`
-addresses a human, `03` to `07` hold the specification itself, and `08` tells you
-how the review runs. **The nine `.md` files here and the two under `_assets/` -
-eleven in all - become StrictDoc documents.**
+addresses a human, `03` to `07` hold the specification itself, and `08` to `10`
+cover the review, the browser and working alongside an AI. **The eleven `.md` files
+here and the two under `_assets/` - thirteen in all - become StrictDoc documents.**
 
 - `00-ai-guide.md` — **the guide you hand to an AI.** It compresses this document
   down to the writing rules and the way to query the JSON. A human does not have
@@ -58,6 +58,10 @@ eleven in all - become StrictDoc documents.**
   the system requirements
 - `07-tests.md` — 4 test cases. They link to the software requirements
 - `08-review.md` — **how the review runs.** A finding goes on the requirement itself
+- `09-browser-guide.md` — how to create, edit and read a specification from the
+  browser. A guide to the `strictdoc server` screens, with pictures
+- `10-cowork-with-claude.md` — how to make Claude Code write, query and review a
+  specification with the bundled `strictdoc-md` skill
 - `basic.sgra` — the grammar definition every document shares
 - `strictdoc_config.py` — the project configuration. **StrictDoc reads it only
   directly under this folder**
@@ -124,7 +128,7 @@ StrictDoc would render each line as a separate paragraph, and this mark prevents
 ```
 
 **We move `Grammar` into an external file so that it stays the same across documents.**
-Nine documents in this sample set read the same `basic.sgra`. That file declares four
+Eleven documents in this sample set read the same `basic.sgra`. That file declares four
 node types.
 
 - `SECTION` - a chapter. You can nest it

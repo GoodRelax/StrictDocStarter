@@ -20,8 +20,9 @@ What this worked example holds: system requirements `SYS-001..003` / software re
 the requirements themselves.
 **This document and `00-ai-guide.md` are documents too** (`DOC-AI-QUERIES` / `DOC-AI-GUIDE`).
 A document that explains the notation carries figures and code in bulk, so **always exclude
-one from a query that aggregates**. The four to exclude are `DOC-AI-GUIDE`,
-`DOC-AI-QUERIES`, `DOC-GUIDE` and `DOC-REVIEW` (measured with G27).
+one from a query that aggregates**. The six to exclude are `DOC-AI-GUIDE`,
+`DOC-AI-QUERIES`, `DOC-GUIDE`, `DOC-REVIEW`, `DOC-BROWSER` and `DOC-COWORK` (measured
+with G27).
 The one place that carries figures, math, code and tables together is the last chapter of
 `DOC-LOWER`, alongside `_assets/fig-state.md` (`DOC-FIG-STATE`).
 
@@ -49,15 +50,18 @@ DOC-ARCH  System structure
 DOC-LOWER  Software requirements
 DOC-TESTS  Test cases
 DOC-REVIEW  How we review
+DOC-BROWSER  Driving StrictDoc from the browser
+DOC-COWORK  Working alongside Claude
 DOC-FIG-STATE  Large figure - conversion state machine
 DOC-NOTE  Terminology map
 ```
 
-**The query prints 11 entries.** `DOC-AI-GUIDE` and `DOC-AI-QUERIES` are guides for AI,
+**The query prints 13 entries.** `DOC-AI-GUIDE` and `DOC-AI-QUERIES` are guides for AI,
 `DOC-GUIDE` is an explanatory document for humans, `DOC-ARCH` is the map of the system
-structure, `DOC-REVIEW` explains how the review runs, `DOC-NOTE` is the terminology table
+structure, `DOC-REVIEW` explains how the review runs, `DOC-BROWSER` is the guide to the
+browser, `DOC-COWORK` is how to write alongside an AI, `DOC-NOTE` is the terminology table
 in `_assets/note.md`, and `DOC-FIG-STATE` is the large figure in `_assets/fig-state.md`.
-**None of these 7 holds a requirement.** StrictDoc parses every `.md` file as a document
+**None of these 9 holds a requirement.** StrictDoc parses every `.md` file as a document
 no matter where the file sits.
 
 ### A2. Counts by node type
@@ -69,7 +73,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":11,"REQUIREMENT":7,"SECTION":100,"TEST_CASE":4,"TEXT":103,"USE_CASE":1}
+{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":142,"TEST_CASE":4,"TEXT":143,"USE_CASE":1}
 ```
 
 ### A3. The table of contents
@@ -558,6 +562,7 @@ DOC-AI-QUERIES  1 lines  keep it inline
 DOC-GUIDE  8 lines  keep it inline
 DOC-ARCH  7 lines  keep it inline
 DOC-LOWER  8 lines  keep it inline
+DOC-BROWSER  1 lines  keep it inline
 DOC-FIG-STATE  19 lines  move it out
 ```
 
@@ -616,7 +621,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":56,"json":5,"markdown":3,"mermaid":6,"python":4,"text":54}
+{"bash":56,"json":5,"markdown":3,"mermaid":6,"python":4,"text":76}
 ```
 
 **`mermaid` shows up here too.** A figure is a code fence as well.
