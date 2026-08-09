@@ -1,7 +1,6 @@
 # StrictDocStarter (日本語)
 
-**The English README is at [README.md](README.md).**
-*(このページは [README.md](README.md) の日本語版です。)*
+英語版は [README.md](README.md) にあります。
 
 **[StrictDoc](https://github.com/strictdoc-project/strictdoc) を Windows で一発で使い始めるためのクイックスタート。**
 ZIP を展開してダブルクリックするだけで、クリーンな Windows 11 PC から

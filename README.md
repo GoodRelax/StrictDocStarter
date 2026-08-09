@@ -1,7 +1,6 @@
 # StrictDocStarter
 
-**日本語の README は [README-ja.md](README-ja.md) にあります。**
-*(A Japanese translation of this page is available at [README-ja.md](README-ja.md).)*
+See [README-ja.md](README-ja.md) for Japanese.
 
 **One-click Windows quickstart for [StrictDoc](https://github.com/strictdoc-project/strictdoc).**
 Unzip, double-click, and go from a clean Windows 11 PC to browsing a real requirements
