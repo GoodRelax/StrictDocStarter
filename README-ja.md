@@ -14,7 +14,7 @@ Python もコマンドラインも手動設定も要りません。
 
 必要なものは **Windows 11** だけです。Git も Python も StrictDoc も setup が入れます。
 
-1. **[ZIP をダウンロード](https://github.com/GoodRelax/StrictDocStarter/archive/refs/heads/main.zip)** (約 9 MB)。
+1. **[ZIP をダウンロード](https://github.com/GoodRelax/StrictDocStarter/archive/refs/heads/main.zip)** (約 4 MB)。
 2. 右クリックして**すべて展開**を選びます。**`StrictDocStarter-main`** という名前の
    フォルダができます。デスクトップなど、好きな場所へ置いてください。
 3. **`setup-strictdoc.bat`** をダブルクリックし、Windows の確認画面を承認して、

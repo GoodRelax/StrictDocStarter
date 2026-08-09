@@ -15,7 +15,7 @@ No Python, no command line, no manual setup.
 
 You need **Windows 11**. Nothing else: setup installs Git, Python and StrictDoc itself.
 
-1. **[Download the ZIP](https://github.com/GoodRelax/StrictDocStarter/archive/refs/heads/main.zip)** — about 9 MB.
+1. **[Download the ZIP](https://github.com/GoodRelax/StrictDocStarter/archive/refs/heads/main.zip)** — about 4 MB.
 2. Right-click it and choose **Extract All**. You get a folder named
    **`StrictDocStarter-main`**. Put it where you like, for example on the Desktop.
 3. Double-click **`setup-strictdoc.bat`**, approve the Windows permission prompt, read
