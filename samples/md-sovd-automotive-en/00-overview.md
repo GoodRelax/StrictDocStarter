@@ -29,7 +29,7 @@ stops - is recorded separately -> [LINK: DOC-SOVD-NOTE-MD2SDOC]
 **Skip two documents when you run the audit.**
 
 ```bash
-sh claude-skills/strictdoc-md/scripts/audit.sh samples/md-sovd-automotive-en <output dir>    "DOC-SOVD-NOTE-MD2SDOC,DOC-SOVD-USECASES" "DOC-FIG-"
+sh claude-skills/strictdoc-md/scripts/audit.sh samples/md-sovd-automotive-en <output dir>    "DOC-SOVD-NOTE-MD2SDOC,DOC-SOVD-USECASES"
 ```
 
 `DOC-SOVD-NOTE-MD2SDOC` explains notation, so it carries notation in bulk to do so.

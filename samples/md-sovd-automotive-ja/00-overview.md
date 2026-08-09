@@ -27,7 +27,7 @@ Requirements → Architecture) を、 StrictDoc のカスタム文法と L0→L3
 **監査を回すときは 2 文書を除くこと。**
 
 ```bash
-sh claude-skills/strictdoc-md/scripts/audit.sh samples/md-sovd-automotive-ja <出力先>    "DOC-SOVD-NOTE-MD2SDOC,DOC-SOVD-USECASES" "DOC-FIG-"
+sh claude-skills/strictdoc-md/scripts/audit.sh samples/md-sovd-automotive-ja <出力先>    "DOC-SOVD-NOTE-MD2SDOC,DOC-SOVD-USECASES"
 ```
 
 `DOC-SOVD-NOTE-MD2SDOC` は記法を説明する文書であり、 説明のために記法そのものを

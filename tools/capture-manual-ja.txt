@@ -15,3 +15,7 @@ new_title = 例
 new_statement = 例。
 document_title = 例 - 新しい文書
 document_path = 11-example.md
+
+# browser-28 presses this tile, so it has to be the title of a document that
+# really exists in samples/md-basic-ja.
+tree_map_tile = jq クエリ集 — AI 向け
