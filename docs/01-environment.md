@@ -36,7 +36,7 @@ StrictDoc を動かすための **環境を作る (Phase 0)** → **最小の `.
 6. Phase A〜E が順に実行される (放置可)
 7. サマリ表示 → **Enter** で閉じる
 
-ファイル構成と各サブコマンドの説明は [`../README.md`](../README.md) を参照。
+ファイル構成と各サブコマンドの説明は [`04-starter-guide-ja.md`](04-starter-guide-ja.md) を参照。
 
 #### StrictDocStarter が実行する内容
 
@@ -100,7 +100,7 @@ jq --version
 | `setup.config.json` が `C:\Windows\System32\` に作成される | UAC 後の CWD が System32、`Get-Location` で取得していた | 上記 CWD 正規化で解消 |
 | `winget install` 直後の同セッションで新コマンドが見えない | 環境変数 PATH が起動時のスナップショットで固定 | 各 winget 後に `Update-PathFromRegistry` で Machine + User の PATH を再読み込み |
 
-詳細は [`../README.md`](../README.md) のトラブルシュート節と、`gather-logs.bat` で取得できる `diagnostics.txt` を参照。
+さらに詳しく調べるには、`gather-logs.bat` で取得できる `diagnostics.txt` を参照。
 
 ### 検証
 

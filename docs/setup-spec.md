@@ -354,7 +354,8 @@ StrictDocStarter/                     # GitHub リポジトリのルート (Stri
 ├── setup.config.json                     # ユーザ生成 (gitignore)
 ├── env-report.json                       # check 結果 (gitignore)
 ├── setup.log                           # 実行ログ (gitignore)
-└── README.md                             # 使い方
+├── README.md                             # 入口 (英語)。 使い始めるまで
+└── README-ja.md                          # 入口 (日本語)。 詳細は docs/04-starter-guide{,-ja}.md
 ```
 
 ### 3.4 Domain Model
@@ -730,7 +731,7 @@ Feature: StrictDocStarter - StrictDoc Environment Setup
   },
 
   "strictdoc": {
-    "_comment": "StrictDoc pip version spec (FR-330). 'latest' (default) installs the newest release. For reproducibility pin it with a PEP 440 specifier: '==0.27.1', '~=0.27.0', '>=0.27,<0.28'. A bare version like '0.27.1' is read as '=='. The bundled samples assume strictdoc 0.27 or newer; the version this repository was verified against is recorded in README.md. This value is applied on FIRST install (FR-331), by 'setup-strictdoc.bat upgrade' (FR-334), and by 'auto', which reconciles an already-installed StrictDoc with this setting after you confirm the plan (FR-335). A pin that already matches is reported as [SKIP] and never calls pip.",
+    "_comment": "StrictDoc pip version spec (FR-330). 'latest' (default) installs the newest release. For reproducibility pin it with a PEP 440 specifier: '==0.27.1', '~=0.27.0', '>=0.27,<0.28'. A bare version like '0.27.1' is read as '=='. The bundled samples assume strictdoc 0.27 or newer; the version this repository was verified against is recorded in docs/04-starter-guide.md. This value is applied on FIRST install (FR-331), by 'setup-strictdoc.bat upgrade' (FR-334), and by 'auto', which reconciles an already-installed StrictDoc with this setting after you confirm the plan (FR-335). A pin that already matches is reported as [SKIP] and never calls pip.",
     "version": "latest"
   },
 
@@ -864,6 +865,7 @@ Choose (1-3) [default: 1]:
 | `01-environment.md` (ユーザ手順) | 日本語 OK |
 | `README.md` (リポジトリトップ) | **英語**。 冒頭から `README-ja.md` へ誘導する (D-9w で分割) |
 | `README-ja.md` (リポジトリトップ) | 日本語。 `README.md` と同じ節構成を保つ |
+| `04-starter-guide.md` / `-ja.md` | 前者が英語、 後者が日本語。 README から出した詳細。 節構成を揃える |
 
 ### 4.7 Error Handling
 
@@ -985,7 +987,7 @@ Choose (1-3) [default: 1]:
 |---|---|---|
 | FR-330 | Ubiquitous | `setup.config.json` に `strictdoc.version` フィールドを設けること (`python.version` と対称)。 既定値は `"latest"`。 PEP 440 のバージョン指定子 (`~=0.23.0` / `==0.23.1` / `>=0.23,<0.24`) または `latest` を受け付ける |
 | FR-331 | When | install Phase C (**旧 FR-306 を改訂**) は `strictdoc.version` を解釈してインストールすること: `latest` ならば `pip install strictdoc`、 それ以外 (指定子) ならば `pip install "strictdoc<spec>"` を実行する。 指定子は pip に渡す前に簡易 validate (先頭が `~=`/`==`/`>=`/`<=`/`!=`/`<`/`>` または数字) すること |
-| FR-332 | Ubiquitous | **動作確認済みの strictdoc バージョンを `README.md` に明記**すること (**strictdoc 0.27.1 を検証し README へ記録済**)。 **同梱サンプルとドキュメントは 0.27 以降を前提とし、 `MATHJAX` / `MERMAID` を `strictdoc_config.py` に列挙しない** (0.27 では既定で有効、 列挙すると DEPRECATION 警告)。 0.27 未満に固定した場合は図と数式が描画されない旨も README に注記 |
+| FR-332 | Ubiquitous | **動作確認済みの strictdoc バージョンを `docs/04-starter-guide.md` に明記**すること (**strictdoc 0.27.1 を検証し記録済**。 D-9w で `README.md` から同ガイドへ移した)。 **同梱サンプルとドキュメントは 0.27 以降を前提とし、 `MATHJAX` / `MERMAID` を `strictdoc_config.py` に列挙しない** (0.27 では既定で有効、 列挙すると DEPRECATION 警告)。 0.27 未満に固定した場合は図と数式が描画されない旨も README に注記 |
 | FR-333 | Optional | doctor/health-check (将来) を設ける場合、 インストール済み strictdoc 版がテスト済み版/範囲外なら `[WARN]` を出すこと (O-1 連動) |
 
 **FR-333 の実現方法 (v1.2):** 専用の doctor コマンドは設けず、 **`check` サブコマンドが担う**。 `env-report.json` に `strictdoc` ブロック (`installed` / `verified_version` / `matches_verified`) と `existing_tools.strictdoc` を書き、 画面にも 1 行出す。 **`[WARN]` は出さない** — 既定インストールは `latest` を取りに行くため「検証済み版と違う」 のは既定動作であって異常ではない。 両方の版を示し、 差分の所在 (`docs/02-sdoc-authoring.md` §9) と変更手段 (`upgrade`) を案内するにとどめる。

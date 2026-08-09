@@ -412,7 +412,8 @@ function Install-VSCodeExtensions {
 }
 
 # FR-332: the strictdoc version this repository has been verified against.
-# Kept in sync with the "Verified StrictDoc version" section of README.md.
+# Kept in sync with the "Verified StrictDoc version" section of
+# docs/04-starter-guide.md (it lived in README.md until that page was split out).
 # Used for reporting only -- nothing refuses to run on a different version.
 $script:StrictDocVerifiedVersion = "0.27.1"
 
@@ -965,7 +966,7 @@ function Invoke-Upgrade {
     Write-Host "  Installed now  : $before"
     Write-Host "  Configured spec: $spec"
     Write-Host "  Will run       : pip install --upgrade $target"
-    Write-Host "  Verified by    : README.md records $script:StrictDocVerifiedVersion"
+    Write-Host "  Verified by    : docs/04-starter-guide.md records $script:StrictDocVerifiedVersion"
     Write-Host ""
     Write-Host "  To go back afterwards: pip install `"strictdoc==$before`""
     Write-Host ""
