@@ -102,7 +102,7 @@ RELATIONS:
 
 足したフィールドは JSON にそのまま出る。**機械で引きたいものは、必ずノードのフィールドにする**（理由は §7）。
 
-`patterns.sgra` を書き、各文書の先頭で読み込む。
+`basic.sgra` を書き、各文書の先頭で読み込む。
 
 ```
 [GRAMMAR]
@@ -131,7 +131,7 @@ ELEMENTS:
 TITLE: ...
 
 [GRAMMAR]
-IMPORT_FROM_FILE: patterns.sgra
+IMPORT_FROM_FILE: basic.sgra
 ```
 
 `TYPE` に使えるのは `String` / `SingleChoice(...)` / `MultipleChoice(...)` / `Tag`。`- TAG: <名前>` を足せば**新しいノード型**を作れる（例: `[FINDING]`）。
@@ -164,7 +164,7 @@ IMPORT_FROM_FILE: patterns.sgra
 
 `.. list-table::` などの reStructuredText もそのまま使える。
 
-> **図を別文書に出す動機は「人が読みやすいこと」であって「JSON が軽くなること」ではない。** `samples/md-sovd-automotive-ja/` で実測したところ、Mermaid 15 ブロックは JSON 全体 623,085 バイトのうち **8,807 バイト（1.4 %）** に過ぎなかった（`export` が書いた JSON の中の Mermaid フェンスを数えた値）。この比は記法に依らないので `.sdoc` でも同じ結論になる。画像はもともと JSON に入らない。
+> **図を別文書に出す動機は「人が読みやすいこと」であって「JSON が軽くなること」ではない。** `samples/md-sovd-automotive-ja/` で実測したところ、Mermaid 15 ブロックは JSON 全体の **1.4 %** に過ぎなかった（`export` が書いた JSON の中の Mermaid フェンスを数えた値）。この比は記法に依らないので `.sdoc` でも同じ結論になる。画像はもともと JSON に入らない。
 
 ## 6. Markdown 形式（experimental）
 
@@ -183,7 +183,7 @@ Semantic error: Markdown parsing error: the document must start with an H1 headi
 ```markdown
 # 文書タイトル
 
-**Grammar**: patterns.sgra \
+**Grammar**: basic.sgra \
 **UID**: DOC-1 \
 **Version**: 1.0
 
@@ -205,7 +205,7 @@ Semantic error: Markdown parsing error: the document must start with an H1 headi
 | 暗黙の `STATEMENT` | 見出し直下の地の文は `Statement` として扱われる |
 | 行末の `\` | 他の Markdown ビューアでメタ行をひと塊に見せるためのもの。StrictDoc の解析には**不要** |
 | ノード型の指定 | `**Type**: FINDING`。`**Type**: SECTION` は強制的に節にする |
-| 文法 | `**Grammar**: patterns.sgra` または `**Grammar**: patterns.gra.md` |
+| 文法 | `**Grammar**: basic.sgra` または `**Grammar**: basic.gra.md` |
 
 `.gra.md` の書き方（0.27.1 で確認）:
 
@@ -232,8 +232,8 @@ Semantic error: Markdown parsing error: the document must start with an H1 headi
 | 2 | **フィールドを宣言順と違う順に書かない**（§2） |
 | 3 | **関係で `ROLE` を `VALUE` より先に書かない**（§3） |
 | 4 | **文書レベルのメタデータに、機械で引きたい値を置かない。** `DATE:` と `METADATA:` ブロックは `.sdoc` / `.md` には往復するが **JSON にはまったく出ない**（`json_generator.py` が書くのは `UID` / `VERSION` / `CLASSIFICATION` / `PREFIX` / `ROOT` だけ）。作成日・作成者・承認者を引きたいならノードのフィールドにする |
-| 5 | **JSON を「小さくなるもの」と考えない。** `strictdoc export --formats=json` は `json.dumps(..., indent=4)` で書くため、非 ASCII が `\uXXXX` に展開され 4 スペースで整形される。`sd-basic-ja` では **`.sdoc` の 3.49 倍**（トークン数）になった。JSON の利点は小ささではなく、**クエリで答えだけを取り出せること**である（[`03-sdoc-json-queries.md`](03-sdoc-json-queries.md)） |
-| 6 | **JSON を辿る目的で `--included-documents` を付けない。** `DOCUMENT_FROM_FILE` で取り込んだ文書が**独立した文書としても重複**し、同じ UID が 2 か所に現れる |
+| 5 | **JSON を「小さくなるもの」と考えない。** `strictdoc export --formats=json` は `json.dumps(..., indent=4)` で書くため、非 ASCII が `\uXXXX` に展開され 4 スペースで整形される。`sd-basic-ja` では **`.sdoc` の約 3.5 倍**（トークン数）になった。JSON の利点は小ささではなく、**クエリで答えだけを取り出せること**である（[`03-sdoc-json-queries.md`](03-sdoc-json-queries.md)） |
+| 6 | **JSON を辿る目的で `--included-documents` を付けない。** `DOCUMENT_FROM_FILE` で取り込んだ文書が**独立した文書としても重複**して JSON に入る（`sd-basic-ja` の実測で約 3 % 増える）。取り込む文書が UID を持つ場合は、その UID が 2 か所に現れる |
 | 7 | **カスタム文法を使ったまま `--formats=markdown` の往復に頼らない**（§8） |
 | 8 | **JSON から取り込めると思わない。** 取り込めるのは ReqIF と Excel だけで、**JSON は出力専用**である |
 

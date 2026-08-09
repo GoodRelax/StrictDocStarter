@@ -86,7 +86,7 @@ report "broken table row" "$TMP/table"
 #    ".. figure::". A check that only knew the Markdown form reported 0 rows on
 #    a deliberately broken .sdoc copy naming two missing images (measured).
 #    Fenced blocks and inline code spans are dropped first. Prose that explains
-#    the syntax - `![alt](path)` in 04-markdown-form.md - is not a reference,
+#    the syntax - a bare `![alt](path)` in prose - is not a reference,
 #    and counting it reported a missing attachment named "path" (measured).
 #    This check ignores $SKIP on purpose. Dropping fences and code spans is
 #    enough to silence the documents that only explain notation, and skipping
