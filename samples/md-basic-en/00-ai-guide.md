@@ -1407,7 +1407,7 @@ A project sometimes mixes in a document that doubles as an explanation of the no
 Such a document carries figures, formulas, code and tables to explain them, so it always skews
 an aggregate such as "how many figures does this set hold". This worked example has six
 explanatory documents (`DOC-AI-GUIDE` = this guide, `DOC-AI-QUERIES`, `DOC-GUIDE`,
-`DOC-REVIEW`, `DOC-BROWSER`, `DOC-COWORK`). These six take up 113 of the 125 lines that
+`DOC-REVIEW`, `DOC-BROWSER`, `DOC-COWORK`). These six take up 113 of the 126 lines that
 example 13 prints (measured).
 
 A query finds those documents mechanically, as "a document that holds no node with a UID".

@@ -631,11 +631,14 @@ jq . out/json/index.json > readable.json
 `.` narrows nothing, so not one character of the content changes. Only the
 notation changes, and the file gets smaller.
 
-| File | Bytes | vs the `.md` set (143,587 bytes) |
-|---|---:|---:|
-| `index.json` (as written) | 244,103 | 1.70 |
-| after `jq .` | 209,198 | 1.46 |
-| after `jq -c .` | 167,892 | 1.17 |
+| File | vs the `.md` set |
+|---|---:|
+| `index.json` (as written) | about 1.8 times |
+| after `jq .` | about 1.5 times |
+| after `jq -c .` | about 1.2 times |
+
+We give ratios because a byte count moves with the line ending, CRLF or LF, so a
+reader cannot reproduce it. A ratio barely feels that difference.
 
 A Japanese character such as `検` drops from 6 bytes back to the 3 bytes of UTF-8,
 and the indent drops from 4 spaces to 2. `-c` strips the indent and the newlines

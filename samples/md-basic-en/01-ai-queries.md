@@ -11,7 +11,7 @@ from `samples/md-basic-en`, and we checked each output. `<json>` means `<output 
 
 The `DOC-*` and `SW-*` names in this document belong to this worked example.
 `00-ai-guide.md` collects the substitutions for another project in a table under
-"What to replace when you use this in another project".
+"What to substitute when you use this guide on another project".
 **You do not need to rewrite the shape of a query.** Each query takes the values that
 depend on this worked example from outside through `--arg`.
 
