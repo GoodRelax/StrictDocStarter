@@ -3,6 +3,6 @@
 
   この形は cmd.exe では動きますが、 PowerShell では壊れます。
   PowerShell は引用符の中の二重引用符を落とすため、 jq が
-  「FINDING/0 is not defined」と言って止まります。
+  「Open/0 is not defined」と言って止まります。
 
   だから手順 2 のファイル渡しのほうが安全です。

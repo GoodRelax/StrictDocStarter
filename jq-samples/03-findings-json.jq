@@ -10,7 +10,7 @@
 # single array. Without it the values are printed one after another and the
 # output is not a JSON array.
 #
-# map({UID, SEVERITY, RESOLUTION, TITLE}) keeps only those four fields. Delete
-# that line to get every field of every finding.
-[ .DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE == "FINDING") ]
-| map({UID, SEVERITY, RESOLUTION, TITLE})
+# map({...}) keeps only those four fields. Delete that line to get every field
+# of every reviewed node.
+[ .DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS) ]
+| map({UID, REVIEW_STATUS, REVIEW_COMMENT, TITLE})

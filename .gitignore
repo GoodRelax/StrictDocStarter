@@ -15,8 +15,11 @@ in-private-work/
 # --- StrictDoc generated HTML / cache (strictdoc server / export) ---
 output/
 
-# --- JSON exported by try-json-query-ja.bat (regenerated on every run) ---
+# --- JSON exported by try-json-query-{en,ja}.bat (regenerated on every run) ---
 exported-json/
+
+# --- GitHub Pages build (.github/workflows/publish-samples.yml, CI-only) ---
+site/
 
 # --- Python bytecode / cache / temp execution files ---
 __pycache__/

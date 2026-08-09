@@ -41,7 +41,12 @@ FENCE_OPEN = re.compile(r"^ {0,4}(`{3,})bash\s*$")
 PLACEHOLDER = re.compile("<[^\\s\\d<>()|&;'\"$`][^<>()|&;'\"$`]{0,60}>")
 COMMAND_TIMEOUT_SECONDS = 120
 
-DEFAULT_SOURCE = pathlib.Path("samples/md-basic-ja")
+# The fallback for a document that does not sit inside a sample of its own -
+# the packaged skill's queries.md is the case that matters. That file is
+# English and its queries search for English words, and claude-skills/README.md
+# records samples/md-basic-en as the worked example every one of them was
+# measured against. md-basic-en is also the default project (D-9w).
+DEFAULT_SOURCE = pathlib.Path("samples/md-basic-en")
 KEEP = ["03-usecases.md", "04-upper.md", "05-architecture.md", "06-lower.md",
         "07-tests.md", "basic.sgra", "strictdoc_config.py",
         "strictdoc-theme.css"]
@@ -60,6 +65,26 @@ EXPECTED_EMPTY = [
      "one, so no fixture can hold it - the query's own comment says zero is "
      "normal"),
 ]
+
+
+def default_sample_for(files):
+    """The sample the document being checked belongs to.
+
+    B7 and B8 of 01-ai-queries.md search for a literal word - "convert" in the
+    English set, the same idea written in Japanese in the other. Build the
+    fixture from the wrong language and those two queries correctly match
+    nothing, which reads exactly like a dead query and is not one. Defaulting
+    to the document's own folder removes a false FAIL that costs a reader an
+    afternoon.
+
+    The folder has to carry the whole set the fixture is assembled from, so a
+    document living somewhere else still falls back to the original default.
+    """
+    folder = pathlib.Path(files[0]).parent
+    if all((folder / name).is_file() for name in KEEP):
+        if all((folder / "_assets" / name).is_file() for name in ASSETS):
+            return folder
+    return DEFAULT_SOURCE
 
 
 def commands_in(path):
@@ -136,14 +161,19 @@ def main():
     parser = argparse.ArgumentParser(
         description="Run every jq query against a fixture built to make them hit.")
     parser.add_argument("files", nargs="+")
-    parser.add_argument("--sample", default=str(DEFAULT_SOURCE),
+    parser.add_argument("--sample", default=None,
                         help="the sample whose specification body the "
-                             "fixture is built from")
+                             "fixture is built from (by default the folder "
+                             "the first document sits in, so an English "
+                             "document is not checked against a Japanese "
+                             "fixture)")
     parser.add_argument("--fixture", help="where to build the fixture "
                                           "(a temporary folder by default)")
     parser.add_argument("--keep", action="store_true",
                         help="leave the fixture and its export behind")
     args = parser.parse_args()
+    if args.sample is None:
+        args.sample = str(default_sample_for(args.files))
 
     for stream in (sys.stdout, sys.stderr):
         stream.reconfigure(errors="replace")

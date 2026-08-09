@@ -51,7 +51,7 @@ strictdoc-md/
     traps.md            what breaks silently, and how to log a surprise
     queries.md          every jq query the guide teaches, with its measured output
   scripts/
-    audit.sh            the five checks StrictDoc does not perform
+    audit.sh            the four checks StrictDoc does not perform, plus a wording report
 ```
 
 `samples/md-basic-en` is the worked example every query in the skill ran

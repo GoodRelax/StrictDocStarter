@@ -5,11 +5,12 @@
 # This file is written entirely in English ASCII. Nothing here depends on the
 # console code page, so it behaves the same in cmd.exe, PowerShell and Git Bash.
 #
-# FINDING is not a StrictDoc built-in node type. It is declared in basic.sgra,
-# which the md-basic-ja and sd-basic-ja samples share. Against a project with a
-# stock grammar this filter returns nothing at all -- that is expected.
+# REVIEW_STATUS is not a StrictDoc built-in field. It is declared in basic.sgra,
+# which the md-basic and sd-basic samples share, and these samples carry it on
+# the requirement itself rather than on a separate finding node. Against a
+# project with a stock grammar this filter returns nothing -- that is expected.
 #
-# Drop the RESOLUTION test to list every finding, open or not.
+# Change "Open" to "Fixed" or "WontFix" to list what someone already dealt with.
 .DOCUMENTS[] | recurse(.NODES[]?)
-| select(._NODE_TYPE == "FINDING" and .RESOLUTION == "Open")
-| .UID + "  " + .SEVERITY + "  " + .TITLE
+| select(.REVIEW_STATUS == "Open")
+| .UID + "  " + .REVIEW_STATUS + "  " + .TITLE

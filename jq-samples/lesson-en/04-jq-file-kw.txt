@@ -1,0 +1,6 @@
+  Now put the word you are searching for inside the .jq file.
+
+  jq reads a file as UTF-8, so a filter kept in a file does not care what the
+  console code page happens to be set to.
+
+  The contents of 04-keyword-en.jq are shown next, then run.

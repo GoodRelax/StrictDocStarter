@@ -1,0 +1,7 @@
+  This is the basic shape. Put the filter in a file and pass it with -f.
+  A file behaves the same in cmd.exe, PowerShell and Git Bash.
+
+  The contents of 01-open-findings-en.jq are shown next, then run.
+  REVIEW_STATUS comes from basic.sgra, the grammar this sample shares with
+  sd-basic-en. These samples carry it on the requirement itself, so a review
+  finding is a field on the thing reviewed rather than a node of its own.

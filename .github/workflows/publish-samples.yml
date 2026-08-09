@@ -1,0 +1,102 @@
+# Publish the four Markdown sample specifications to GitHub Pages.
+#
+# Nothing generated is committed. 'output/' is git-ignored on purpose, and a
+# committed build would put roughly 100 MB into the history on every rebuild.
+# This job builds on a runner and hands the result straight to Pages, so the
+# repository stays clean and the published pages cannot go stale.
+#
+# BEFORE THE FIRST RUN someone has to switch Pages on by hand:
+#   Settings -> Pages -> Build and deployment -> Source: GitHub Actions
+# Until then this workflow fails at the deploy step with a 404.
+
+name: Publish sample specifications
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'samples/**'
+      - '.github/workflows/publish-samples.yml'
+      - '.github/pages/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deployment finish rather than cancelling it half way.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # Pinned rather than 'latest'. Every measured number in these samples was
+      # taken on 0.27.1, and README records that version as the verified one, so
+      # the published pages should be the ones those numbers describe.
+      - name: Install StrictDoc
+        run: pip install "strictdoc==0.27.1"
+
+      - name: Export each sample as its own project
+        run: |
+          set -euo pipefail
+          # One export per project, never one export over samples/.
+          # The ja and en editions deliberately share their UIDs (DOC-UPPER,
+          # SYS-001, ...) so the two can be read side by side. Pointing
+          # strictdoc at the parent folder makes it one project, and it then
+          # refuses the duplicate UIDs and stops the whole export.
+          mkdir -p site
+          for s in md-basic-en md-basic-ja md-sovd-automotive-en md-sovd-automotive-ja; do
+            echo "::group::$s"
+            strictdoc export "samples/$s" \
+              --formats=html \
+              --output-dir "build/$s" \
+              --no-parallelization
+            # strictdoc writes <output-dir>/html/. Lift that to site/<name>/ so
+            # the published URL is /<name>/ and not /<name>/html/.
+            mv "build/$s/html" "site/$s"
+            echo "::endgroup::"
+          done
+
+      - name: Add the landing page
+        # StrictDoc builds one site per project, so the page that ties the four
+        # together has to be written by hand.
+        run: cp .github/pages/index.html site/index.html
+
+      - name: Report what will be published
+        run: |
+          set -euo pipefail
+          du -sh site
+          # Each export carries its own copy of _static (about 12 MB). Sharing
+          # one copy would mean rewriting the relative links inside every page,
+          # and those relative links are exactly what lets the site work from a
+          # subpath such as /StrictDocStarter/. The duplication is the cheaper
+          # of the two risks.
+          du -sh site/*/_static | sed 's/^/  /'
+          test -f site/index.html
+          for s in md-basic-en md-basic-ja md-sovd-automotive-en md-sovd-automotive-ja; do
+            test -f "site/$s/index.html" || { echo "missing site/$s/index.html"; exit 1; }
+          done
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,9 +1,10 @@
 # jq-samples/
 
-`try-json-query-ja.bat` が使う jq のフィルタ置き場です。手で走らせることもできます。
+`try-json-query-en.bat` と `try-json-query-ja.bat` が使う jq のフィルタ置き場です。
+手で走らせることもできます。
 
 ```bat
-strictdoc export samples\md-basic-ja --formats=json --output-dir exported-json
+strictdoc export samples\md-basic-en --formats=json --output-dir exported-json
 jq -r -f jq-samples\01-open-findings-en.jq exported-json\json\index.json
 ```
 
@@ -11,7 +12,13 @@ jq -r -f jq-samples\01-open-findings-en.jq exported-json\json\index.json
 |---|---|---|
 | `01-open-findings-en.jq` | 未対処のレビュー指摘を 1 行ずつ | 英語 |
 | `02-keyword-ja.jq` | 「変換」を含む要求 | 日本語 |
-| `03-findings-json.jq` | レビュー指摘を JSON の配列で | 英語 |
+| `03-findings-json.jq` | レビュー済みのノードを JSON の配列で | 英語 |
+| `04-keyword-en.jq` | `convert` を含む要求 | 英語 |
+
+各手順の説明文は `lesson-en/` と `lesson-ja/` の `.txt` に置いてあります。
+`.bat` は `type` で表示するだけです。日本語版がそうせざるを得ないのは、cmd.exe が
+バッチのバイト列を OEM コードページで解析し、UTF-8 の日本語行を途中で切って
+コマンドとして実行してしまうためです。英語版も同じ形にそろえてあります。
 
 ## 覚えておくこと
 
@@ -30,10 +37,14 @@ cmd.exe の既定 (cp932) では**エラーも出ずに 0 件**になります�
 
 ## 自分のプロジェクトで使うとき
 
-`FINDING` は StrictDoc の標準のノード型ではありません。`samples/md-basic-ja` と
-`samples/sd-basic-ja` が共有する `basic.sgra` が宣言しているものです。素の文法の
+`REVIEW_STATUS` は StrictDoc の標準のフィールドではありません。`md-basic-*` と
+`sd-basic-*` が共有する `basic.sgra` が宣言しているものです。素の文法の
 プロジェクトに `01` や `03` を当てると、エラーではなく**結果が 0 件**になります。
 
-さらに 7 本の実例が [`docs/03-sdoc-json-queries.md`](../docs/03-sdoc-json-queries.md)
+なおこのサンプル群は、レビュー指摘を専用のノードではなく**要求そのものの欄**として
+持たせています。`FINDING` のような独自のノード型を立てる書き方もでき、その説明は
+`08-review.md` にありますが、同梱サンプルはどれもその型を宣言していません。
+
+さらに 5 本の実例が [`docs/03-sdoc-json-queries.md`](../docs/03-sdoc-json-queries.md)
 にあります。解説は [`samples/md-basic-ja/02-guide-for-human.md`](../samples/md-basic-ja/02-guide-for-human.md)
 の「JSON で引く」の章です。

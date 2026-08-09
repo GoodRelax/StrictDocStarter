@@ -1,0 +1,8 @@
+  Note that even the smallest of the three is larger than the specification it
+  came from. JSON does not earn its place by being small. It earns it because
+  you can pull one answer out of it without reading the whole set.
+
+  Add your own filters to jq-samples as you write them.
+  The full explanation is in the "Querying through JSON" chapter of
+  samples\md-basic-en\02-guide-for-human.md.
+  Five more worked examples are in docs\03-sdoc-json-queries.md (Japanese).

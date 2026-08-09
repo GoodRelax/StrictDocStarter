@@ -1,0 +1,11 @@
+  StrictDoc calls json.dumps with its defaults, so non-ASCII text inside
+  index.json is escaped as \uXXXX. No StrictDoc setting changes this. An
+  all-English specification never shows it. The moment one accented name, one
+  degree sign or one Japanese title lands in the file, it does.
+
+  It stays invisible for as long as you query with jq. It matters only when you
+  hand the JSON file itself to a person or to another program, and one pass
+  through jq repairs it -- and makes the file smaller while it is at it.
+
+  Do not run this redirect in PowerShell. PowerShell's > writes UTF-16, which
+  produces a file jq cannot read back.

@@ -1,0 +1,7 @@
+  You can write the same filter straight into the batch file instead of keeping
+  it in a file, as long as you escape every double quote as \".
+
+  That form runs in cmd.exe but breaks in PowerShell. PowerShell drops the
+  inner double quotes, so jq stops with "Open/0 is not defined".
+
+  This is why passing a file, as in step 2, is the safer habit.

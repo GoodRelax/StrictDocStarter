@@ -29,6 +29,7 @@ tree in your browser — no manual Python or command-line setup.
 | `setup-strictdoc.bat` | One-time setup (admin): installs the StrictDoc toolchain + developer tools, and can optionally clone a repo. Shows a plan, then asks once. Fully configurable via `setup.config.json` — see [What setup installs](#what-setup-installs). | Double-click → UAC → type `yes` |
 | `launch-strictdoc.bat` | Daily use: **drag a folder (or a `.sdoc` file) onto it** to open it in your browser — or double-click to be prompted. One window per document. | Drag-and-drop or double-click |
 | `change-color-mode.bat` | Switches the generated pages between **auto / light / dark**. Default is `auto`, which follows the Windows light/dark setting. | Double-click |
+| `try-json-query-en.bat`, `try-json-query-ja.bat` | A guided 7-step trial of querying a specification as JSON with `jq`: each step explains itself, waits for Enter, then runs the command it just showed. Drop a project folder on it, or double-click to use the bundled `md-basic-en` / `md-basic-ja`. | Drag-and-drop or double-click |
 | `gather-logs.bat` | Collects logs + a diagnostics report into a ZIP for troubleshooting | Double-click |
 
 ## Quick start
@@ -45,7 +46,7 @@ tree in your browser — no manual Python or command-line setup.
    It installs the toolchain (~15–30 min, mostly download time). See
    [What setup installs](#what-setup-installs).
 3. **Drag your requirements folder onto `launch-strictdoc.bat`** — or just double-click it to
-   open the bundled SOVD sample. It opens the StrictDoc server in its own window and your
+   open the bundled `md-basic-en` sample. It opens the StrictDoc server in its own window and your
    browser at `http://127.0.0.1:5111/`. (See [Opening your documents](#opening-your-documents).)
 
 That's it — from ZIP to browsing requirements.
@@ -140,20 +141,70 @@ no and it will not ask again until a newer version ships.
 
 ## Bundled samples
 
-Every sample comes as a pair holding **the same content in the two notations**: `md-` is
-written in Markdown, `sd-` in `.sdoc` (RST). Same grammar, same UIDs, same requirement
-sentences — only the body notation differs, so the two folders can be read side by side.
+**You can read the four Markdown samples in your browser without installing anything:
+<https://goodrelax.github.io/StrictDocStarter/>.** They are rebuilt from this repository
+every time a sample changes.
+
+Every sample comes as a pair: `md-` is written in Markdown, `sd-` in `.sdoc` (RST). The two
+share **the requirement core** — same grammar, same `SYS-` / `SW-` / `TC-` identifiers, same
+requirement sentences — so you can put the folders side by side and compare the notations.
+**The `sd-` set is deliberately the smaller of the two** (6 documents against 11): it is
+there to show the notation, not to carry a second copy of every guide.
 
 | Path | What |
 |---|---|
-| `samples/md-sovd-automotive-ja/` | **Default.** A full Japanese SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) requirements spec — overview, stakeholder requirements, use cases, authentication, data access, DTC diagnostics, OTA software update, architecture, HTTP API, and test spec & results — with ASIL (ISO 26262) and A-SPICE layer custom fields, Mermaid diagrams, math, and traceability. Requirements are written in EARS and tests in Gherkin. Written entirely in `.md`. |
+| `samples/md-basic-en/` | **Default.** **The basics in `.md` — copy this folder to start your own spec.** The smallest thing that still works as a requirements spec: three upper requirements, four lower ones that point at them, four test cases that point at those, and review status carried on the requirements themselves — each group in its own file, so the traceability actually crosses file boundaries. One shared grammar file (`basic.sgra`) adds the `TEST_CASE` node type, the `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` fields and the `Verifies` relation role. Also covers prose that is deliberately *not* a requirement, linking to another `.md` file, an externalised Mermaid diagram, an SVG image, what an AI needs in order to read the set, and how to edit it from the browser and alongside Claude. English. |
+| `samples/md-basic-ja/` | The same spec in Japanese. |
+| `samples/sd-basic-en/`, `samples/sd-basic-ja/` | **The same spec written in `.sdoc`.** Adds what is specific to `.sdoc`: both RST table forms (`+---+` grid and `===` simple), `[DOCUMENT_FROM_FILE]` to pull a diagram fragment into the body (Markdown has no equivalent), and one document that declares `MARKUP: Markdown` to get pipe tables. |
+| `samples/md-sovd-automotive-ja/` | A full Japanese SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) requirements spec — overview, stakeholder requirements, use cases, authentication, data access, DTC diagnostics, OTA software update, architecture, HTTP API, and test spec & results — with ASIL (ISO 26262) and A-SPICE layer custom fields, Mermaid diagrams, math, and traceability. Requirements are written in EARS and tests in Gherkin. Written entirely in `.md`. |
 | `samples/md-sovd-automotive-en/` | The English version of the above. |
-| `samples/md-basic-ja/` | **The basics in `.md` — copy this folder to start your own spec.** The smallest thing that still works as a requirements spec: three upper requirements, four lower ones that point at them, four test cases that point at those, and review status carried on the requirements themselves — each group in its own file, so the traceability actually crosses file boundaries. One shared grammar file (`basic.sgra`) adds the `TEST_CASE` node type, the `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` fields and the `Verifies` relation role. Also covers prose that is deliberately *not* a requirement, linking to another `.md` file, an externalised Mermaid diagram, an SVG image, what an AI needs in order to read the set, and how to edit it from the browser and alongside Claude. Japanese. |
-| `samples/sd-basic-ja/` | **The same spec written in `.sdoc`.** Adds what is specific to `.sdoc`: both RST table forms (`+---+` grid and `===` simple), `[DOCUMENT_FROM_FILE]` to pull a diagram fragment into the body (Markdown has no equivalent), and one document that declares `MARKUP: Markdown` to get pipe tables. Japanese. |
-| `samples/md-basic-en/`, `samples/sd-basic-en/` | English versions of the two above. |
 
-To open the English sample, drag `samples\md-sovd-automotive-en` onto `launch-strictdoc.bat`
-(or set it as `project_path` in `server.config.json` to make it the default).
+`md-basic-en` is what `launch-strictdoc.bat` opens when you double-click it with nothing
+dropped. It is deliberately small — the point is that you can read all of it and then copy it.
+
+**For a full-size example, drag `samples\md-sovd-automotive-en` onto `launch-strictdoc.bat`**:
+122 requirements across 21 documents, with EARS requirement text, Gherkin tests, ASIL and
+A-SPICE custom fields, Mermaid diagrams, math, and traceability that runs requirement →
+design → API → test spec → result. To make a different folder the startup default, set
+`project_path` in `server.config.json`.
+
+## Writing specifications with Claude Code
+
+[`claude-skills/strictdoc-md/`](claude-skills/strictdoc-md) is a Claude Code **skill** that
+teaches Claude how to read, write, modify and audit Markdown StrictDoc specifications: the
+`.md` shape, the rules that stop an export, figures, math, code, tables and attachments,
+every `jq` query the cookbook teaches with its measured output, and an audit script for the
+failures StrictDoc does not report itself. Install it by copying the folder into your own
+`.claude/skills/`:
+
+```bash
+cp -r claude-skills/strictdoc-md ~/.claude/skills/
+```
+
+`samples/md-basic-en` is the worked example every query in the skill was measured against.
+[`claude-skills/README.md`](claude-skills/README.md) covers what is inside and how the
+published copy is kept in step with the one Claude Code actually reads.
+
+## Checking the samples and the docs
+
+`tools/` holds the scripts this repository runs on itself. They are maintenance tools, not
+part of the Windows quickstart — reach for them only if you are changing a sample or the
+documentation. Each one takes the JSON that `strictdoc export --formats=json` writes.
+
+| Tool | What it checks |
+|---|---|
+| [`tools/ascii-audit.py`](tools/ascii-audit.py) | code and configuration files hold no non-ASCII characters (NFR-010) |
+| [`tools/verify-jq.py`](tools/verify-jq.py) | every `jq` example embedded in a document still runs |
+| [`tools/check-jq-output.py`](tools/check-jq-output.py) | the output pasted under a query still matches what the query prints |
+| [`tools/run-query-fixture.py`](tools/run-query-fixture.py) | every query returns at least one row against a fixture built to hit them all |
+| [`tools/check-references.py`](tools/check-references.py) | quoted headings, `[LINK:]` targets and file names named in prose all resolve |
+| [`tools/check-symmetry.py`](tools/check-symmetry.py) | the `ja` and `en` editions carry the same documents, nodes and relations |
+| [`tools/check-numbers.py`](tools/check-numbers.py) | a count claimed in prose matches the output it sits beside |
+| [`tools/check-skill-sync.py`](tools/check-skill-sync.py) | the packaged skill still says what the worked example says |
+
+[`tools/capture-manual-ja.py`](tools/capture-manual-ja.py) and
+[`tools/capture-manual-en.py`](tools/capture-manual-en.py) re-take every screenshot in
+`09-browser-guide.md` against a running server, so the pictures cannot drift from the UI.
 
 ## Verified StrictDoc version
 
@@ -273,6 +324,7 @@ ZIP を展開してダブルクリックするだけで、クリーンな Window
 | `setup-strictdoc.bat` | 初回セットアップ (管理者): StrictDoc ツールチェイン + 開発ツールを導入し、任意でリポジトリを clone。プランを表示し一度だけ確認。`setup.config.json` で全設定可 (下記「setup が導入するもの」参照)。 | ダブルクリック → UAC → `yes` |
 | `launch-strictdoc.bat` | 日常利用: **フォルダ (または `.sdoc` ファイル) をドラッグ&ドロップ**して開く — もしくはダブルクリックで入力を促す。1 文書 = 1 ウィンドウ。 | D&D / ダブルクリック |
 | `change-color-mode.bat` | 生成ページの見た目を **auto / light / dark** で切り替え。既定は `auto` (Windows の設定に追従)。 | ダブルクリック |
+| `try-json-query-en.bat` / `try-json-query-ja.bat` | 仕様書を JSON にして `jq` で引く手順を 7 段でなぞる練習用。各手順が自分で説明し、Enter を待ってから、いま表示したコマンドを実行します。プロジェクトフォルダをドロップするか、ダブルクリックで同梱の `md-basic-en` / `md-basic-ja` を使います。 | D&D / ダブルクリック |
 | `gather-logs.bat` | 障害時のログ + 診断レポートを ZIP に回収 | ダブルクリック |
 
 ## クイックスタート
@@ -288,7 +340,7 @@ ZIP を展開してダブルクリックするだけで、クリーンな Window
 2. **`setup-strictdoc.bat`** をダブルクリック → UAC で許可 → プランを確認 → `yes` と入力。
    ツールチェインが導入されます (約 15〜30 分、大半はダウンロード時間)。下記「setup が導入するもの」参照。
 3. **要求フォルダを `launch-strictdoc.bat` にドラッグ&ドロップ** — もしくはダブルクリックで
-   同梱 SOVD サンプルを開きます。StrictDoc サーバが専用ウィンドウで起動し、ブラウザで
+   同梱の `md-basic-en` サンプルを開きます。StrictDoc サーバが専用ウィンドウで起動し、ブラウザで
    `http://127.0.0.1:5111/` が開きます。(下記「ドキュメントを開く」参照)
 
 これで「ZIP 展開 → 要求閲覧」まで完結します。
@@ -395,20 +447,70 @@ StrictDoc 自身はダークモードを持たないため、これは**スタ�
 
 ## 同梱サンプル
 
-サンプルはすべて **同じ中身を 2 つの記法で持つ対**になっています。`md-` は Markdown、
-`sd-` は `.sdoc` (RST) で書いてあります。文法も UID も要求文も同じで、違うのは本文の
-記法だけなので、2 つのフォルダを並べて読み比べられます。
+**Markdown のサンプル 4 件は、何も入れずにブラウザで読めます:
+<https://goodrelax.github.io/StrictDocStarter/>。** サンプルを変更するたびに、
+このリポジトリから作り直します。
+
+サンプルはすべて対になっています。`md-` は Markdown、`sd-` は `.sdoc` (RST) で
+書いてあります。2 つは**要求の核**を共有しており、文法も `SYS-` / `SW-` / `TC-` の
+識別子も要求文も同じなので、フォルダを並べて記法を読み比べられます。
+**`sd-` のほうは意図して小さくしてあります** (文書 6 件に対して 11 件)。記法を
+見せるためのものであり、`md-` が持つ手引きをもう一部持つためのものではありません。
 
 | パス | 内容 |
 |---|---|
-| `samples/md-sovd-automotive-ja/` | **既定。** 日本語のフル SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) 要求仕様書 — 全体概要・ステークホルダ要求・ユースケース・認証・データアクセス・DTC 診断・OTA ソフトウェア更新・アーキテクチャ・HTTP API・テスト仕様/結果。ASIL (ISO 26262) と A-SPICE レイヤの custom field、Mermaid 図、数式、トレーサビリティ付き。要求は EARS、テストは Gherkin で書いてあり、本文は全部 `.md`。 |
+| `samples/md-basic-en/` | **既定。** **`.md` の基本 — 自分の仕様書はこのフォルダを丸ごと写して始める。** 要求仕様書として最低限成り立つ一式: 上位要求 3 件・それを指す下位要求 4 件・それを指すテストケース 4 件・要求そのものに載せたレビュー欄を**それぞれ別ファイル**に置き、トレーサビリティがファイルをまたぐようにしてある。共有の文法定義 (`basic.sgra`) が `TEST_CASE` のノード型と `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` のフィールド、`Verifies` の関係ロールを足す。ほかに、意図して要求にしない地の文・別の `.md` へのリンク・外出しした Mermaid 図・SVG 画像・AI に読ませるために要るもの・ブラウザでの編集と Claude との共同作業。英語。 |
+| `samples/md-basic-ja/` | 同じ仕様書の日本語版。 |
+| `samples/sd-basic-en/`、`samples/sd-basic-ja/` | **同じ仕様書を `.sdoc` で書いた版。** `.sdoc` 固有の内容を追加: RST の表 2 形式 (`+---+` grid と `===` simple)・図の断片を本文へ取り込む `[DOCUMENT_FROM_FILE]` (Markdown に相当物は無い)・パイプ表のために `MARKUP: Markdown` を宣言した文書 1 つ。 |
+| `samples/md-sovd-automotive-ja/` | 日本語のフル SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) 要求仕様書 — 全体概要・ステークホルダ要求・ユースケース・認証・データアクセス・DTC 診断・OTA ソフトウェア更新・アーキテクチャ・HTTP API・テスト仕様/結果。ASIL (ISO 26262) と A-SPICE レイヤの custom field、Mermaid 図、数式、トレーサビリティ付き。要求は EARS、テストは Gherkin で書いてあり、本文は全部 `.md`。 |
 | `samples/md-sovd-automotive-en/` | 上記の英語版。 |
-| `samples/md-basic-ja/` | **`.md` の基本 — 自分の仕様書はこのフォルダを丸ごと写して始める。** 要求仕様書として最低限成り立つ一式: 上位要求 3 件・それを指す下位要求 4 件・それを指すテストケース 4 件・要求そのものに載せたレビュー欄を**それぞれ別ファイル**に置き、トレーサビリティがファイルをまたぐようにしてある。共有の文法定義 (`basic.sgra`) が `TEST_CASE` のノード型と `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` のフィールド、`Verifies` の関係ロールを足す。ほかに、意図して要求にしない地の文・別の `.md` へのリンク・外出しした Mermaid 図・SVG 画像・AI に読ませるために要るもの・ブラウザでの編集と Claude との共同作業。 |
-| `samples/sd-basic-ja/` | **同じ仕様書を `.sdoc` で書いた版。** `.sdoc` 固有の内容を追加: RST の表 2 形式 (`+---+` grid と `===` simple)・図の断片を本文へ取り込む `[DOCUMENT_FROM_FILE]` (Markdown に相当物は無い)・パイプ表のために `MARKUP: Markdown` を宣言した文書 1 つ。 |
-| `samples/md-basic-en/`、`samples/sd-basic-en/` | 上記 2 つの英語版。 |
 
-英語版を開くには、`samples\md-sovd-automotive-en` を `launch-strictdoc.bat` にドラッグ&ドロップ
-してください (既定にするなら `server.config.json` の `project_path` を変更)。
+`md-basic-en` は、`launch-strictdoc.bat` を何もドロップせずにダブルクリックしたときに開く
+サンプルです。意図して小さくしてあります — 全部読み切ってから丸ごと写せることが狙いです。
+
+**本格的な例を見るには、`samples\md-sovd-automotive-en` を `launch-strictdoc.bat` に
+ドラッグ&ドロップしてください。** 21 文書・要求 122 件で、EARS の要求文、Gherkin のテスト、
+ASIL と A-SPICE の custom field、Mermaid 図、数式、そして要求 → 設計 → API → テスト仕様 →
+結果を辿るトレーサビリティが入っています。起動時の既定を別のフォルダにしたい場合は、
+`server.config.json` の `project_path` を変更してください。
+
+## Claude Code で仕様書を書く
+
+[`claude-skills/strictdoc-md/`](claude-skills/strictdoc-md) は、Markdown 版 StrictDoc
+仕様書の読み書き・修正・監査を Claude に教える Claude Code の**スキル**です。`.md` の形、
+export を止める規則、図・数式・コード・表・添付、クエリ集が教える `jq` クエリ全部と実測の
+出力、そして StrictDoc 自身が報告しない失敗を見つける監査スクリプトが入っています。
+自分の `.claude/skills/` にフォルダを写すと使えます。
+
+```bash
+cp -r claude-skills/strictdoc-md ~/.claude/skills/
+```
+
+スキルの中のクエリはすべて `samples/md-basic-en` に対して実測してあります。中身の一覧と、
+公開用の複製を Claude Code が実際に読む複製と揃えておく方法は
+[`claude-skills/README.md`](claude-skills/README.md) にあります。
+
+## サンプルとドキュメントを検査する
+
+`tools/` には、このリポジトリが自分自身に対して走らせるスクリプトが入っています。これらは
+保守用の道具であり、Windows クイックスタートの一部ではありません。サンプルかドキュメントを
+変更するときにだけ使ってください。どれも `strictdoc export --formats=json` が書く JSON を
+入力に取ります。
+
+| 道具 | 何を見るか |
+|---|---|
+| [`tools/ascii-audit.py`](tools/ascii-audit.py) | コードと設定ファイルが非 ASCII 文字を含まないこと (NFR-010) |
+| [`tools/verify-jq.py`](tools/verify-jq.py) | 文書に埋め込んだ `jq` の例が今も走ること |
+| [`tools/check-jq-output.py`](tools/check-jq-output.py) | クエリの下に貼った出力が、そのクエリが今出す内容と一致すること |
+| [`tools/run-query-fixture.py`](tools/run-query-fixture.py) | 全クエリにヒットするよう組んだ投入用データに対して、どのクエリも 1 行以上返すこと |
+| [`tools/check-references.py`](tools/check-references.py) | 引用した見出し・`[LINK:]` の宛先・地の文に書いたファイル名がすべて解決すること |
+| [`tools/check-symmetry.py`](tools/check-symmetry.py) | `ja` と `en` の版が同じ文書・ノード・関係を持つこと |
+| [`tools/check-numbers.py`](tools/check-numbers.py) | 地の文が主張する件数が、隣に貼ってある出力と合っていること |
+| [`tools/check-skill-sync.py`](tools/check-skill-sync.py) | 同梱スキルが実例と同じことを言い続けていること |
+
+[`tools/capture-manual-ja.py`](tools/capture-manual-ja.py) と
+[`tools/capture-manual-en.py`](tools/capture-manual-en.py) は、起動中のサーバに対して
+`09-browser-guide.md` の写真を撮り直します。画面と写真がずれないようにするためです。
 
 ## 動作確認済み StrictDoc バージョン
 
@@ -479,7 +581,7 @@ DEPRECATION 警告が出るためです。古い版ではこの指定が必要�
 
 - [`docs/01-environment.md`](docs/01-environment.md) — 環境構築の手順 (Phase 0 / Phase 1)
 - [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) — **`.sdoc` (と `.md`) の書き方。** 書き手 (人でも AI でも) が、要求 1 件ごとに公式ユーザーガイドを読み直さずに済むだけの最小限。記述はすべて strictdoc 0.27.1 で実行して確認済み
-- [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) — **JSON クエリ集。** `strictdoc export --formats=json` の出力に対する、コピーして実行できる `jq` クエリ 7 種と実際の出力
+- [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) — **JSON クエリ集。** `strictdoc export --formats=json` の出力に対する、コピーして実行できる `jq` クエリ 5 種と実際の出力
 - [`docs/setup-spec.md`](docs/setup-spec.md) — `setup-strictdoc` 仕様書 (要求・ADR)
 - [`docs/serve-spec.md`](docs/serve-spec.md) — `launch-strictdoc` 仕様書 (可視ウィンドウ方式)
 

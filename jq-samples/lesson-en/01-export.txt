@@ -1,0 +1,6 @@
+  You narrow the result AFTER the JSON exists.
+
+  StrictDoc has a query language of its own, but it does not reach the JSON.
+  --filter-nodes narrows the .sdoc and HTML output only; add it to
+  --formats=json and every node comes out anyway, with no error and no warning
+  (measured on 0.27.1). So "export it all, then query it" is the only route.

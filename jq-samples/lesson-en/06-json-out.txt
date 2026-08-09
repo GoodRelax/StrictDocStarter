@@ -1,0 +1,6 @@
+  Every command so far carried -r, which flattens the answer into lines a
+  person reads. Leave -r off and the answer stays JSON, which is what you want
+  when a program is going to read it.
+
+  The contents of 03-findings-json.jq are shown next, then run.
+  Notice the command has no -r on it.

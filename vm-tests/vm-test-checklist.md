@@ -31,7 +31,7 @@
    → 冒頭の `Baseline strictdoc: <版>` と末尾の `strictdoc: <版> (unchanged from baseline)` を必ず見る
 8. **手動 SC-015 (FR-209 abort)** の確認: 別途 `setup-strictdoc.bat` ダブルクリック → UAC → plan 表示 → **`no`** 入力 → `[WARN] Aborted -` 3 行 + `Config:` 行が表示されることを目視確認 → Enter
 9. **手動 SC-016 (upgrade)** を実施 — 自動テストが見られない対話部分
-10. **手動 SC-017 (サンプル目視)** を実施 — ランチャ経由で 3 サンプルを開く
+10. **手動 SC-017 (サンプル目視)** を実施 — ランチャ経由で 5 サンプルを開く
 11. **手動 SC-018 (サーバ実行中の pip 保護)** を実施 — FR-343a。 ホスト機で実際に壊れた経路
 12. **`vm-tests\gather-test-logs.bat`** ダブルクリック → エクスプローラ選択状態の ZIP を Ctrl+C → ホストの `TestResult/` に Ctrl+V
 
@@ -49,7 +49,7 @@
   **`(CHANGED - a scenario did not restore it)` が出たら FAIL 扱い** — シナリオ 8 の復元が効いていない
 - ステップ 8: abort guidance 3 行が表示される
 - ステップ 9: SC-016 の A〜I が全て期待どおり (**特に G と H — `no` で変わらず、 `yes` で最新版になること**)
-- ステップ 10: SC-017 で **3 サンプルとも DEPRECATION 警告が出ず**、 図と数式が描画される
+- ステップ 10: SC-017 で **5 サンプルとも DEPRECATION 警告が出ず**、 図と数式が描画される
 - ステップ 11: SC-018 で **サーバ窓が開いている間は Phase C が `[BLOCKED]`** になり、 pip が一切呼ばれない
 - ステップ 12: `StrictDocStarter-test-result-*.zip` に per-scenario log (11 件) + final setup.log + diagnostics.txt
 
@@ -210,10 +210,11 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 
 | # | 操作 | 期待 |
 |:-:|---|---|
-| **A** | `samples\md-basic-ja` をドラッグ | ブラウザに **13 文書** — 番号付きの 11 個 + `_assets/fig-state.md` の大きい図 + `_assets/note.md` の覚書。 **DEPRECATION 警告が出ないこと**。 `09-browser-guide` の写真 27 枚がすべて表示されること (枠だけ・壊れ画像アイコンなら NG)。 `06-lower` の Mermaid が図として描画されること |
-| **B** | `samples\md-sovd-automotive-ja` をドラッグ (**既定のサンプル**) | **DEPRECATION 警告が出ないこと**。 **21 文書** (本体 12 + `_assets/` の図 8 + 覚書 1) が描画され、 Mermaid 図と数式も出ること。 図の文書へは本文の `[LINK:]` からクリックで飛べること |
+| **A** | `samples\md-basic-en` をドラッグ (**既定のサンプル**) | ブラウザに **13 文書** — 番号付きの 11 個 + `_assets/fig-state.md` の大きい図 + `_assets/note.md` の覚書。 **DEPRECATION 警告が出ないこと**。 `09-browser-guide` の写真 27 枚がすべて表示されること (枠だけ・壊れ画像アイコンなら NG)。 `06-lower` の Mermaid が図として描画されること |
+| **B** | `samples\md-basic-ja` をドラッグ | A の日本語版。 期待は A と同じである (**13 文書**、 写真 27 枚) |
 | **C** | `samples\sd-basic-ja` をドラッグ | **B と同じ要求文 (`SYS-001` 〜 `SW-004` / `TC-001` 〜 `TC-004`) が、 `.sdoc` (RST) の記法で描画されること。** 記法の対照はこの一式で行う |
-| **D** | `samples\md-sovd-automotive-en` をドラッグ | 同上 (英語版) |
+| **D** | `samples\md-sovd-automotive-ja` をドラッグ | **DEPRECATION 警告が出ないこと**。 **21 文書** (本体 12 + `_assets/` の図 8 + 覚書 1) が描画され、 Mermaid 図と数式も出ること。 図の文書へは本文の `[LINK:]` からクリックで飛べること |
+| **E** | `samples\md-sovd-automotive-en` をドラッグ | D と同じである (英語版) |
 
 > **どのサンプルでも警告が出ないのが正しい状態になった。** `MATHJAX` / `MERMAID` の列挙を
 > 全サンプルの `strictdoc_config.py` から外したためである (0.27 では既定で有効)。

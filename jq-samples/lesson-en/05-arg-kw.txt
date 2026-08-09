@@ -1,0 +1,13 @@
+  Now pass the same word on the command line with --arg instead.
+  The result matches step 4.
+
+  For an ASCII word like this one both routes agree, and there is nothing here
+  you need to watch out for.
+
+  The trap waits for the day the word is not ASCII. On a default cmd.exe with
+  no chcp 65001, a non-ASCII --arg value reaches jq in the console code page
+  and the match returns 0 rows -- no error, no warning, just a wrong answer
+  that reads exactly like a real one. try-json-query-ja.bat shows it happening
+  with a Japanese word.
+
+  Keeping a non-ASCII search word inside the .jq file avoids the problem.
