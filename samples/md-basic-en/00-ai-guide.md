@@ -87,7 +87,7 @@ StrictDoc specification.
 
 - The prefix for the UID of a figure document - the audit query needs it to tell
   which figures you already moved out
-  ("Figures - move a figure past 15 lines into its own document")
+  ("Figures - a large figure goes into its own document")
 - Which documents you treat as explanatory - the queries that count notation need
   it in order to exclude them
   ("Pull only the part of the specification you need")
@@ -543,54 +543,68 @@ succeeded and produced the HTML we intended.
 StrictDoc bundles MathJax and Mermaid into the output folder (`_static/mathjax/tex-mml-chtml.js` /
 `_static/mermaid/mermaid.min.js`). StrictDoc makes no outside connection. You add nothing to the configuration.
 
-### Figures - move a figure past 15 lines into its own document
+### Figures - a large figure goes into its own document
 
 **Type**: SECTION
 
-This is the only rule.
+There is one purpose - to stop a large figure from cutting the body in half.
 
-| Contents of a ` ```mermaid ` fence | Where it goes |
+| Kind of figure | Guideline for moving it out |
 |---|---|
-| 15 lines or fewer | Write it in the body as it stands |
-| 16 lines or more | Put it in `_assets/fig-*.md` as its own document and send the reader there with `[LINK:]` |
+| Sequence diagram | 5 lifelines or more |
+| Class diagram | 5 classes or more |
+| Flowchart | no guideline |
 
-You count the lines exactly one way.
+Treat this table as a guideline, not a gate. The writer makes the final call.
 
-- Do not count the ` ```mermaid ` line or the closing ` ``` ` line
-- Count the declaration line, such as `flowchart LR` or `stateDiagram-v2`
-- Do not count blank lines
+A flowchart carries no guideline because we decided it carries none, not because we
+left it open. The width of a flowchart comes from the length of its longest chain,
+not from the number of nodes. Two figures in the `_assets/` of
+`md-sovd-automotive-en` prove it - both are `flowchart LR` and both hold 9 nodes,
+yet their natural widths are 554 px and 1438 px, nearly three times apart.
+`fig-usecase-map.md` only lines actors up against use cases in two columns and
+very nearly fits a 520 px body column as it stands; `fig-arch-context.md` holds a
+chain five deep and shrinks to 36 % (measured). No count predicts it, so we give
+you no count.
 
-The example below is 3 lines (15 or fewer, so the body is fine).
+A figure you move out becomes its own document in `_assets/fig-*.md`, and the body
+sends the reader there with `[LINK:]`. Example 14 counts the lifelines and the
+classes for you.
 
-````markdown
-```mermaid
-flowchart LR
-    A["Input"] --> B["Convert"]
+We do not cut by line count, because line count does not predict how large a figure
+draws. We measured the three figures this guide ships with.
 
-    B --> C["Output"]
-```
-````
+| Figure | Lines | Natural width | Size in a 520 px body column |
+|---|---:|---:|---:|
+| The flowchart in `06-lower.md` | 8 | 1608 px | 32 % |
+| The interaction figure in `05-architecture.md` | 8 | 868 px | 60 % |
+| The state machine in `_assets/fig-state.md` | 19 | 1118 px | 47 % |
 
-This count matches the query in example 14 exactly. The query drops blank
-lines as well. You can count by hand, or you can measure with the query after you write the
-figure. Both give the same number.
+Two figures of the same 8 lines split into 32 % and 60 %, and the 19-line figure
+landed between them. Line count does not even preserve the ordering. What counts is
+how many things sit side by side. Every lifeline you add to a sequence diagram, and
+every class you add to a class diagram, widens the figure by one more column.
 
-Even so, do not write toward exactly 15 lines. A figure always grows later.
-Either keep it clearly small, or move it out without hesitating.
+The width of the body column follows the width of the window (measured: 367 px at a
+1024 px window, 520 px at 1280 px, 836 px at 1920 px). The percentages above are
+against the 520 px column. The natural width does not depend on the window, so
+prefer that number when you measure again.
 
-We decide by line count because you can judge it without a tool while you write.
-What we really want to control is the burden on the reader, and we measured that as follows.
-Every token count in this guide comes from tiktoken's `o200k_base` encoding. Use the same
-counting method when you measure again.
+**Moving a figure into its own document does not make it one pixel larger.**
+StrictDoc shrinks a figure to the width of the body column, and that column is the
+same in a body document and in a document that holds nothing but the figure
+(measured: all three figures above met the same column width at every window width).
+What you buy by moving a figure out is an unbroken body, and nothing else. If the
+figure itself is unreadable, the only cure is to make the figure narrower.
+
+Line count does not predict what a figure costs to read either. The two bands below
+overlap, and the wider band is the cheaper one at its low end.
 
 | Content | tokens |
 |---|---:|
 | One paragraph of free text | 15-50 |
 | A 6-15 line Mermaid figure | 124-179 |
 | A 16-24 line Mermaid figure | 110-228 |
-
-Line count and token count do not track each other cleanly (one figure runs 114 tokens at
-17 lines, another runs 124 tokens at 6 lines). We still take the line count. When in doubt, move it out.
 
 We measured what you gain by moving a figure out as well. Against the cost of reading
 every `.md` in the set:
@@ -603,7 +617,9 @@ every `.md` in the set:
 
 As long as you pull requirements, the reader pays not one token for a figure you moved into its own document.
 Naming that one figure costs over three times what the whole requirement list costs.
-You name it by UID only when you need it. This is why we cut at 16 lines.
+You name it by UID only when you need it. The ratios in that table come from counts
+taken with tiktoken's `o200k_base` encoding. Use the same counting method when you
+measure again.
 
 How to build the separate document - StrictDoc parses a `.md` file as a document wherever it sits,
 so a file inside `_assets/` still needs an H1 and a `**UID**:` line.
@@ -1077,7 +1093,8 @@ DOC-USECASES  3.1  code,table
 DOC-UPPER  2.1  table
 DOC-UPPER  2.2.1  code,table
 DOC-ARCH  2.1  figure
-DOC-ARCH  3.1  table
+DOC-ARCH  3.1  figure
+DOC-ARCH  4.1  table
 DOC-LOWER  6.1  figure,math,code,table
 DOC-TESTS  1  code
 DOC-TESTS  2.1  code,table
@@ -1101,46 +1118,51 @@ every odd-numbered piece is fence content, so its first line is the language nam
 **Never decide by asking whether the whole node contains `mermaid`** - when a figure
 and code share one node, that test drops the code.
 
-14. Measure the line count of a figure. This form lines up every figure for you
-to look at.
+14. Count what sits side by side in a figure. This form lines up every figure for
+you to look at.
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
-| $doc + "  " + ($c | tostring) + " lines  " + (if $c > 15 then "move it out" else "keep it inline" end)' <json>
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) as $lines
+| ($lines[0] // "-") as $kind
+| ([$lines[] | select(test("^ *(participant|actor) "))] | length) as $l
+| ([$lines[] | select(test("^ *class "))] | length) as $c
+| $doc + "  " + $kind + "  lifelines " + ($l|tostring) + "  classes " + ($c|tostring)' <json>
 ````
 
 ```text
-DOC-AI-GUIDE  4 lines  keep it inline    ← these 10 rows are samples this document shows
-DOC-AI-GUIDE  6 lines  keep it inline
-DOC-AI-GUIDE  1 lines  keep it inline
-DOC-AI-GUIDE  3 lines  keep it inline
-DOC-AI-GUIDE  3 lines  keep it inline
-DOC-AI-GUIDE  1 lines  keep it inline
-DOC-AI-GUIDE  8 lines  keep it inline
-DOC-AI-GUIDE  1 lines  keep it inline
-DOC-AI-GUIDE  1 lines  keep it inline
-DOC-AI-GUIDE  1 lines  keep it inline
-DOC-AI-QUERIES  1 lines  keep it inline  ← the same
-DOC-AI-QUERIES  1 lines  keep it inline
-DOC-AI-QUERIES  1 lines  keep it inline
-DOC-GUIDE  8 lines  keep it inline
-DOC-ARCH  7 lines  keep it inline
-DOC-LOWER  8 lines  keep it inline
-DOC-BROWSER  1 lines  keep it inline
-DOC-FIG-STATE  19 lines  move it out
+DOC-AI-GUIDE   ` fence | passes | `<pre class="mermaid">` |  lifelines 0  classes 0
+DOC-AI-GUIDE  stateDiagram-v2  lifelines 0  classes 0
+DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
+DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
+DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
+DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
+DOC-AI-QUERIES  ")) | split("  lifelines 0  classes 0
+DOC-AI-QUERIES  ")) | split("  lifelines 0  classes 0
+DOC-AI-QUERIES  ")) | split("  lifelines 0  classes 0
+DOC-GUIDE  flowchart LR  lifelines 0  classes 0
+DOC-ARCH  flowchart LR  lifelines 0  classes 0
+DOC-ARCH  sequenceDiagram  lifelines 3  classes 0
+DOC-LOWER  flowchart LR  lifelines 0  classes 0
+DOC-BROWSER     lifelines 0  classes 0
+DOC-FIG-STATE  stateDiagram-v2  lifelines 0  classes 0
 ```
 
-The query returns 16 rows, and the list above is all of them. Only two are real
-figures, `DOC-LOWER` and `DOC-FIG-STATE`; the other 14 are samples an explanatory
-document carries. The query counts even those samples. This document writes, inside
-a ```` fence, a ```mermaid example, so each such piece comes out as a "figure" of 1 to
-8 lines. Only the next one, 14b, does real work - this one is for looking.
+The second column is the first line of the fence, so a real figure names its kind
+there - `flowchart LR`, `sequenceDiagram`, `stateDiagram-v2`. A row whose second
+column holds a piece of jq is not a figure at all: an explanatory document writes a
+fence marker and the language name inside the body of a query, and this query picks
+each of those up. Read the kind column and the fragments sort themselves out.
 
-14b. Print only the rule violations. 0 rows is the normal result. It skips the
-figures you already moved out (documents whose UID starts with `DOC-FIG-`), so
-one returned row means you have a fix to make.
+This query cannot count a sequence diagram that declares neither `participant`
+nor `actor`. Mermaid raises a lifeline from the arrows alone; this query reads
+strings out of the JSON and draws no such inference.
+
+14b. Print only the figures past the guideline. 0 rows is the normal result. It
+skips the figures you already moved out (documents whose UID starts with
+`DOC-FIG-`), so one returned row is an invitation to look, not a defect - the
+guideline is the writer's to overrule.
 
 Pass the UID prefix of the figure documents to `--arg figprefix`. In this worked
 example it is `DOC-FIG-`. **In the other project, pass their prefix. Do not rewrite
@@ -1148,10 +1170,13 @@ the body of the query.**
 
 ````bash
 jq -r --arg figprefix 'DOC-FIG-' '.DOCUMENTS[] | select(.UID | startswith($figprefix) | not) | .UID as $doc
-| recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
+| recurse(.NODES[]?) | select(.STATEMENT?) as $n | ($n.STATEMENT // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
-| select($c > 15) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($c | tostring) + " lines"' <json>
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) as $lines
+| ([$lines[] | select(test("^ *(participant|actor) "))] | length) as $l
+| ([$lines[] | select(test("^ *class "))] | length) as $c
+| select($l >= 5 or $c >= 5)
+| $doc + "  " + ($n.UID // $n._TOC // "-") + "  lifelines " + ($l|tostring) + "  classes " + ($c|tostring)' <json>
 ````
 
 15. Extract a whole figure definition. You name the document by its UID.
@@ -1435,8 +1460,8 @@ pull out its content.
 3. Open that `.md` and rewrite it. Watch out for the two traps of example 15 when you paste
 the text back (the blank lines around it, and the CRLF that jq on Windows emits).
 
-4. Measure the line count again when you touch a figure - example 14. When it reaches 16
-lines or more, follow "Figures - move a figure past 15 lines into its own document", move it out into `_assets/fig-*.md`, and leave a `[LINK:]` in its
+4. Count the side-by-side things again when you touch a figure - example 14. Once it passes
+the guideline, follow "Figures - a large figure goes into its own document", move it out into `_assets/fig-*.md`, and leave a `[LINK:]` in its
 old place.
 
 5. Fix the free text around a figure once you move that figure out of the body. A sentence

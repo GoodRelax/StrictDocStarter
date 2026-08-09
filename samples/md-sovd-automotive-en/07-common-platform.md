@@ -20,7 +20,7 @@ For the shared front matter (terminology, notation, the ASIL/CAL split), see
 
 **Component convergence diagram (function -> common platform)**
 
-**This figure runs past 15 lines, so it lives in its own document** -> [LINK: DOC-FIG-PLATFORM-SHARED]
+**This figure lives in its own document** -> [LINK: DOC-FIG-PLATFORM-SHARED]
 
 Note: TlsTerminator terminates the external communication of all functional
 domains, but because the TLS requirements are consolidated, as the representative,

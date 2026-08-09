@@ -139,7 +139,6 @@ sh claude-skills/strictdoc-md/scripts/audit.sh <specification> <output dir> <UID
 | `trailing dollar` | A paragraph or a cell ends in `$`. The HTML export stops |
 | `broken table row` | A row of a table is broken |
 | `attachment not published` | A referenced file never reached the output. An attachment left outside `_assets/` |
-| `oversized inline figure` | A figure embedded in the body is too large. It inflates what you hand an AI |
 | `review comment missing` | A finding with nothing in it. `REVIEW_STATUS` is `Open` / `Fixed` / `WontFix` but there is no `REVIEW_COMMENT` |
 | `wording candidates` | EARS shape, word order, passive voice, missing subject, negative form. These are candidates rather than violations, and a human and an AI decide |
 
@@ -255,13 +254,12 @@ turns only the ones worth fixing into a proposal.
 sh claude-skills/strictdoc-md/scripts/audit.sh <specification> <output dir> <UIDs to skip>
 ```
 
-Run it on this set and one of the six checks fires, with three candidates (measured).
+Run it on this set and one of the five checks fires, with three candidates (measured).
 
 ```text
   ok    trailing dollar              0
   ok    broken table row             0
   ok    attachment not published     0
-  ok    oversized inline figure      0
   ok    review comment missing       0
   FAIL  wording candidates           3
           DOC-UPPER  SYS-002  negative

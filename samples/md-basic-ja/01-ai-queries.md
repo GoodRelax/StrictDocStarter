@@ -69,7 +69,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":146,"TEST_CASE":4,"TEXT":147,"USE_CASE":1}
+{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":147,"TEST_CASE":4,"TEXT":148,"USE_CASE":1}
 ```
 
 ### A3. 目次
@@ -481,7 +481,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as
 ````
 
 ```text
-DOC-AI-GUIDE  5.2.1  図,コード,表
+DOC-AI-GUIDE  5.2.1  コード,表
 DOC-GUIDE  3.2.1  図,画像
 DOC-GUIDE  5.2.1  数式,コード,表
 DOC-USECASES  1  表
@@ -490,7 +490,8 @@ DOC-USECASES  3.1  コード,表
 DOC-UPPER  2.1  表
 DOC-UPPER  2.2.1  コード,表
 DOC-ARCH  2.1  図
-DOC-ARCH  3.1  表
+DOC-ARCH  3.1  図
+DOC-ARCH  4.1  表
 DOC-LOWER  6.1  図,数式,コード,表
 DOC-TESTS  1  コード,表
 DOC-TESTS  2.1  コード,表
@@ -498,10 +499,10 @@ DOC-FIG-STATE  1  図
 DOC-NOTE  1  表
 ```
 
-(全 127 行のうち代表を 15 行抜いた。115 行を 6 つの解説文書が占める — 本書・
+(全 128 行のうち代表を 16 行抜いた。115 行を 6 つの解説文書が占める — 本書・
 `00-ai-guide.md`・`02-guide-for-human.md`・`08-review.md`・`09-browser-guide.md`・
 `10-cowork-with-claude.md`。記法を説明する文書は記法を大量に抱えるためである。
-仕様書本体は 12 行しか出さない — `DOC-USECASES` 3 行、 `DOC-UPPER` 2 行、 `DOC-ARCH` 2 行、
+仕様書本体は 13 行しか出さない — `DOC-USECASES` 3 行、 `DOC-UPPER` 2 行、 `DOC-ARCH` 3 行、
 `DOC-LOWER`、 `DOC-TESTS` 2 行、 `DOC-FIG-STATE`、 `DOC-NOTE` がそれで、
 残る 3 行は解説文書から抜いた見本である)
 
@@ -536,54 +537,65 @@ stateDiagram-v2
 
 言語を変えれば同じ形でコードも取れる (G31)。
 
-### G29. 図の大きさを測る (「15 行を超えたら外に出す」の監査)
+### G29. 図の横に並ぶ数を測る (「大きい図は別文書にする」の目安)
 
 **Type**: SECTION
 
-このプロジェクトの規則は「Mermaid フェンスの中身が 16 行以上なら
-`_assets/fig-*.md` に独立した文書として出す」である。 守れているかを機械で確かめる。
+このプロジェクトの目安は「シーケンス図はライフラインが 5 つ以上、 クラス図はクラスが
+5 つ以上なら `_assets/fig-*.md` に独立した文書として出す」である。 フローチャートには
+目安を置かない。 下のクエリは合否を判定せず、 数を報告するだけである。 どちらに置くかは
+書き手が決める。
 
 まず全部の図を測る:
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
-| $doc + "  " + ($c | tostring) + " 行  " + (if $c > 15 then "外に出す" else "本文でよい" end)' <json>
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) as $lines
+| ($lines[0] // "-") as $kind
+| ([$lines[] | select(test("^ *(participant|actor) "))] | length) as $l
+| ([$lines[] | select(test("^ *class "))] | length) as $c
+| $doc + "  " + $kind + "  ライフライン " + ($l|tostring) + "  クラス " + ($c|tostring)' <json>
 ````
 
 ```text
-DOC-AI-GUIDE  4 行  本文でよい
-DOC-AI-GUIDE  6 行  本文でよい
-DOC-AI-GUIDE  1 行  本文でよい
-DOC-AI-GUIDE  3 行  本文でよい
-DOC-AI-GUIDE  3 行  本文でよい
-DOC-AI-QUERIES  1 行  本文でよい
-DOC-AI-QUERIES  1 行  本文でよい
-DOC-AI-QUERIES  1 行  本文でよい
-DOC-GUIDE  7 行  本文でよい
-DOC-ARCH  7 行  本文でよい
-DOC-LOWER  8 行  本文でよい
-DOC-BROWSER  1 行  本文でよい
-DOC-FIG-STATE  19 行  外に出す
+DOC-AI-GUIDE   ` フェンス | 通る | `<pre class="mermaid">` |  ライフライン 0  クラス 0
+DOC-AI-GUIDE  stateDiagram-v2  ライフライン 0  クラス 0
+DOC-AI-QUERIES  ")) | split("  ライフライン 0  クラス 0
+DOC-AI-QUERIES  ")) | split("  ライフライン 0  クラス 0
+DOC-AI-QUERIES  ")) | split("  ライフライン 0  クラス 0
+DOC-GUIDE  flowchart LR  ライフライン 0  クラス 0
+DOC-ARCH  flowchart LR  ライフライン 0  クラス 0
+DOC-ARCH  sequenceDiagram  ライフライン 3  クラス 0
+DOC-LOWER  flowchart LR  ライフライン 0  クラス 0
+DOC-BROWSER     ライフライン 0  クラス 0
+DOC-FIG-STATE  stateDiagram-v2  ライフライン 0  クラス 0
 ```
 
-全 13 行を出した。`1 行` の並びは図ではない。 解説文書はクエリの本文にフェンス記号と
-`mermaid` という言語名を並べて書いており、 このクエリはそれを図の断片として拾ってしまう。
-記法を説明する文書を測るときは、 この種の自己参照が必ず混ざる。
+図の種類はフェンスの 1 行目をそのまま出している。 種類の欄が jq の断片になっている行は
+図ではない。 解説文書はクエリの本文にフェンス記号と `mermaid` という言語名を並べて書いて
+おり、 このクエリはそれを図の断片として拾う。 記法を説明する文書を測るときは、 この種の
+自己参照が必ず混ざる。
 
-違反だけを出す形。`DOC-FIG-` で始まる文書は既に外に出したものなので除く。
+`participant` も `actor` も宣言していないシーケンス図を、 このクエリは数えられない。
+Mermaid は矢印だけからライフラインを起こせるが、 JSON の中の文字列を見るこのクエリは
+その推論をしない。 数えたい図には `participant` を書くこと。
+
+目安を超えたものだけを出す形。`DOC-FIG-` で始まる文書は既に外に出したものなので除く。
 0 行が正常である。
 
 ````bash
 jq -r --arg figprefix 'DOC-FIG-' '.DOCUMENTS[] | select(.UID | startswith($figprefix) | not) | .UID as $doc
-| recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
+| recurse(.NODES[]?) | select(.STATEMENT?) as $n | ($n.STATEMENT // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
-| select($c > 15) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($c | tostring) + " 行"' <json>
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) as $lines
+| ([$lines[] | select(test("^ *(participant|actor) "))] | length) as $l
+| ([$lines[] | select(test("^ *class "))] | length) as $c
+| select($l >= 5 or $c >= 5)
+| $doc + "  " + ($n.UID // $n._TOC // "-") + "  ライフライン " + ($l|tostring) + "  クラス " + ($c|tostring)' <json>
 ````
 
-このサンプルでは 0 件。
+このサンプルでは 0 件。 目安を超えた図はすべて `_assets/` に出してあるためである。
 
 ### G30. 数式を取り出す
 
@@ -755,7 +767,7 @@ UID を書いてあるだけのファイルは出ない。 上のクエリは `*
 
 3. その `.md` を直接編集する。 フェンスの中身を差し替える。
 
-4. 行数を測り直す。 16 行以上になったなら、 本文にあった図は
+4. 横に並ぶ数を測り直す。 目安を超えたなら、 本文にあった図は
 `_assets/fig-*.md` へ移し、 元の場所には `[LINK:]` を残す (G29)。
 
 5. 再度 export する。 StrictDoc は JSON を自動では更新しない。

@@ -147,12 +147,18 @@ strictdoc export <specification folder> --formats=html --output-dir <output dir>
 ```
 
 ```bash
-scripts/audit.sh <specification folder> <output dir> [skip-uids] [figure-prefix]
+scripts/audit.sh <specification folder> <output dir> [skip-uids]
 ```
 
-It checks the six things StrictDoc does not: the `$` trap, broken table rows,
-attachments that never reached the output, figures that outgrew the body, a
-review that says something is wrong without saying what, and requirement wording.
+It checks the five things StrictDoc does not: the `$` trap, broken table rows,
+attachments that never reached the output, a review that says something is wrong
+without saying what, and requirement wording.
+
+**Where a figure belongs is a guideline, not a check.** This script used to fail
+a fence past 15 lines; that check is gone, because the line count did not predict
+how large a figure draws (an 8-line flowchart shrank to 36 % of the body column,
+a 22-line one needed no shrinking at all - measured). Query G29 measures what does
+predict it and reports the numbers without passing judgement.
 
 `skip-uids` only reaches the checks that count notation. `attachment not
 published` ignores it and reads every document, because dropping fenced blocks

@@ -1,5 +1,5 @@
 #!/bin/sh
-# audit.sh <specification folder> <output dir> [skip-uids] [figure-prefix]
+# audit.sh <specification folder> <output dir> [skip-uids]
 #
 # Runs every check the strictdoc-md skill knows about against an exported
 # project. Zero rows on every check is a healthy project.
@@ -9,15 +9,13 @@
 #   strictdoc export <spec> --formats=html --output-dir <out>
 #
 # skip-uids     comma separated UIDs of documents that only explain notation
-# figure-prefix UID prefix that marks a figure document (default DOC-FIG-)
 
 SPEC="$1"
 OUT="$2"
 SKIP="${3:-}"
-FIGPREFIX="${4:-DOC-FIG-}"
 
 if [ -z "$SPEC" ] || [ -z "$OUT" ]; then
-    echo "usage: audit.sh <specification folder> <output dir> [skip-uids] [figure-prefix]" >&2
+    echo "usage: audit.sh <specification folder> <output dir> [skip-uids]" >&2
     exit 2
 fi
 
@@ -114,27 +112,25 @@ else
     printf '  skip  %-28s (no HTML export)\n' "attachment not published"
 fi
 
-# 4. A figure past 15 lines belongs in its own document.
-#    A document may carry no UID at all, so default it before startswith.
-#    Both notations are read. A .sdoc writes the same diagram as
-#    ".. raw:: html" + <pre class="mermaid">, and a check that only knew the
-#    Markdown fence reported 0 rows on a deliberately broken .sdoc copy holding
-#    a 16-line raw-html figure (measured).
-#    The raw-html arm requires a newline right after the opening tag. Without
-#    it, prose that merely quotes the tag inline - as the .sdoc overview does
-#    when it lists the notation - matched and reported a 46-line figure that
-#    does not exist (measured).
-jq -r --arg figprefix "$FIGPREFIX" '.DOCUMENTS[] | select((.UID // "") | startswith($figprefix) | not)
-| (.UID // .TITLE) as $doc
-| recurse(.NODES[]?) | select(.STATEMENT?) as $n | ($n.STATEMENT | gsub("\r"; ""))
-| ( (select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid")) | ltrimstr("mermaid")),
-    (split("<pre class=\"mermaid\">\n") | .[1:][] | split("</pre>")[0]) )
-| split("\n") | map(sub("^ +"; "")) | map(select(. != "")) | length as $c
-| select($c > 15) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($c | tostring) + " lines"' \
-  "$JSON" > "$TMP/figure"
-report "oversized inline figure" "$TMP/figure"
+# Where a figure belongs is a guideline, not a check.
+#
+# This script used to fail a project whose inline Mermaid fence ran past 15
+# lines. That check is gone, and it is not coming back as a lenient one.
+# Two reasons, both measured.
+#
+# The line count did not predict how large a figure draws: an 8-line flowchart
+# came out at 1430 px and shrank to 36 % of the body column, while a 22-line
+# flowchart came out at 520 px and needed no shrinking at all. What predicts
+# the width is how many things sit side by side - lifelines in a sequence
+# diagram, boxes in a class diagram - and for a flowchart nothing predicts it,
+# because the width follows the longest chain rather than any count.
+#
+# The remaining guideline (5 lifelines, 5 classes, nothing for a flowchart) is
+# a guideline the writer overrules on purpose. A tool that enforces a guideline
+# has turned it into a rule. Query G29 of the skill measures the same counts and
+# reports them without passing judgement; use that when you want the numbers.
 
-# 5. A review that says something is wrong but never says what.
+# 4. A review that says something is wrong but never says what.
 #    Only projects whose grammar declares REVIEW_STATUS have anything to find
 #    here; everywhere else the query simply returns nothing.
 jq -r '.DOCUMENTS[] | (.UID // .TITLE) as $doc
@@ -145,7 +141,7 @@ jq -r '.DOCUMENTS[] | (.UID // .TITLE) as $doc
   "$JSON" > "$TMP/review"
 report "review comment missing" "$TMP/review"
 
-# 6. Wording candidates in specification prose.
+# 5. Wording candidates in specification prose.
 #
 #    These are CANDIDATES, not violations. A shell script cannot tell an
 #    intended passive from an accidental one, and it cannot tell a transitive
@@ -158,14 +154,14 @@ report "review comment missing" "$TMP/review"
 #    every level - needs, requirements, design - not just top-level ones.
 #
 #    Two passes run, one per language, and each one carries the gate the other
-#    lacks: 6a reads only statements that contain a Japanese character, 6b only
+#    lacks: 5a reads only statements that contain a Japanese character, 5b only
 #    statements that contain none. Drop either gate and one language's patterns
 #    fire on the other language's requirements - a plain English project has no
 #    「こと。」 and no 「は」, so the Japanese pass flagged 2 of its 2
 #    requirements (measured) - and since this script exits with the number of
 #    failing checks, gating a build on it would then fail forever.
 #
-#    6a. Japanese.
+#    5a. Japanese.
 #    ears-shape     the sentence does not end in the shall-form 「こと。」
 #    ears-order     a condition marker sits after the subject; EARS puts the
 #                   condition first. 「時」 counts only when a particle follows
@@ -192,7 +188,7 @@ jq -r --arg skip "$SKIP" '($skip | split(",")) as $s
 | $doc + "  " + $n.UID + "  " + ($why | join(","))' \
   "$JSON" > "$TMP/wording"
 
-#    6b. English.
+#    5b. English.
 #    ears-shape     the sentence carries no "shall". English EARS states a
 #                   requirement with that one word
 #    ears-order     a sentence opens with something other than WHEN / WHILE /

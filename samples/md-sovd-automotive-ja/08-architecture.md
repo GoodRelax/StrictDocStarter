@@ -46,7 +46,7 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 **代表スライス: 認証付き DID 読み出し (CA 層で色分け)**
 
-**この図は 15 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CONTEXT]
+**この図は別文書にしてある** → [LINK: DOC-FIG-ARCH-CONTEXT]
 
 以下、 全ドメインの主要コンポーネントを **単一責務 (1 文)** で定義し、 要求へトレースする。
 個々の振る舞い (受入/単体の判定) は 10 のシナリオを参照。
@@ -345,15 +345,15 @@ src/
 
 **クラス図 1: 認証付き DID 読み出し** (各クラスのメソッド = コンポーネントのインタフェース)
 
-**この図は 15 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-CORE]
+**この図は別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-CORE]
 
 **クラス図 2: DTC 読み出し / クリア**
 
-**この図は 15 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-ADAPTER]
+**この図は別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-ADAPTER]
 
 **クラス図 3: OTA 更新**
 
-**この図は 15 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-FRAMEWORK]
+**この図は別文書にしてある** → [LINK: DOC-FIG-ARCH-CLASS-FRAMEWORK]
 
 ## 3.5 振る舞い (Behavior)
 
@@ -361,7 +361,7 @@ src/
 
 **システムシーケンス (代表スライス: 認証付き DID 読み出し、 端から端まで)**
 
-**この図は 15 行を超えるので別文書にしてある** → [LINK: DOC-FIG-ARCH-AUTH-SEQUENCE]
+**この図は別文書にしてある** → [LINK: DOC-FIG-ARCH-AUTH-SEQUENCE]
 
 他ドメインの代表シーケンス (認証フロー・DTC ガード・OTA 状態機械) は各要求文書
 (03/05/06) に置く。

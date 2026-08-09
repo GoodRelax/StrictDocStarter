@@ -29,7 +29,7 @@ it, so the lines run requirement -> UC (derivation) and acceptance test -> UC
 
 **Use case diagram (actors and use cases)**
 
-**This figure runs past 15 lines, so it lives in its own document** -> [LINK: DOC-FIG-USECASE-MAP]
+**This figure lives in its own document** -> [LINK: DOC-FIG-USECASE-MAP]
 
 UC-001 is the "authentication / authorization foundation" that all other UCs presuppose.
 Attacker threats (spoofing, etc.) are defended in UC-001, and the OEM backend supplies the

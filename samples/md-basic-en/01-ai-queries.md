@@ -73,7 +73,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":142,"TEST_CASE":4,"TEXT":143,"USE_CASE":1}
+{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":143,"TEST_CASE":4,"TEXT":144,"USE_CASE":1}
 ```
 
 ### A3. The table of contents
@@ -480,10 +480,16 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as
 ````
 
 ```text
-DOC-AI-GUIDE  5.2.1  figure,code,table
+DOC-AI-GUIDE  5.2.1  code,table
 DOC-GUIDE  3.2.1  figure,image
+DOC-USECASES  1  table
+DOC-USECASES  2.1  code,table
+DOC-USECASES  3.1  code,table
 DOC-UPPER  2.1  table
 DOC-UPPER  2.2.1  code,table
+DOC-ARCH  2.1  figure
+DOC-ARCH  3.1  figure
+DOC-ARCH  4.1  table
 DOC-LOWER  6.1  figure,math,code,table
 DOC-TESTS  1  code
 DOC-TESTS  2.1  code,table
@@ -491,12 +497,13 @@ DOC-FIG-STATE  1  figure
 DOC-NOTE  1  table
 ```
 
-(9 representative rows out of 91. Four explanatory documents take up 84 of them -
-this document, `00-ai-guide.md`, `02-guide-for-human.md` and `08-review.md`. A document
-that explains the notation carries that notation in bulk, so pass `--arg skip` as
-`00-ai-guide.md` example 13 does when you count. The specification itself produces only
-7 rows - the `DOC-UPPER`, `DOC-LOWER`, `DOC-TESTS`, `DOC-FIG-STATE` and `DOC-NOTE` rows
-above - and the other 2 rows above are samples lifted out of an explanatory document)
+(15 representative rows out of 126. Six explanatory documents take up 113 of them -
+this document, `00-ai-guide.md`, `02-guide-for-human.md`, `08-review.md`,
+`09-browser-guide.md` and `10-cowork-with-claude.md`. A document that explains the
+notation carries that notation in bulk, so pass `--arg skip` as example 13 does when you
+count. The specification itself produces only 13 rows - the `DOC-USECASES`, `DOC-UPPER`,
+`DOC-ARCH`, `DOC-LOWER`, `DOC-TESTS`, `DOC-FIG-STATE` and `DOC-NOTE` rows above - and the
+other 2 rows above are samples lifted out of an explanatory document)
 
 The second column shows the `UID` when the node has one and the `_TOC` hierarchical number
 when it does not. Free text carries no UID, so use `_TOC` to point at a position.
@@ -529,60 +536,73 @@ content verbatim, so this hands you the whole Mermaid definition.
 
 Change the language name and the same shape pulls out code as well (G31).
 
-### G29. Measure figure size (auditing "move it out past 15 lines")
+### G29. Count what sits side by side in a figure
 
 **Type**: SECTION
 
-This project's rule says: when a Mermaid fence holds 16 lines or more, move it into
-`_assets/fig-*.md` as its own document. Check by machine whether the specification obeys it.
+This project's guideline says: at 5 lifelines or more in a sequence diagram, or 5
+classes or more in a class diagram, move the figure into `_assets/fig-*.md` as its own
+document. A flowchart carries no guideline. The query below passes no judgement; it
+reports the counts, and the writer decides where the figure goes.
 
 First, measure every figure:
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
-| $doc + "  " + ($c | tostring) + " lines  " + (if $c > 15 then "move it out" else "keep it inline" end)' <json>
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) as $lines
+| ($lines[0] // "-") as $kind
+| ([$lines[] | select(test("^ *(participant|actor) "))] | length) as $l
+| ([$lines[] | select(test("^ *class "))] | length) as $c
+| $doc + "  " + $kind + "  lifelines " + ($l|tostring) + "  classes " + ($c|tostring)' <json>
 ````
 
 ```text
-DOC-AI-GUIDE  4 lines  keep it inline
-DOC-AI-GUIDE  6 lines  keep it inline
-DOC-AI-GUIDE  1 lines  keep it inline
-DOC-AI-GUIDE  3 lines  keep it inline
-DOC-AI-GUIDE  3 lines  keep it inline
-DOC-AI-GUIDE  1 lines  keep it inline
-DOC-AI-GUIDE  8 lines  keep it inline
-DOC-AI-GUIDE  1 lines  keep it inline
-DOC-AI-GUIDE  1 lines  keep it inline
-DOC-AI-GUIDE  1 lines  keep it inline
-DOC-AI-QUERIES  1 lines  keep it inline
-DOC-AI-QUERIES  1 lines  keep it inline
-DOC-AI-QUERIES  1 lines  keep it inline
-DOC-GUIDE  8 lines  keep it inline
-DOC-ARCH  7 lines  keep it inline
-DOC-LOWER  8 lines  keep it inline
-DOC-BROWSER  1 lines  keep it inline
-DOC-FIG-STATE  19 lines  move it out
+DOC-AI-GUIDE   ` fence | passes | `<pre class="mermaid">` |  lifelines 0  classes 0
+DOC-AI-GUIDE  stateDiagram-v2  lifelines 0  classes 0
+DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
+DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
+DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
+DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
+DOC-AI-QUERIES  ")) | split("  lifelines 0  classes 0
+DOC-AI-QUERIES  ")) | split("  lifelines 0  classes 0
+DOC-AI-QUERIES  ")) | split("  lifelines 0  classes 0
+DOC-GUIDE  flowchart LR  lifelines 0  classes 0
+DOC-ARCH  flowchart LR  lifelines 0  classes 0
+DOC-ARCH  sequenceDiagram  lifelines 3  classes 0
+DOC-LOWER  flowchart LR  lifelines 0  classes 0
+DOC-BROWSER     lifelines 0  classes 0
+DOC-FIG-STATE  stateDiagram-v2  lifelines 0  classes 0
 ```
 
-All 16 rows are above. The run of `1 lines` rows holds no figure. An explanatory
-document writes the fence marker and the language name `mermaid` inside the body of a
-query, and this query picks that up as a fragment of a figure. Measure a document that
-explains the notation and self-reference of this kind always mixes in.
+The kind of figure is the first line of the fence, printed as it stands. A row whose
+kind column holds a fragment of jq is not a figure. An explanatory document writes the
+fence marker and the language name `mermaid` inside the body of a query, and this query
+picks that up as a fragment of a figure. Measure a document that explains the notation
+and self-reference of this kind always mixes in.
 
-The next form prints only the violations. It skips a document whose UID starts with
-`DOC-FIG-`, because you already moved that one out. 0 rows is the normal result.
+This query cannot count a sequence diagram that declares neither `participant` nor
+`actor`. Mermaid raises a lifeline from the arrows alone, but this query reads strings
+out of the JSON and draws no such inference. Write `participant` in a figure you want
+counted.
+
+The next form prints only the figures past the guideline. It skips a document whose UID
+starts with `DOC-FIG-`, because you already moved that one out. 0 rows is the normal
+result.
 
 ````bash
 jq -r --arg figprefix 'DOC-FIG-' '.DOCUMENTS[] | select(.UID | startswith($figprefix) | not) | .UID as $doc
-| recurse(.NODES[]?) | select(.STATEMENT?) as $n | $n.STATEMENT
+| recurse(.NODES[]?) | select(.STATEMENT?) as $n | ($n.STATEMENT // "")
 | select(contains("```mermaid")) | split("```")[] | select(startswith("mermaid"))
-| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) | length as $c
-| select($c > 15) | $doc + "  " + ($n.UID // $n._TOC // "-") + "  " + ($c | tostring) + " lines"' <json>
+| ltrimstr("mermaid") | split("\n") | map(rtrimstr("\r")) | map(select(. != "")) as $lines
+| ([$lines[] | select(test("^ *(participant|actor) "))] | length) as $l
+| ([$lines[] | select(test("^ *class "))] | length) as $c
+| select($l >= 5 or $c >= 5)
+| $doc + "  " + ($n.UID // $n._TOC // "-") + "  lifelines " + ($l|tostring) + "  classes " + ($c|tostring)' <json>
 ````
 
-This sample returns 0 entries.
+This sample returns 0 entries, because every figure past the guideline already sits in
+`_assets/`.
 
 ### G30. Extract the math
 
@@ -746,7 +766,7 @@ samples/md-basic-ja/_assets/fig-state.md
 
 3. Edit that `.md` directly. Replace the fence content.
 
-4. Measure the line count again. When the figure reaches 16 lines or more, move it out
+4. Count what sits side by side again. Once the figure passes the guideline, move it out
 of the body into `_assets/fig-*.md` and leave a `[LINK:]` in its old place (G29).
 
 5. Export again. StrictDoc does not update the JSON on its own.

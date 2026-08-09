@@ -50,7 +50,7 @@ Entity=orange / Use Case=gold / Adapter=green / Framework=blue.
 
 **Representative slice: authenticated DID read (color-coded by CA layer)**
 
-**This figure runs past 15 lines, so it lives in its own document** -> [LINK: DOC-FIG-ARCH-CONTEXT]
+**This figure lives in its own document** -> [LINK: DOC-FIG-ARCH-CONTEXT]
 
 Below, the main components of all domains are defined by their **single responsibility (one
 sentence)** and traced to requirements. For individual behaviors (acceptance/unit verdicts),
@@ -350,15 +350,15 @@ src/
 
 **Class diagram 1: authenticated DID read** (each class's methods = the component's interface)
 
-**This figure runs past 15 lines, so it lives in its own document** -> [LINK: DOC-FIG-ARCH-CLASS-CORE]
+**This figure lives in its own document** -> [LINK: DOC-FIG-ARCH-CLASS-CORE]
 
 **Class diagram 2: DTC read / clear**
 
-**This figure runs past 15 lines, so it lives in its own document** -> [LINK: DOC-FIG-ARCH-CLASS-ADAPTER]
+**This figure lives in its own document** -> [LINK: DOC-FIG-ARCH-CLASS-ADAPTER]
 
 **Class diagram 3: OTA update**
 
-**This figure runs past 15 lines, so it lives in its own document** -> [LINK: DOC-FIG-ARCH-CLASS-FRAMEWORK]
+**This figure lives in its own document** -> [LINK: DOC-FIG-ARCH-CLASS-FRAMEWORK]
 
 ## 3.5 Behavior (Behavior)
 
@@ -366,7 +366,7 @@ src/
 
 **System sequence (representative slice: authenticated DID read, end to end)**
 
-**This figure runs past 15 lines, so it lives in its own document** -> [LINK: DOC-FIG-ARCH-AUTH-SEQUENCE]
+**This figure lives in its own document** -> [LINK: DOC-FIG-ARCH-AUTH-SEQUENCE]
 
 The representative sequences of the other domains (authentication flow, DTC guard, OTA state
 machine) are placed in their respective requirement documents (03/05/06).

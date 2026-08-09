@@ -2,8 +2,7 @@
 
 **UID**: DOC-FIG-STATE
 
-This file is a **worked example of the rule "move a figure of 16 lines or more
-into its own document"**.
+This file is a worked example of a large figure that lives in its own document.
 The body (`06-lower.md`) reaches this page through one `[LINK: DOC-FIG-STATE]` line.
 
 This document holds only the one figure below. You may write an explanation

@@ -82,7 +82,8 @@ from the body. **It does not have to be an image** - StrictDoc copies everything
 under `_assets/` into the output as is, whatever the type. We list the format
 combinations the tool supports in [the list of supported formats](_assets/formats.csv).
 
-You keep a small figure in the body. **One rule decides it: the code fence holds 15 lines or fewer.**
+We keep the figure in the body. A flowchart carries no guideline, so the writer
+decides where it goes ("Figures - a large figure goes into its own document").
 
 ```mermaid
 flowchart LR

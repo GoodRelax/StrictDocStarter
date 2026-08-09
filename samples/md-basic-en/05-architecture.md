@@ -34,6 +34,27 @@ the output location sit outside it. The tool cannot decide anything that sits
 outside, which is why every system requirement takes the shape of "how we handle
 what is outside".
 
+## How the parts talk to each other
+
+**Type**: SECTION
+
+The figure above says what exists. The figure below says the order of the calls, up
+to the point where the conversion starts.
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant RCV as Intake
+    participant CHK as Format check
+    U->>RCV: hand over the input file and the output format
+    RCV->>CHK: check the format
+    CHK-->>RCV: it matches
+    RCV-->>U: start converting
+```
+
+The figure has 3 lifelines, which is under the guideline of 5, so we keep it in the
+body ("Figures - a large figure goes into its own document").
+
 ## Which part satisfies which requirement
 
 **Type**: SECTION

@@ -294,38 +294,36 @@ body, make that one document a `.sdoc`
 
 **Type**: SECTION
 
-The rule is only this - if the content of a code fence is 15 lines or fewer, you
-keep it in the body; if it is 16 lines or more, you put it in `_assets/fig-*.md` as
-its own document and link to it from the body with `[LINK:]`.
+The guideline is only this - once 5 or more things sit side by side in a figure, you
+put that figure in `_assets/fig-*.md` as its own document and link to it from the
+body with `[LINK:]`.
 
-| Fence content | Where it goes | How the body shows it |
-| --- | --- | --- |
-| 15 lines or fewer | In the body as it is | The figure appears in place |
-| 16 lines or more | `_assets/fig-*.md` | One line of link. The figure sits at the far end |
-
-The flowchart above is 8 lines, so we keep it in the body. The version that also
-draws the interruption and the cleanup went over 15 lines, so we moved it into its
-own document →  [LINK: DOC-FIG-STATE]
-
-We decide by line count because counting lines needs no tool. What we really
-want to control is the load on the reader, and we measured that load as follows (we
-measured every Mermaid figure in this repository).
-
-| Fence content | Cost of reading it |
+| Kind of figure | Guideline for moving it out |
 | --- | --- |
-| One paragraph of free text | 15-50 tokens |
-| A figure of 6-15 lines | 124-179 tokens |
-| A figure of 16-24 lines | 110-228 tokens |
+| Sequence diagram | 5 lifelines or more |
+| Class diagram | 5 classes or more |
+| Flowchart | no guideline |
 
-**Line count and token count do not scale together cleanly** - one figure takes 17
-lines for 114 tokens, and another takes 6 lines for 124 tokens. We still choose line
-count, because nobody follows a rule unless the writer can apply it without
-hesitating while writing. When you hesitate, move the figure out.
+This is a guideline, not a gate. The writer makes the final call.
+
+The flowchart above is a flowchart, so it carries no guideline, and the writer chose
+to keep it in the body. The state machine that also draws the interruption and the
+cleanup went into its own document →  [LINK: DOC-FIG-STATE]
+
+We decide by how many things sit side by side because that is what sets the width of
+a figure. Line count does not set it - inside this very sample, an 8-line flowchart
+shrinks to 32 % of the body column while a 19-line state machine fits at 47 %
+(measured). Every lifeline, and every class, widens a figure by one more column.
+
+**Line count does not predict the cost of reading a figure either** - one figure
+takes 17 lines for 114 tokens, and another takes 6 lines for 124 tokens.
 
 Once you move a figure into its own document, it drops out of the "pull the
 requirements" job completely. A query that lists the requirements never touches
 that separate document, so the figure costs 0. You name the UID and fetch the figure
-only when you need it. This is why we cut at 16 lines.
+only when you need it. Moving it out does not make the figure itself any larger,
+though: StrictDoc gives it the same column width either way (measured). What you buy
+is an unbroken body, and nothing else.
 
 There is one side effect. StrictDoc parses `_assets/*.md` as documents too, so they
 line up in the document list. In this sample, `DOC-NOTE` and `DOC-FIG-STATE` are

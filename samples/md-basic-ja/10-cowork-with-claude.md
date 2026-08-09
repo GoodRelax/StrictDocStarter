@@ -134,7 +134,6 @@ sh claude-skills/strictdoc-md/scripts/audit.sh <仕様書> <出力先> <除外�
 | `trailing dollar` | 段落やセルが `$` で終わっている。 HTML の export が止まる |
 | `broken table row` | 表の行が壊れている |
 | `attachment not published` | 参照しているファイルが出力に出ていない。 `_assets/` の外に置いた添付 |
-| `oversized inline figure` | 本文に埋めた図が大きすぎる。 AI に渡す量が膨らむ |
 | `review comment missing` | 指摘したのに中身が空。 `REVIEW_STATUS` が `Open` / `Fixed` / `WontFix` なのに `REVIEW_COMMENT` が無い |
 | `wording candidates` | EARS の形・語順・受動態・主語の欠落・否定形。 違反ではなく候補であり、 判断は人と AI がする |
 
@@ -244,13 +243,12 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")] 
 sh claude-skills/strictdoc-md/scripts/audit.sh <仕様書> <出力先> <除外する文書のUID>
 ```
 
-この一式で回すと 6 つの検査のうち 1 つが発火し、 候補が 3 件出る (実測)。
+この一式で回すと 5 つの検査のうち 1 つが発火し、 候補が 3 件出る (実測)。
 
 ```text
   ok    trailing dollar              0
   ok    broken table row             0
   ok    attachment not published     0
-  ok    oversized inline figure      0
   ok    review comment missing       0
   FAIL  wording candidates           3
           DOC-UPPER  SYS-002  negative

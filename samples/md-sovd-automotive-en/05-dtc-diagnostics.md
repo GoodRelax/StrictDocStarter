@@ -27,7 +27,7 @@ The read bridges to UDS 0x19 and the clear bridges to UDS 0x14. The clear is
 executed only when vehicle speed can be confirmed to be zero; while the vehicle is
 moving it is rejected with 409.
 
-**This figure runs past 15 lines, so it lives in its own document** -> [LINK: DOC-FIG-DTC-GUARD]
+**This figure lives in its own document** -> [LINK: DOC-FIG-DTC-GUARD]
 
 ### DTC list retrieval API
 
