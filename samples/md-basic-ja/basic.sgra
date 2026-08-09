@@ -1,0 +1,92 @@
+[GRAMMAR]
+ELEMENTS:
+- TAG: SECTION
+  PROPERTIES:
+    IS_COMPOSITE: True
+  FIELDS:
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+- TAG: REQUIREMENT
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: STATUS
+    TYPE: SingleChoice(Draft, Reviewed, Approved)
+    REQUIRED: False
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: REVIEW_STATUS
+    TYPE: SingleChoice(NotReviewed, NoFinding, Open, Fixed, WontFix)
+    REQUIRED: True
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+  - TITLE: RATIONALE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_ACTION
+    TYPE: String
+    REQUIRED: False
+  RELATIONS:
+  - TYPE: Parent
+  - TYPE: Child
+- TAG: USE_CASE
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: UC_LEVEL
+    TYPE: SingleChoice(Summary, UserGoal, Subfunction)
+    REQUIRED: True
+  - TITLE: REVIEW_STATUS
+    TYPE: SingleChoice(NotReviewed, NoFinding, Open, Fixed, WontFix)
+    REQUIRED: True
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+  - TITLE: REVIEW_COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: REVIEW_ACTION
+    TYPE: String
+    REQUIRED: False
+  RELATIONS:
+  - TYPE: Parent
+- TAG: TEST_CASE
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TEST_RESULT
+    TYPE: SingleChoice(NotRun, Passed, Failed, Blocked)
+    REQUIRED: True
+  - TITLE: ISSUE_KEY
+    TYPE: String
+    REQUIRED: False
+  - TITLE: GIVEN
+    TYPE: String
+    REQUIRED: True
+  - TITLE: WHEN
+    TYPE: String
+    REQUIRED: True
+  - TITLE: THEN
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TEST_REMARK
+    TYPE: String
+    REQUIRED: False
+  RELATIONS:
+  - TYPE: Parent
+    ROLE: Verifies

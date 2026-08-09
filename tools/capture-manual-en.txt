@@ -1,0 +1,23 @@
+# English the screenshot walk types into the StrictDoc forms.
+#
+# It lives here rather than in capture-manual-en.py to stay symmetrical with
+# capture-manual-ja.txt, where the split is forced: NFR-010 asks every .py in
+# this repository to be English ASCII, and the Japanese walk types Japanese.
+# The English walk needs no such exemption, but keeping the two tools the same
+# shape means a fix to one reads straight across to the other.
+#
+# key = value. Write a line break as the two characters \n.
+# Change a value here and the screenshots say something different.
+#
+# document_path and tree_map_tile are the two values the prose depends on.
+# samples/md-basic-en/09-browser-guide.md names "11-example.md" in the text,
+# and tree_map_tile has to be the title of a document that actually exists,
+# because the walk presses that tile to draw browser-28.
+
+sentence = \n\nThis sentence was added from the browser.
+new_uid = SW-900
+new_title = Example
+new_statement = An example.
+document_title = Example - a new document
+document_path = 11-example.md
+tree_map_tile = jq query collection - for AI

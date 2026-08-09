@@ -1,0 +1,6 @@
+  一番縮めても元の仕様書より大きいことに注意してください。
+  JSON の値打ちは小ささではなく、 全文を読まずに答えだけを引けることです。
+
+  クエリを自分で書くときは jq-samples にファイルを足してください。
+  詳しい説明は samples\md-basic-ja\02-guide-for-human.md の「JSON で引く」の章にあります。
+  さらに 7 本の実例が docs\03-sdoc-json-queries.md にあります。

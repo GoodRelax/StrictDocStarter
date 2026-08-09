@@ -1,12 +1,18 @@
 # StrictDocStarter - lib/auto.ps1
 # 'auto' subcommand: one-yes-and-go full setup orchestration.
 # Spec refs: FR-803, FR-804, FR-805
-# Implementation status:
-#   Phase A: VS Code + Claude Code extension          [implemented]
-#   Phase B: Git / Python / GitHub CLI via winget     [TODO]
-#   Phase C: pip install strictdoc                    [TODO]
-#   Phase D: git clone + junction                     [TODO]
-#   Phase E: optional tools + VS Code extensions      [TODO]
+# Phases (all implemented; FR-360 completed the B-E stubs):
+#   Phase A: VS Code + Claude Code extension        Install-VSCodeIfNeeded,
+#                                                   Install-ClaudeCodeExtension
+#   Phase B: Git / Python / GitHub CLI via winget   Install-RequiredTools
+#   Phase C: StrictDoc via pip                      Install-StrictDoc
+#   Phase D: git clone + Obsidian junction          Invoke-GitClone,
+#                                                   Invoke-CreateJunction
+#   Phase E: optional tools + VS Code extensions    Install-OptionalTools,
+#                                                   Install-VSCodeExtensions
+#
+# Phase D reports SKIP when repository.url is empty or options.skip_clone is
+# set -- that is configuration, not an unimplemented phase.
 
 function Resolve-AutoConfig {
     # Ensures setup.config.json exists. If not, generates from template silently.
@@ -39,7 +45,10 @@ function Format-PlanRow {
     # max name length once and align every row to it.
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)] [ValidateSet("INSTALL","SKIP")] [string]$Action,
+        # BLOCKED (FR-343a): the step cannot run and the reason is something the
+        # user has to clear first. Distinct from SKIP, which means "nothing to
+        # do", and from INSTALL, which means "this will happen if you say yes".
+        [Parameter(Mandatory)] [ValidateSet("INSTALL","SKIP","BLOCKED")] [string]$Action,
         [Parameter(Mandatory)] [string]$Name,
         [Parameter(Mandatory)] [string]$Reason
     )
@@ -87,7 +96,15 @@ function Build-AutoPlan {
             Steps = @()
         }
         PhaseC = [ordered]@{
-            Name  = "Phase C: StrictDoc (pip install strictdoc)   [REQUIRED]"
+            # Named by subject, not by command -- matching Phase A's
+            # "(VS Code extension)". The old "(pip install strictdoc)" claimed
+            # an action the phase often does not take (every row below can be
+            # [SKIP]) and, since strictdoc.version arrived, named a command
+            # that may not be the one that runs: a pinned config produces
+            # "pip install strictdoc==0.23.1". The actual command belongs in
+            # the INSTALL row's reason and in Install-StrictDoc's own log line,
+            # where it is derived rather than hardcoded.
+            Name  = "Phase C: StrictDoc (pip package)             [REQUIRED]"
             Steps = @()
         }
         PhaseD = [ordered]@{
@@ -130,11 +147,69 @@ function Build-AutoPlan {
     }
 
     # Phase C: required.
-    if (Test-StrictDocInstalled) {
-        $plan.PhaseC.Steps += Format-PlanRow -Action SKIP    -Name "strictdoc" -Reason "already installed"
+    # FR-335: the plan never probes PyPI. A version query cost about 60
+    # seconds on the reference machine, and the plan is on the path of every
+    # double-click. The row therefore reports local facts only and names the
+    # command that does go to the network.
+    $sdSpec   = Get-StrictDocVersionSpec -Config $Config
+    $sdTarget = Resolve-StrictDocPipTarget -Spec $sdSpec
+
+    # A bad spec is reported whatever the installed state is. Checking it only
+    # on the not-installed branch would hide the typo from exactly the people
+    # most likely to have set it: those with a working install who edited the
+    # config to pin a version.
+    $sdRow = $null
+    if (-not $sdTarget) {
+        $sdRow = Format-PlanRow -Action SKIP -Name "strictdoc" `
+            -Reason "INVALID strictdoc.version '$sdSpec' in setup.config.json - Phase C will stop"
+    } elseif (Test-StrictDocInstalled) {
+        # FR-335: Phase C reconciles the installed version with the config, so
+        # this row has to say which way it will go. Answering anything but
+        # 'yes' to the plan aborts before any of it happens.
+        $sdVer = Get-StrictDocVersion
+
+        # Only "==X" and a bare "X" name one exact version, and matching one
+        # is decided by comparing two strings -- no network, no pip call.
+        # Ranges are left to pip, so they show as [INSTALL].
+        $sdPin = $null
+        if ($sdSpec -match '^==\s*(.+)$') { $sdPin = $Matches[1].Trim() }
+        elseif ($sdSpec -match '^\d')     { $sdPin = $sdSpec }
+
+        if ($sdPin -and $sdVer -eq $sdPin) {
+            $sdRow = Format-PlanRow -Action SKIP -Name "strictdoc" `
+                -Reason "already installed: $sdVer (matches strictdoc.version='$sdSpec')"
+        } elseif (-not $sdVer) {
+            # FR-343a: strictdoc.exe on PATH with no package behind it. An
+            # upgrade that died on a locked file leaves exactly this, and the
+            # row used to read "installed:  - ..." with an empty version.
+            $sdRow = Format-PlanRow -Action INSTALL -Name "strictdoc" `
+                -Reason "on PATH but not runnable (interrupted upgrade?) - will reinstall (pip install $sdTarget)"
+        } elseif ($sdSpec -eq "latest") {
+            $sdRow = Format-PlanRow -Action INSTALL -Name "strictdoc" `
+                -Reason "installed: $sdVer - strictdoc.version='latest', will upgrade if a newer release exists"
+        } else {
+            $sdRow = Format-PlanRow -Action INSTALL -Name "strictdoc" `
+                -Reason "installed: $sdVer - applying strictdoc.version='$sdSpec' (pip install $sdTarget)"
+        }
     } else {
-        $plan.PhaseC.Steps += Format-PlanRow -Action INSTALL -Name "strictdoc" -Reason "required (pip install strictdoc)"
+        $sdRow = Format-PlanRow -Action INSTALL -Name "strictdoc" -Reason "required (pip install $sdTarget)"
     }
+
+    # FR-343a: a running strictdoc server holds <python>\Scripts\strictdoc.exe
+    # open, and pip fails on it only AFTER deleting the old package. Say so in
+    # the plan, where the user can still act on it, rather than letting them
+    # type 'yes' into a broken install. Only rows that would call pip are
+    # affected -- a SKIP touches no files.
+    if ($sdRow.Action -eq "INSTALL") {
+        # @(...) at the call site -- see Confirm-StrictDocNotRunning.
+        $sdRunning = @(Get-StrictDocServerProcess)
+        if ($sdRunning.Count -gt 0) {
+            $pids = ($sdRunning | ForEach-Object { $_.Id }) -join ", "
+            $sdRow = Format-PlanRow -Action BLOCKED -Name "strictdoc" `
+                -Reason "$($sdRunning.Count) strictdoc process(es) running (PID $pids) - close the StrictDoc server window(s) first; pip cannot replace a file that is open"
+        }
+    }
+    $plan.PhaseC.Steps += $sdRow
 
     # Phase D: optional (skipped when URL empty / skip_clone=true).
     if ($Config) {
@@ -292,8 +367,11 @@ function Invoke-PhaseB {
 }
 
 function Invoke-PhaseC {
-    Write-OnboardStep "Phase C: StrictDoc (pip install strictdoc)"
-    return Install-StrictDoc
+    # FR-331: the configured strictdoc.version reaches pip through here, so
+    # the config has to be threaded in rather than defaulted inside.
+    param($Config = $null)
+    Write-OnboardStep "Phase C: StrictDoc (pip package)"
+    return Install-StrictDoc -Config $Config
 }
 
 function Test-PhaseDShouldSkip {
@@ -374,6 +452,24 @@ function Invoke-Auto {
     $plan = Build-AutoPlan -PythonVersion $PythonVersion -Config $config
     Show-AutoPlan -Plan $plan
 
+    # FR-345a: a [BLOCKED] row is easy to miss in a plan that is otherwise all
+    # [SKIP], and the prompt right below it says "Type 'yes' to install", which
+    # reads as though everything listed will be attempted. Say plainly what
+    # will not run, before the question is asked. The rest of the plan is
+    # still worth running, so this warns rather than aborts.
+    $blockedSteps = @(
+        foreach ($phase in $plan.Values) {
+            foreach ($step in $phase.Steps) {
+                if ($step.Action -eq "BLOCKED") { $step }
+            }
+        }
+    )
+    if ($blockedSteps.Count -gt 0) {
+        Write-Host ""
+        Write-OnboardWarn "$($blockedSteps.Count) step(s) above are [BLOCKED] and will NOT run: $(($blockedSteps | ForEach-Object { $_.Name }) -join ', ')"
+        Write-OnboardInfo "Clear what the row names, then run this again. Answering 'yes' still runs everything else."
+    }
+
     # 3. Single yes confirmation (FR-804). FR-209: on non-yes input, show
     # the actionable abort guidance (config path + re-run command) via the
     # shared Show-AbortGuidance helper.
@@ -395,9 +491,15 @@ function Invoke-Auto {
 
     $summary["Phase A"] = Invoke-PhaseA
     $summary["Phase B"] = Invoke-PhaseB -PythonVersion $PythonVersion
-    $summary["Phase C"] = Invoke-PhaseC
+    $summary["Phase C"] = Invoke-PhaseC -Config $config
     $summary["Phase D"] = Invoke-PhaseD -Config $config
     $summary["Phase E"] = Invoke-PhaseE -Config $config
+
+    # FR-345a: a phase that refused to start because the user has to close
+    # something is not a failure -- nothing ran and nothing changed. Reporting
+    # it as FAILED sent people looking for damage that does not exist.
+    $blockedPhases = @()
+    if ($script:StrictDocBlockedByRunningProcess) { $blockedPhases += "Phase C" }
 
     # 5. Final summary (FR-504)
     Write-OnboardStep "Summary"
@@ -407,18 +509,27 @@ function Invoke-Auto {
             Write-Host "  $($k.PadRight(8)) : SKIP (not implemented)"
         } elseif ($v) {
             Write-Host "  $($k.PadRight(8)) : OK"
+        } elseif ($blockedPhases -contains $k) {
+            Write-Host "  $($k.PadRight(8)) : BLOCKED (nothing was changed)"
         } else {
             Write-Host "  $($k.PadRight(8)) : FAILED"
         }
     }
 
-    # Overall result
-    $hasFail = $false
-    foreach ($v in $summary.Values) {
-        if ($v -eq $false) { $hasFail = $true }
-    }
-    if ($hasFail) {
+    # Overall result. A blocked phase still leaves the run incomplete, so the
+    # exit code stays non-zero -- a required tool was not installed, and the
+    # test runner and any wrapper script must keep seeing that. Only the
+    # wording changes.
+    $failed  = @($summary.Keys | Where-Object { $summary[$_] -eq $false -and $blockedPhases -notcontains $_ })
+    $blocked = @($summary.Keys | Where-Object { $summary[$_] -eq $false -and $blockedPhases -contains $_ })
+
+    if ($failed.Count -gt 0) {
         Write-OnboardWarn "Some phases failed. See log for details: setup.log"
+        return $false
+    }
+    if ($blocked.Count -gt 0) {
+        Write-OnboardWarn "Stopped early: $($blocked -join ', ') blocked. Nothing has been changed."
+        Write-OnboardInfo "Clear what the message above names, then run setup-strictdoc.bat again."
         return $false
     }
     Write-OnboardOk "Auto setup completed."

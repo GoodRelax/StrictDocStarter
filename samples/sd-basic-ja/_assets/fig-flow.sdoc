@@ -1,0 +1,19 @@
+[DOCUMENT]
+TITLE: 図 - 変換の流れ
+UID: FIG-FLOW
+OPTIONS:
+  MARKUP: Markdown
+
+[TEXT]
+STATEMENT: >>>
+```mermaid
+flowchart LR
+    IN["入力ファイル"] --> CHK{"形式は想定どおりか<br/>SW-002"}
+    CHK -- "いいえ" --> STOP1["異常終了"]
+    CHK -- "はい" --> CONV["変換する<br/>SW-001"]
+    CONV --> EXIST{"同名の出力が既にあるか<br/>SW-003"}
+    EXIST -- "ある" --> STOP2["異常終了"]
+    EXIST -- "ない" --> WRITE["書き出す<br/>SW-004"]
+    WRITE --> OUT["出力ファイル"]
+```
+<<<

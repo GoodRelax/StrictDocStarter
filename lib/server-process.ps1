@@ -57,18 +57,48 @@ function Get-PortListenerPid {
     }
 }
 
-function Test-PidIsStrictdoc {
-    # FR-1157a: the listening process is a strictdoc server (CommandLine contains "strictdoc").
-    # WMI failure / empty CommandLine -> NOT strictdoc (safe side).
-    param([int]$ProcessId)
+function Test-PidIsOurStrictDocServer {
+    # FR-1157a / FR-1166: is the process holding the port the server WE just started
+    # for THIS project?
+    #
+    # The old test asked only whether the command line contained the word
+    # "strictdoc". Every path in a StrictDocStarter installation contains it, so
+    # anything launched from that folder -- a PowerShell script, an editor with a
+    # file open, a Python process -- passed. Whatever happened to be listening on
+    # the chosen port was then adopted, and the browser was pointed at a page some
+    # other program was serving.
+    #
+    # Four things must line up instead, and any doubt means "no", which sends the
+    # caller down the TOCTOU path and it retries on the next free port.
+    param(
+        [int]$ProcessId,
+        [int]$Port,
+        [string]$ProjectPath
+    )
     if ($ProcessId -le 0) { return $false }
     try {
         $p = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId=$ProcessId" -ErrorAction Stop
-        if ($null -eq $p -or [string]::IsNullOrEmpty($p.CommandLine)) { return $false }
-        return ($p.CommandLine -match '(?i)strictdoc')
     } catch {
         return $false
     }
+    if ($null -eq $p -or [string]::IsNullOrEmpty($p.CommandLine)) { return $false }
+    $commandLine = $p.CommandLine
+
+    # 1. the strictdoc executable itself, not a folder that happens to be named
+    #    after it. The listening process is python.exe running strictdoc.exe, so
+    #    the exe name is present either way.
+    if ($commandLine -notmatch '(?i)strictdoc\.exe') { return $false }
+    # 2. the server subcommand: an export or a manage run is not ours to adopt.
+    if ($commandLine -notmatch '(?i)\bserver\b') { return $false }
+    # 3. the port we asked for.
+    if ($commandLine -notmatch ('(?i)--port[\s=]+"?' + $Port + '"?(\s|$)')) { return $false }
+    # 4. the folder we asked it to serve. Without this, a strictdoc server that
+    #    grabbed the port for a DIFFERENT project would still be adopted, and the
+    #    browser would open someone else's documents.
+    $served = Get-ServedPathFromCommandLine -CommandLine $commandLine
+    $target = ConvertTo-NormalizedPath -Path $ProjectPath
+    if ($null -eq $served -or $null -eq $target) { return $false }
+    return ($served -eq $target)
 }
 
 function ConvertTo-NormalizedPath {
@@ -83,6 +113,19 @@ function ConvertTo-NormalizedPath {
     }
     $full = $full.TrimEnd('\', '/')
     return $full.ToLowerInvariant()
+}
+
+function Get-ServedPathFromCommandLine {
+    # The folder argument of 'strictdoc server <folder> ...', normalised.
+    # Returns $null when it cannot be read, so callers treat it as "no match"
+    # rather than guessing (FR-1158a).
+    param([string]$CommandLine)
+    if ([string]::IsNullOrWhiteSpace($CommandLine)) { return $null }
+    if ($CommandLine -match '(?i)\bserver\b\s+(?:"([^"]+)"|([^\s"-][^\s"]*))') {
+        $raw = if ($matches[1]) { $matches[1] } else { $matches[2] }
+        return ConvertTo-NormalizedPath -Path $raw
+    }
+    return $null
 }
 
 function Get-RunningStrictDocServers {
@@ -102,13 +145,7 @@ function Get-RunningStrictDocServers {
         $cl = $p.CommandLine
         $port = 0
         if ($cl -match '(?i)--port[\s=]+"?(\d{1,5})"?') { $port = [int]$matches[1] }
-        # served path = first token after the 'server' subcommand (quoted or bare),
-        # excluding option flags. Best-effort.
-        $normPath = $null
-        if ($cl -match '(?i)\bserver\b\s+(?:"([^"]+)"|([^\s"-][^\s"]*))') {
-            $rawPath = if ($matches[1]) { $matches[1] } else { $matches[2] }
-            $normPath = ConvertTo-NormalizedPath -Path $rawPath
-        }
+        $normPath = Get-ServedPathFromCommandLine -CommandLine $cl
         $servers += [pscustomobject]@{ Pid = [int]$p.ProcessId; Port = $port; NormPath = $normPath }
     }
     return $servers
@@ -126,11 +163,149 @@ function Find-ServerPortForPath {
     return ([int](($hits | Sort-Object Port | Select-Object -First 1).Port))
 }
 
-function Test-StrictDocServerAliveOnPort {
-    # FR-1157 (c/d): is a strictdoc server process (launched with --port $Port) still alive?
+function Get-StrictDocServerLiveness {
+    # FR-1157 (c/d): is a strictdoc server process (launched with --port $Port) alive?
+    #
+    # Returns 'alive', 'absent' or 'unknown'. The third value is the point of this
+    # function. Get-RunningStrictDocServers returns an empty list both when nothing
+    # is running AND when the CIM query fails, and the caller used to read that as
+    # "the server died" -- so one hiccup in a per-second WMI enumeration of every
+    # process on the machine was enough to declare a healthy server dead. Reported
+    # in the field as an intermittent "it exited before binding" while the very
+    # same command run by hand stayed up.
     param([int]$Port)
-    $alive = Get-RunningStrictDocServers | Where-Object { $_.Port -eq $Port }
-    return (($alive | Measure-Object).Count -gt 0)
+    try {
+        $procs = @(Get-CimInstance -ClassName Win32_Process -ErrorAction Stop |
+            Where-Object {
+                $_.CommandLine -and
+                ($_.CommandLine -match '(?i)strictdoc') -and
+                ($_.CommandLine -match '(?i)(^|\s)server(\s|$)') -and
+                ($_.CommandLine -match ('(?i)--port[\s=]+"?' + $Port + '"?(\s|$)'))
+            })
+    } catch {
+        return 'unknown'
+    }
+    if ($procs.Count -gt 0) { return 'alive' }
+    return 'absent'
+}
+
+function Repair-OutputTreeAttributes {
+    # FR-1165: clear ReadOnly under the output folder before strictdoc runs.
+    #
+    # FR-1160 puts the output inside the project, and a project commonly lives in a
+    # OneDrive (or Dropbox) folder. Those clients mark synced content ReadOnly and
+    # turn it into a reparse point. strictdoc clears its Jinja cache on startup with
+    # shutil.rmtree, which cannot delete a ReadOnly directory, so it exits with
+    # "[WinError 5]" before binding -- and, worse, leaves the cache half deleted, so
+    # every later run dies in reset_jinja_environment_if_outdated() with
+    # "list index out of range" until someone removes the folder by hand.
+    #
+    # Measured on this machine: 27 of 27 directories under output\strictdoc had
+    # ReadOnly set, and starting the server failed 4 times out of 4. With a clean
+    # output tree the same command bound 3 times out of 3.
+    param([Parameter(Mandatory)] [string]$OutputPath)
+
+    if (-not (Test-Path -LiteralPath $OutputPath)) { return 0 }
+    $cleared = 0
+    try {
+        Get-ChildItem -LiteralPath $OutputPath -Recurse -Force -ErrorAction Stop | ForEach-Object {
+            if ($_.Attributes -band [System.IO.FileAttributes]::ReadOnly) {
+                try {
+                    $_.Attributes = $_.Attributes -bxor [System.IO.FileAttributes]::ReadOnly
+                    $cleared++
+                } catch { }
+            }
+        }
+    } catch {
+        return $cleared
+    }
+    return $cleared
+}
+
+function Reset-OutputCache {
+    # FR-1165: drop the generated-template cache so the next start rebuilds it.
+    # Used to recover from a cache strictdoc left half deleted. Only the cache goes:
+    # the HTML beside it is regenerated anyway, and never the project's own files.
+    param([Parameter(Mandatory)] [string]$OutputPath)
+
+    $cache = Join-Path $OutputPath '_cache'
+    if (-not (Test-Path -LiteralPath $cache)) { return $false }
+    $null = Repair-OutputTreeAttributes -OutputPath $cache
+    try {
+        Remove-Item -LiteralPath $cache -Recurse -Force -ErrorAction Stop
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+function Remove-OrphanedOutput {
+    # FR-1164: drop generated .html whose source document is gone.
+    #
+    # StrictDoc rewrites the JSON wholesale but never deletes stale HTML: measured
+    # on 0.27.1, exporting A/B/C and then deleting docC.sdoc leaves docC.html and
+    # its three view variants behind for good. The server itself answers 404 for
+    # them, so this only bites when the output folder is published as a static site
+    # or opened file-by-file -- but the leftovers accumulate.
+    #
+    # Deliberately narrow. Wiping the whole folder would cost the cache (measured
+    # on a SOVD-sized project of 122 requirements: 12.6 s cold against 7.4 s warm)
+    # and, since FR-1160
+    # puts our output next to whatever else the user keeps under output\, could
+    # take their files with it.
+    param(
+        [Parameter(Mandatory)] [string]$ProjectPath,
+        [Parameter(Mandatory)] [string]$OutputPath
+    )
+
+    $projectName = Split-Path -Leaf $ProjectPath.TrimEnd('\', '/')
+    if ([string]::IsNullOrWhiteSpace($projectName)) { return }
+    $htmlRoot = Join-Path (Join-Path $OutputPath 'html') $projectName
+    if (-not (Test-Path -LiteralPath $htmlRoot -PathType Container)) { return }   # first run
+
+    # Names strictdoc is expected to produce, as relative paths without extension.
+    $expected = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    try {
+        Get-ChildItem -LiteralPath $ProjectPath -Include *.sdoc, *.md -File -Recurse -ErrorAction Stop |
+            Where-Object { $_.FullName -notmatch '(?i)\\output\\' } |
+            ForEach-Object {
+                $rel = $_.FullName.Substring($ProjectPath.TrimEnd('\', '/').Length).TrimStart('\', '/')
+                $null = $expected.Add([System.IO.Path]::ChangeExtension($rel, $null).TrimEnd('.'))
+            }
+    } catch {
+        return   # cannot enumerate the sources: never guess, never delete
+    }
+    if ($expected.Count -eq 0) { return }
+
+    # Per-document view pages share the document's stem.
+    $variants = @('-DEEP-TRACE', '-TRACE', '-TABLE')
+    $removed = 0
+    try {
+        $pages = @(Get-ChildItem -LiteralPath $htmlRoot -Filter *.html -File -Recurse -ErrorAction Stop |
+            Where-Object { $_.FullName -notmatch '(?i)\\_static\\' })
+    } catch {
+        return
+    }
+
+    foreach ($page in $pages) {
+        $rel  = $page.FullName.Substring($htmlRoot.Length).TrimStart('\', '/')
+        $stem = [System.IO.Path]::ChangeExtension($rel, $null).TrimEnd('.')
+        foreach ($suffix in $variants) {
+            if ($stem.EndsWith($suffix, [StringComparison]::OrdinalIgnoreCase)) {
+                $stem = $stem.Substring(0, $stem.Length - $suffix.Length)
+                break
+            }
+        }
+        if ($expected.Contains($stem)) { continue }
+        try {
+            Remove-Item -LiteralPath $page.FullName -Force -ErrorAction Stop
+            $removed++
+        } catch { }
+    }
+
+    if ($removed -gt 0) {
+        Write-Host "[INFO]  Removed $removed generated page(s) whose document no longer exists."
+    }
 }
 
 function Get-FreePort {
@@ -177,10 +352,36 @@ function Start-StrictDocCliWindow {
         [Parameter(Mandatory)] [int]$Port,
         [string]$OutputPath = ''
     )
-    $argList = @('server', (Quote-ArgIfNeeded $ProjectPath), '--host', $BindHost, '--port', $Port.ToString())
-    if (-not [string]::IsNullOrWhiteSpace($OutputPath)) {
-        $argList += @('--output-path', (Quote-ArgIfNeeded $OutputPath))
+    # FR-1106: --watch. The launcher exists so that people edit and look, so the
+    # browser has to follow edits made on disk. Without it, a change in VS Code
+    # shows up only after a manual reload; editing inside the StrictDoc web UI
+    # already refreshes on its own, which made the difference easy to miss.
+    # Neither case needs the server stopped -- the window stays up either way.
+    $argList = @('server', (Quote-ArgIfNeeded $ProjectPath), '--host', $BindHost, '--port', $Port.ToString(), '--watch')
+
+    # FR-1160: always pass --output-path, defaulting it under the served folder.
+    #
+    # StrictDoc's own default for `server` is the RELATIVE string "./output/server"
+    # (core/project_config.py), which it resolves against the server process's
+    # current working directory -- not against the served folder. This launcher
+    # normalises the CWD to the StrictDocStarter root, so every project used to
+    # write into <starter_root>\output\server and SHARE html\index.html plus the
+    # statistics / traceability-matrix / tree-map screens. Measured on 0.27.1:
+    # serving md-basic-ja on 5111 and sd-basic-ja on 5112 at the same time made
+    # 5111 answer "/" with sd-basic-ja's project title and document list, because
+    # the second server overwrote the shared index.html.
+    #
+    # The first level MUST stay named "output": StrictDoc unconditionally skips a
+    # directory of that name directly under the served folder when scanning for
+    # documents. Any other name is scanned, and the second run then re-reads the
+    # _assets\*.sdoc copies it wrote itself and dies with
+    # "OneToOneDictionary: Cannot create a link because lhs_node already exists".
+    # The second level is "strictdoc" rather than "server" so it cannot collide
+    # with an output\server folder the user already owns.
+    if ([string]::IsNullOrWhiteSpace($OutputPath)) {
+        $OutputPath = Join-Path $ProjectPath 'output\strictdoc'
     }
+    $argList += @('--output-path', (Quote-ArgIfNeeded $OutputPath))
     $eap = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
@@ -204,14 +405,25 @@ function Confirm-PortAdoption {
     #   safety cap reached                            -> @{ Result='timeout' }
     # SpawnGraceSec: how long to allow for the process to FIRST appear (strictdoc.exe ->
     # python cold start can take several seconds before it is queryable via CIM).
-    param([int]$Port, [int]$SpawnGraceSec = 12, [int]$MaxWaitSec = 60)
+    # ConfirmMisses: how many CONSECUTIVE readings must agree the process is gone
+    # before (c) is declared. A single reading is not evidence -- the probe walks
+    # every process on the machine once a second, and one unlucky sample used to
+    # kill a server that was merely still starting.
+    param(
+        [int]$Port,
+        [Parameter(Mandatory)] [string]$ProjectPath,
+        [int]$SpawnGraceSec = 12,
+        [int]$MaxWaitSec = 60,
+        [int]$ConfirmMisses = 3
+    )
     $startTime = Get-Date
     $everSeenAlive = $false
+    $missStreak = 0
     while ($true) {
         $elapsed = [int]((Get-Date) - $startTime).TotalSeconds
         $ownerPid = Get-PortListenerPid -Port $Port
         if ($ownerPid -gt 0) {
-            if (Test-PidIsStrictdoc -ProcessId $ownerPid) {
+            if (Test-PidIsOurStrictDocServer -ProcessId $ownerPid -Port $Port -ProjectPath $ProjectPath) {
                 return [pscustomobject]@{ Result = 'adopted'; OwnerPid = $ownerPid }     # (a)
             }
             return [pscustomobject]@{ Result = 'race'; OwnerPid = $ownerPid }            # (b)
@@ -221,18 +433,28 @@ function Confirm-PortAdoption {
             return [pscustomobject]@{ Result = 'race'; OwnerPid = 0 }
         }
         # Not listening yet. Classify by whether our server process is alive.
-        if (Test-StrictDocServerAliveOnPort -Port $Port) {
-            $everSeenAlive = $true            # (d) alive but unbound -> keep waiting (big projects)
-        } else {
-            if ($everSeenAlive) {
-                # appeared then vanished without binding -> startup failure (e.g. parse error).
-                return [pscustomobject]@{ Result = 'failed'; OwnerPid = 0 }               # (c)
+        switch (Get-StrictDocServerLiveness -Port $Port) {
+            'alive' {
+                $everSeenAlive = $true        # (d) alive but unbound -> keep waiting (big projects)
+                $missStreak = 0
             }
-            if ($elapsed -ge $SpawnGraceSec) {
-                # never appeared within the spawn grace -> launch failed.
-                return [pscustomobject]@{ Result = 'failed'; OwnerPid = 0 }               # (c)
+            'unknown' {
+                # The process query failed. That says nothing about the server, so
+                # do not let it count towards a failure verdict.
+                break
             }
-            # still within spawn grace and not seen yet -> wait
+            default {
+                $missStreak++
+                if ($everSeenAlive -and $missStreak -ge $ConfirmMisses) {
+                    # gone for several readings in a row without binding -> startup failure.
+                    return [pscustomobject]@{ Result = 'failed'; OwnerPid = 0 }           # (c)
+                }
+                if (-not $everSeenAlive -and $elapsed -ge $SpawnGraceSec) {
+                    # never appeared within the spawn grace -> launch failed.
+                    return [pscustomobject]@{ Result = 'failed'; OwnerPid = 0 }           # (c)
+                }
+                # otherwise: keep waiting
+            }
         }
         if ($elapsed -ge $MaxWaitSec) {
             return [pscustomobject]@{ Result = 'timeout'; OwnerPid = 0 }
@@ -250,25 +472,59 @@ function Show-StartupErrorDiagnostic {
     param(
         [Parameter(Mandatory)] [string]$StrictDocExe,
         [Parameter(Mandatory)] [string]$ProjectPath,
-        [Parameter(Mandatory)] [int]$Port
+        [Parameter(Mandatory)] [int]$Port,
+        [string]$OutputPath = ''
     )
     Write-Host ""
     Write-Host "[ERROR] StrictDoc server failed to start on port $Port (it exited before binding)." -ForegroundColor Red
-    Write-Host "        Most likely a .sdoc parse error. Details from 'strictdoc export':" -ForegroundColor Red
+    Write-Host "        Checking whether the documents themselves are the problem..." -ForegroundColor Red
     $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("sds-diag-" + [Guid]::NewGuid().ToString('N'))
     $eap = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
+    # Decode the child's output as UTF-8 regardless of the console code page, and
+    # tell Python to emit UTF-8 regardless of the locale. Either half alone still
+    # produces mojibake for non-ASCII document titles on a cp932 console.
+    $prevOut = [Console]::OutputEncoding
+    $prevPy  = $env:PYTHONIOENCODING
+    try { [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false) } catch {}
+    $env:PYTHONIOENCODING = 'utf-8'
     try {
         $out = & $StrictDocExe export $ProjectPath --output-dir $tmp 2>&1
         $ErrorActionPreference = $eap
+        $env:PYTHONIOENCODING = $prevPy
+        try { [Console]::OutputEncoding = $prevOut } catch {}
         $text = ($out | Out-String)
         $lines = $text -split "`r?`n" | Where-Object { $_ -match '(?i)(error|could not parse|TextXSyntaxError|traceback|exception|line\s+\d+)' }
         if (($lines | Measure-Object).Count -gt 0) {
             foreach ($ln in ($lines | Select-Object -First 15)) {
                 Write-Host ("        " + $ln.Trim()) -ForegroundColor Yellow
             }
+        } elseif ($LASTEXITCODE -eq 0) {
+            # The documents are fine -- exporting them worked. Saying "most likely a
+            # parse error" here sends people to look at the wrong thing, which is
+            # exactly what happened once. Name the causes that are still open.
+            Write-Host "        Your documents are fine: exporting them succeeded." -ForegroundColor Yellow
+            Write-Host "        So the failure is in starting the server, not in the .sdoc/.md files." -ForegroundColor Yellow
+
+            # The known cause of exactly this shape: a file-sync client marked the
+            # output folder ReadOnly, strictdoc could not clear its template cache,
+            # and what is left of that cache breaks every later start. Clearing it
+            # here makes the next attempt work instead of leaving the user stuck.
+            if (-not [string]::IsNullOrWhiteSpace($OutputPath) -and (Reset-OutputCache -OutputPath $OutputPath)) {
+                Write-Host "        Cleared the generated-template cache under the output folder," -ForegroundColor Yellow
+                Write-Host "        which is the usual cause when a folder is synced by OneDrive." -ForegroundColor Yellow
+                Write-Host "        Re-drop the folder: the next start rebuilds it and normally works." -ForegroundColor Yellow
+            }
+
+            Write-Host "        If it still fails, check in this order:" -ForegroundColor Yellow
+            Write-Host "          1. Try again. A first run on a large project can be slow, and the" -ForegroundColor Yellow
+            Write-Host "             port may still have been closing from an earlier server." -ForegroundColor Yellow
+            Write-Host "          2. Run it yourself to see the real error in the window:" -ForegroundColor Yellow
+            Write-Host ("             strictdoc server `"{0}`" --port {1}" -f $ProjectPath, $Port) -ForegroundColor Yellow
+            Write-Host "          3. If that works, this launcher lost sight of the server process" -ForegroundColor Yellow
+            Write-Host "             rather than the server failing. Please report it with the above." -ForegroundColor Yellow
         } else {
-            # No recognizable error lines: echo the tail so the user sees something useful.
+            # Export failed but printed nothing we recognise: show the tail verbatim.
             $tail = $text.Trim()
             if ($tail.Length -gt 600) { $tail = $tail.Substring($tail.Length - 600) }
             if ($tail.Length -gt 0) { Write-Host ("        " + $tail) -ForegroundColor Yellow }
@@ -280,5 +536,5 @@ function Show-StartupErrorDiagnostic {
     } finally {
         if (Test-Path $tmp) { Remove-Item -Path $tmp -Recurse -Force -ErrorAction SilentlyContinue }
     }
-    Write-Host "        Fix the .sdoc and re-drop the folder." -ForegroundColor Red
+    Write-Host "        Then re-drop the folder onto launch-strictdoc.bat." -ForegroundColor Red
 }

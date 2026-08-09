@@ -1,0 +1,5 @@
+input format,output format,note
+csv,json,the default combination
+csv,yaml,the tool does not preserve the order
+tsv,json,only the delimiter differs from csv
+json,csv,the tool accepts nesting one level deep

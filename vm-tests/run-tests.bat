@@ -25,7 +25,7 @@ set "PS_EXIT=%ERRORLEVEL%"
 echo.
 echo ============================================================
 echo Test runner finished. Exit code: %PS_EXIT%
-echo (0 = all PASS, 1 = at least one FAIL)
+echo (0 = no failures, 1 = at least one FAIL. Skipped scenarios do not fail the run.)
 echo ============================================================
 pause
 

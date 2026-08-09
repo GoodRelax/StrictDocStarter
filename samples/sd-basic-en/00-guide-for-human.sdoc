@@ -1,0 +1,543 @@
+[DOCUMENT]
+TITLE: Read this first
+UID: DOC-GUIDE
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+**This document exists to let a beginner and an AI use `.sdoc` right away.**
+
+This set lays out the smallest thing that still holds together as a requirements
+specification. System requirements, software requirements and test cases **sit in
+separate files, and the links run between them.** A review result goes on the
+requirement itself. Start your own specification by **copying this whole set and
+replacing the content.**
+
+**This paragraph carries no UID.** It is `[TEXT]`, free text, not a requirement.
+StrictDoc treats a requirement and free text as different things. You may mix them.
+
+`samples/md-basic-en/` writes the same requirements in `.md`. The grammar file
+matches to the character, and `SYS-001` through `SW-004` and `TC-001` through
+`TC-004` carry the same wording, so you can put the two side by side and read off
+what the notation alone changes.
+
+**This set is the smallest pair for comparing notation, not a copy of
+`md-basic-en`.** That set also carries a guide for AI and a jq query catalogue,
+two documents this one deliberately leaves out. The one thing this set carries
+and that one does not is `05-markdown.sdoc`, the document that declares
+`MARKUP: Markdown`, and the single requirement `SW-005` inside it.
+
+The files line up like this.
+
+- `00-guide-for-human.sdoc` — this document. The reading order and how to write
+- `01-upper.sdoc` — 3 system requirements. What to build
+- `02-lower.sdoc` — 4 software requirements. How to build it. Links up to the system requirements
+- `03-tests.sdoc` — 4 test cases. Links to the software requirements
+- `04-review.sdoc` — **how the review runs.** A finding goes on the requirement itself
+- `05-markdown.sdoc` — the document that writes its body text in Markdown notation
+- `basic.sgra` — the grammar every document shares
+- `strictdoc_config.py` — the project configuration. **StrictDoc reads it only from this folder**
+- `_assets/` — figures, images and the `.md` files that links point to
+<<<
+
+[[SECTION]]
+TITLE: The basics
+
+[[SECTION]]
+TITLE: Blocks and fields
+
+[TEXT]
+STATEMENT: >>>
+`.sdoc` has only three outward shapes.
+
+- `[DOCUMENT]` — one per file. Put it first. Only `TITLE:` is mandatory
+- `[GRAMMAR]` — the declaration of the fields you use. You can move it to a file
+- a node — `[TEXT]` / `[[SECTION]]` / `[REQUIREMENT]`, plus the types the grammar adds
+
+The smallest form is just this.
+
+::
+
+    [DOCUMENT]
+    TITLE: Some specification
+
+    [REQUIREMENT]
+    UID: REQ-001
+    TITLE: Doing something
+    STATEMENT: >>>
+    The system shall do something.
+    <<<
+
+**Fence a multi-line value with `>>>` and `<<<`.** Write a value that fits on one
+line directly, as in `UID: REQ-001`. The way you write it, not the grammar
+declaration, decides which form applies.
+
+**Always give a node a `UID:`.** StrictDoc still parses a node without one, but
+**nothing else can reference it and you cannot pull it out of the JSON.** Turn
+anything you never need to pull — an explanation, a preface, the introduction to a
+chapter — into `[TEXT]` and leave the UID off. Almost every node in this document
+is `[TEXT]`.
+
+**Move `[GRAMMAR]` into an external file so that every document matches.** In this
+set six documents read the same `basic.sgra`.
+
+::
+
+    [GRAMMAR]
+    IMPORT_FROM_FILE: basic.sgra
+
+`basic.sgra` declares three node types.
+
+- `SECTION` — a chapter. You can nest it
+- `REQUIREMENT` — a requirement. `UID` / `STATUS` / `TITLE` / `REVIEW_STATUS` /
+  `STATEMENT` / `RATIONALE` / `REVIEW_COMMENT` / `REVIEW_ACTION`
+- `TEST_CASE` — a test case. It carries the Gherkin words `GIVEN` / `WHEN` /
+  `THEN` plus `TEST_RESULT` / `ISSUE_KEY` / `TEST_REMARK`. **It carries no
+  `STATEMENT`**
+
+**`TEST_CASE` is not a standard StrictDoc concept.** The grammar adds it. So do
+the three `REVIEW_*` fields, which the standard `REQUIREMENT` does not have -
+`04-review.sdoc` shows you how to use them.
+**Never add a field to a single document.** Every document then takes a different
+shape, and nobody can tell where anything lives. Add the field to `basic.sgra`
+instead.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: System requirements and software requirements
+
+[TEXT]
+STATEMENT: >>>
+**Write the link on the lower side.** Put `RELATIONS:` on the lower node and point
+it at the UID of the parent. Write nothing on the upper side.
+
+::
+
+    RELATIONS:
+    - TYPE: Parent
+      VALUE: SYS-001
+
+**The parent may live in another file.** StrictDoc collects every UID in the
+project into one table and only then resolves the relations, so a file boundary
+does not matter. This set works exactly that way.
+
+::
+
+    01-upper.sdoc   SYS-001   SYS-002   SYS-003
+                       |         |         |
+    02-lower.sdoc   SW-001    SW-002    SW-003 / SW-004
+                       |         |         |
+    03-tests.sdoc   TC-001    TC-002    TC-003 / TC-004
+
+**Add `ROLE:` and the relation gains a meaning.** The type stays `Parent`.
+
+::
+
+    RELATIONS:
+    - TYPE: Parent
+      VALUE: SW-001
+      ROLE: Verifies
+
+`03-tests.sdoc` uses `Verifies`. **Declare a
+`ROLE` in the grammar before you use it.** StrictDoc fails on a value that nobody
+declared.
+
+Check the links on screen. Open `TRACEABILITY` or `DEEP TRACEABILITY` from
+**VIEWS** above the document and the parents and children line up; open the
+**traceability matrix** from the toolbar on the left and it lists every requirement
+that no test covers.
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Attachments
+
+[[SECTION]]
+TITLE: Links
+
+[TEXT]
+STATEMENT: >>>
+You can link to an `.md` file. This one points at `_assets/note.md`
+→ [LINK: DOC-NOTE]
+
+**The target only has to declare a UID right under its heading.**
+
+::
+
+    # Terminology map
+
+    **UID**: DOC-NOTE
+
+**Do not write the output path.** StrictDoc resolves it from the UID. StrictDoc
+also builds the link text from the target's title, and **you cannot set that text
+yourself.**
+
+A `[LINK:]` may target a requirement too. You write `[LINK: SW-001]` the same way.
+
+**StrictDoc parses every `.md` file in the project as a document, wherever it
+sits.** `_assets/` is no exception. So always start an `.md` file with a `#`
+heading. **One `.md` file without a heading stops the whole export.** Name the
+files you truly cannot turn into documents in `exclude_doc_paths` in
+`strictdoc_config.py` and leave them out.
+
+**Exclude one file at a time. Never exclude a whole folder.**
+
+::
+
+    exclude_doc_paths=["_assets/notes.md"]   # OK. Only that one file drops out
+    exclude_doc_paths=["_assets/**"]         # Wrong. The images vanish with it
+
+The second form drops the folder from the scan, so **StrictDoc no longer treats it
+as an asset folder and copies no images.** The export still reports success, and
+only the images in the finished HTML return 404. You will hardly notice.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Figures
+
+[TEXT]
+STATEMENT: >>>
+You can put a figure in by two routes.
+
+**First — embed an image file.** Put it in `_assets/` and point at it with
+`.. image::`. StrictDoc copies that folder on its own, so you add nothing to the
+configuration. **Make SVG your default, because it survives any zoom.**
+
+.. image:: _assets/flow.svg
+   :alt: The flow from the input file to the output file, and the two stop conditions
+   :width: 700px
+
+**Second — move a Mermaid figure into an external file and include it.** The real
+content lives in `_assets/fig-flow.sdoc`, and StrictDoc expands it right after this
+paragraph.
+
+::
+
+    [DOCUMENT_FROM_FILE]
+    FILE: _assets/fig-flow.sdoc
+
+**Give the included file the extension `.sdoc`, not `.md`.**
+`[DOCUMENT_FROM_FILE]` rejects anything else. You can still write the body in
+Markdown — the fragment declares `MARKUP: Markdown` for itself.
+
+::
+
+    [DOCUMENT]
+    TITLE: Figure - the conversion flow
+    UID: FIG-FLOW
+    OPTIONS:
+      MARKUP: Markdown
+
+    [TEXT]
+    STATEMENT: >>>
+    (write the Mermaid code fence here, as it is)
+    <<<
+
+**You cannot write this declaration inside `STATEMENT:`.** Put it in the body of a
+document or a chapter. That is why the figure below sits outside this paragraph.
+
+The included figure **appears directly on this screen and also opens as a document
+of its own.** `strictdoc server` publishes an included document separately as well.
+`export` does not publish it by default, so add ``--included-documents`` when you
+need it. **Never add that option in order to query the JSON.** The same UID then
+shows up in two places.
+
+**An include is one to one.** You cannot include the same fragment in two
+documents. To show it from two places, make one of them `[LINK: FIG-FLOW]`.
+<<<
+
+[DOCUMENT_FROM_FILE]
+FILE: _assets/fig-flow.sdoc
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Tables
+
+[TEXT]
+STATEMENT: >>>
+StrictDoc parses the body of an `.sdoc` file as RST by default. You can write a
+table in two ways.
+
+**First — the grid form.**
+
++----------+--------------------+-------------------------------------+
+| Format   | If a column is off | Note                                |
++==========+====================+=====================================+
+| grid     | export stops       | Align the cells in a monospace font |
++----------+--------------------+-------------------------------------+
+| simple   | it survives        | Write the last rule for all columns |
++----------+--------------------+-------------------------------------+
+
+**Second — the simple form.**
+
+==========  ==================  ===================================
+Format      If a column is off  Note
+==========  ==================  ===================================
+grid        export stops        Align the cells in a monospace font
+simple      it survives         Write the last rule for all columns
+==========  ==================  ===================================
+
+**Both forms accept Japanese.** Count columns by **display width, not by character
+count.** One full-width character takes 2 columns. **The table passes as long as it
+lines up in a monospace font.**
+
+**A circle or a cross counts as ONE column, though** (measured). docutils builds
+the table, and it counts a character whose east-asian width is "ambiguous" as one
+column. A monospace font draws that glyph two columns wide, so aligning by eye
+puts every following column off by one. The export then stops with
+`RST markup syntax error on line N: Malformed table.` - and **the JSON export
+passes while only the HTML dies.** Count with `docutils.utils.column_width()`
+whenever a table holds such a symbol.
+
+**Never leave a cell in the first column empty.** In the simple form a row whose
+first column is blank continues the row above it. An empty header cell alone does
+pass (measured), but an empty one in the body merges rows you did not mean to
+merge. That is why the comparison table in `04-review.sdoc` gives its first
+column the heading "Aspect".
+
+**A grid table that is off by one column stops the whole export.** A simple table
+still comes out correct when a cell runs to the right, so it is the safer choice
+when you write by hand. **It does stop, though, if you leave the last rule short of
+the full width.**
+
+**A pipe table does not work by default.** It works only in a document that
+declares `MARKUP: Markdown`. `05-markdown.sdoc` holds an example. **That form
+passes without any column alignment.**
+
+For a table with many columns you can also use `.. csv-table::`. That one passes
+even when the column counts disagree.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Querying through JSON
+
+[TEXT]
+STATEMENT: >>>
+**Export the whole specification to JSON, then pull just the part you want with
+jq.** That is the whole of this chapter. Narrow the result **after** you export the
+JSON.
+
+**StrictDoc carries a query language of its own, but it does not reach the JSON.**
+``--filter-nodes`` narrows only the `.sdoc` and the HTML output; on
+``--formats=json`` it **emits every node and raises neither an error nor a
+warning** (measured on 0.27.1). **So no road exists other than "export everything,
+then query it."** Narrowing is jq's job.
+<<<
+
+[[SECTION]]
+TITLE: Exporting the full JSON
+
+[TEXT]
+STATEMENT: >>>
+**Three outputs exist. HTML is for a person to read, JSON is for a machine to
+query, and the conversion to Markdown is for switching notation.**
+
+::
+
+    strictdoc export --formats=json --output-dir out .
+
+StrictDoc writes the JSON to `out/json/index.json`. **Export it again every time
+you edit a requirement.** ``--formats=json`` takes no narrowing option. **It always
+emits everything.**
+
+**You need no export just to read the HTML.** Drag this folder onto
+`launch-strictdoc.bat` and the server starts; edit a file and save it, and the
+screen picks the change up in about 0.6 seconds. The last chapter, "Moving
+between .sdoc and .md", collects what you need for switching notation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Querying with jq
+
+[TEXT]
+STATEMENT: >>>
+**jq is a small command that handles JSON and nothing else.** It has no connection
+to StrictDoc, and `setup-strictdoc.bat` installs it by default. jq reads the JSON
+and emits only what matches the condition you write.
+
+::
+
+    jq -r -f q-open-findings.jq out/json/index.json
+
+To list the findings that nobody has resolved yet, `q-open-findings.jq` holds this.
+
+::
+
+    .DOCUMENTS[] | recurse(.NODES[]?)
+    | select(.REVIEW_STATUS == "Open")
+    | .UID + "  " + .TITLE
+
+**The leading ``.`` means "the input itself."** From there ``.name`` descends and
+``[]`` breaks an array apart. ``.DOCUMENTS[]`` means "each item of ``DOCUMENTS`` in
+the input." The ``.`` is not an option but the filter itself, and it sits in the
+middle of ``jq [options] <filter> [file]``.
+
+**`REVIEW_STATUS` is a field the grammar added to `REQUIREMENT`.**
+`04-review.sdoc` gives the meaning of each state and lists the values. **When you
+want to filter by node type instead, the key is `_NODE_TYPE`, and the leading
+underscore makes it easy to mistype.** Run the filter against this set and it
+prints this.
+
+::
+
+    SYS-003  Protecting an existing file
+
+**Run the same filter against the JSON from `samples/md-basic-en/` and not one
+character of the output changes.** That is the proof of "either form produces the
+same JSON."
+
+**You write the filter in a file instead of passing it as a string because of
+PowerShell.** PowerShell drops the double quotes inside a quoted string, which
+breaks the form that writes the filter straight into the argument. ``-f`` behaves
+the same in every shell.
+
+**Type ``chcp 65001`` first when you pass Japanese through cmd.exe.** Left on the
+default cp932, ``jq -r --arg kw 変換 -f ...`` returns **zero results and no
+error.** PowerShell needs none of this.
+
+`docs/03-sdoc-json-queries.md` holds 7 worked examples of queries.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Taking the answer as JSON
+
+[TEXT]
+STATEMENT: >>>
+**Leave ``-r`` off and the answer comes out as JSON.** The example above added
+``-r`` to build lines a person can read. Leave it off when you feed a program.
+
+::
+
+    jq -f q-findings-json.jq out/json/index.json
+
+::
+
+    [ .DOCUMENTS[] | recurse(.NODES[]?)
+      | select(.REVIEW_STATUS? and .REVIEW_STATUS != "NoFinding"
+               and .REVIEW_STATUS != "NotReviewed") ]
+    | map({UID, REVIEW_STATUS, TITLE})
+
+::
+
+    [
+      {
+        "UID": "SYS-002",
+        "REVIEW_STATUS": "Fixed",
+        "TITLE": "Rejecting unexpected input"
+      },
+      {
+        "UID": "SYS-003",
+        "REVIEW_STATUS": "Open",
+        "TITLE": "Protecting an existing file"
+      },
+      {
+        "UID": "SW-004",
+        "REVIEW_STATUS": "WontFix",
+        "TITLE": "Atomic writing"
+      }
+    ]
+
+**The outer ``[ ... ]`` gathers the results, which arrive one at a time, into a
+single array.** Without it jq only stacks JSON values one under another and builds
+no array. ``map({UID, REVIEW_STATUS, TITLE})`` keeps just the fields you
+want; drop that whole line when you want every field.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Non-ASCII characters
+
+[TEXT]
+STATEMENT: >>>
+**Inside ``index.json`` StrictDoc turns every non-ASCII character into
+``\uXXXX``.** A Japanese title reads like this in the file.
+
+::
+
+    "TITLE": "\u307e\u305a\u3053\u308c\u3092\u8aad\u3080",
+
+StrictDoc calls ``json.dumps(..., indent=4)`` as it is, and Python escapes every
+non-ASCII character by default. **StrictDoc offers no setting and no option that
+changes this.**
+
+**You never see this while you query with jq.** jq restores the original characters
+as it reads, so every output example above comes out readable. **It matters only
+when you hand the JSON file itself to a person or to a machine.** One pass through
+jq fixes that case.
+
+::
+
+    jq . out/json/index.json > readable.json
+
+**``.`` narrows nothing, so not one character of the content changes.** Only the
+notation changes, **and the file gets smaller.**
+
+=============  ==========
+Output         vs source
+=============  ==========
+index.json     about 2.5x
+after jq .     about 2x
+after jq -c .  about 1.3x
+=============  ==========
+
+The ratios compare each file against the original `.sdoc` set. The indent drops
+from 4 spaces to 2, and a character that StrictDoc wrote as a six-byte escape
+such as ``検`` returns to the 3 bytes of UTF-8 - which weighs on the
+Japanese set far more than on this one. ``-c`` strips the indent and the
+newlines themselves.
+
+**Never write this file out from PowerShell.** PowerShell's ``>`` writes UTF-16, so
+you end up with a file that jq cannot read. Type the command in cmd.exe, or use the
+form ``cmd /c 'jq . out/json/index.json > readable.json'``.
+
+**Never explain JSON as "the lightweight option."** As the table above shows, even
+the tightest form runs larger than the original `.sdoc`. The value lies not in the
+size but in **pulling out the answer alone without reading the whole text.**
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Moving between .sdoc and .md
+
+[TEXT]
+STATEMENT: >>>
+StrictDoc converts to and from `.md` in both directions.
+
+::
+
+    strictdoc export --formats=sdoc     --output-dir out .   # .md -> .sdoc
+    strictdoc export --formats=markdown --output-dir out .   # .sdoc -> .md
+
+**`strictdoc convert` handles Excel and ReqIF only, and it does not do this.**
+
+**Create the document as `.md` and you get Markdown notation from the browser
+editor alone.** No way exists to switch a document you created as `.sdoc` over to
+Markdown from the browser, so this is one practical reason to choose `.md`.
+`samples/md-basic-en/02-guide-for-human.md` describes the `.md` set and what to
+watch for during a conversion.
+<<<
+
+[[/SECTION]]

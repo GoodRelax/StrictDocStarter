@@ -1,0 +1,18 @@
+date	sd_version	step	symptom	workaround	where
+2026-08-07	0.27.1	export-html	error: string index out of range	put a character after the closing dollar	00-ai-guide.md 2.3
+2026-08-07	0.27.1	export-html	two dollars on one line became math	escaped as \$ or wrapped in backticks	00-ai-guide.md 2.3
+2026-08-07	0.27.1	export-html	asset outside _assets was not copied	moved the file into _assets	00-ai-guide.md 2.8
+2026-08-07	0.27.1	jq	Invalid escape from a doubled backslash	rewrote the regex with character classes	00-ai-guide.md 3
+2026-08-07	0.27.1	server	config edit had no effect	restarted the server	00-ai-guide.md 1
+2026-08-07	0.27.1	export-json	heading level forward jumps are not allowed: L1 -> L3	used ## instead of ### under the H1	00-ai-guide.md
+2026-08-07	0.27.1	export-json	pool died with no message; StrictDocSemanticError takes 1 arg but 6 given	re-ran with --no-parallelization to see the real error	00-ai-guide.md
+2026-08-08	0.27.1	export-sdoc	the generated .sdoc does not carry the .sgra it names	copied basic.sgra into the output folder by hand	02-guide-for-human.md
+2026-08-08	0.27.1	export-sdoc	the inline link references an object with an UID that does not exist: UID	kept the .md as the master; a guide quoting [LINK: UID] becomes a live link in .sdoc	02-guide-for-human.md
+2026-08-08	0.27.1	export-sdoc	Expected 'MID' or 'UID' or ... at the second line of a wrapped value	a wrapped .md field value is written without >>> / <<<; patched the .sdoc original instead of converting	sd-sovd-automotive-*
+2026-08-08	0.27.1	export-json	a paragraph after a node's last field silently joined that field's value	promoted the heading-like paragraph to a section; --- and HTML comments do not separate	08-architecture.md
+2026-08-08	0.27.1	export-html	Inline strong start-string without end-string	RST needs a space or punctuation after the closing **; a Japanese particle butted against it breaks only HTML	sd-sovd-automotive-ja
+2026-08-08	0.27.1	audit	prose explaining `![alt](path)` was counted as a real attachment	drop fenced blocks and inline code spans before scanning	sdoc-patterns
+2026-08-08	0.27.1	export-json	Wrong field order for requirement, with TITLE named in the Hint	declare TITLE after the built-in meta fields MID/UID/LEVEL/STATUS/TAGS and before every custom field; json stops too, not just sdoc	basic.sgra
+2026-08-08	0.27.1	export-json	Invalid requirement field: Trigger, from prose inside a STATEMENT	an ASCII-only bold label ending in a colon is read as a field; mix in non-ASCII or drop the colon	03-usecases.md
+2026-08-08	0.27.1	export-json	Relations must directly follow requirement metadata without an empty line	attach **Relations**: to the metadata block, or put it after **Statement**: where a blank line is allowed	03-usecases.md
+2026-08-08	0.27.1	export-json	references parent requirement which doesn't exist, naming a UID the other file still declares	a run of ~ at the start of a line opens a Markdown fence and hides every node below it; grep the named file for stray tildes	04-upper.md

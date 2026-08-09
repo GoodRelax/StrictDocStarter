@@ -1,8 +1,8 @@
 # StrictDocStarter - automated test orchestrator (run by run-tests.bat).
-# Drives 'setup-strictdoc.ps1' through 10 scenarios (5 positive + 2 negative +
-# 1 dryrun-assert + 2 phase-coverage) and reports PASS / FAIL per scenario.
+# Drives 'setup-strictdoc.ps1' through 11 scenarios (5 positive + 2 negative +
+# 1 dryrun-assert + 3 phase-coverage) and reports PASS / FAIL per scenario.
 #
-# Spec refs: §2.1.10 FR-1000 series, §5 Test Strategy
+# Spec refs: section 2.1.10 FR-1000 series, section 5 Test Strategy
 #
 # Output language: English ASCII only (per ADR-008).
 
@@ -151,13 +151,81 @@ function Test-VSCodeExtensionInstalled {
     return $false
 }
 
+# winget's exit code for "installed for user scope, cannot uninstall while
+# elevated". run-tests.bat always elevates (need_admin, FR-806) because
+# machine-scope uninstalls need it -- so user-scope packages can never be
+# removed from here. That is a property of this runner, not a product defect,
+# and the scenarios that depend on it are reported SKIP rather than FAIL.
+$script:WingetUserScopeElevatedExit = -1978335107
+
 function Uninstall-WingetTool {
+    # Returns "ok" | "refused-user-scope" | "failed".
+    # The output used to go to Out-Null and the exit code was never read, so a
+    # refused uninstall looked identical to a successful one -- one scenario
+    # failed several steps later with no clue why, and another passed while
+    # verifying nothing.
     param([string]$Id)
     Write-Host "    uninstall: winget --id $Id"
-    & winget uninstall --id $Id -e --disable-interactivity 2>&1 | Out-Null
+    $out  = & winget uninstall --id $Id -e --disable-interactivity 2>&1
+    $code = $LASTEXITCODE
+    $text = ($out | Out-String)
+
+    $status = "ok"
+    if ($code -ne 0) {
+        $userScope = ($code -eq $script:WingetUserScopeElevatedExit) -or
+                     ($text -match '(?i)user scope.*administrator')
+        $status = if ($userScope) { "refused-user-scope" } else { "failed" }
+        Write-Host "    [WARN] winget uninstall exited $code" -ForegroundColor Yellow
+        ($out | Where-Object { $_ } | Select-Object -Last 4) |
+            ForEach-Object { Write-Host "      $_" -ForegroundColor DarkGray }
+    }
     # FR-1002: refresh PATH from registry so the following Test-CmdOnPath
     # sees the uninstall effect deterministically.
     Update-PathFromRegistry
+    return $status
+}
+
+function Assert-UninstallUsable {
+    # Turns "winget refused because we are elevated" into a scenario SKIP.
+    # Reporting FAIL would blame the product for a limitation of the runner;
+    # reporting PASS would claim coverage that did not happen.
+    param([string]$Status, [string]$Id)
+    if ($Status -eq "refused-user-scope") {
+        throw ("SKIP: $Id is installed for user scope and winget refuses to " +
+               "uninstall it while run-tests.bat is elevated (FR-806). " +
+               "This scenario cannot run in this configuration.")
+    }
+}
+
+function Show-StillPresentProbe {
+    # A scenario asserts a tool is gone after uninstalling it. "<x> still on
+    # PATH" alone does not say why: is the package still registered with
+    # winget (uninstall refused), or did it arrive by some route winget does
+    # not manage (so 'winget uninstall' could never remove it)?
+    #
+    # The precondition path already dumps this kind of evidence; scenario
+    # failures did not, which meant a human had to run the probes by hand
+    # afterwards on a VM whose state had already moved on.
+    param([string]$Command, [string]$WingetId)
+
+    Write-Host "    --- probe: why is '$Command' still here? ---" -ForegroundColor DarkGray
+    $cmd = Get-Command $Command -ErrorAction SilentlyContinue
+    $where = if ($cmd) { $cmd.Source } else { "(Get-Command found nothing)" }
+    Write-Host "      location : $where" -ForegroundColor DarkGray
+
+    if ($WingetId) {
+        try {
+            $wl = (& winget list --id $WingetId -e --disable-interactivity 2>&1 | Out-String)
+            if ($wl -match [regex]::Escape($WingetId)) {
+                Write-Host "      winget   : $WingetId is STILL REGISTERED -- the uninstall was refused" -ForegroundColor DarkGray
+            } else {
+                Write-Host "      winget   : $WingetId is NOT registered -- this copy came from elsewhere," -ForegroundColor DarkGray
+                Write-Host "                 so 'winget uninstall' can never remove it" -ForegroundColor DarkGray
+            }
+        } catch {
+            Write-Host "      winget   : probe failed: $($_.Exception.Message)" -ForegroundColor DarkGray
+        }
+    }
 }
 
 function Uninstall-VSCodeExtension {
@@ -175,7 +243,7 @@ function Invoke-OnboardSubprocess {
     # (e.g., parse error), the captured output here is the only evidence --
     # so we save it to a side log.
     #
-    # §5.4: 5-minute timeout via Start-Job + Wait-Job -Timeout. If exceeded,
+    # section 5.4: 5-minute timeout via Start-Job + Wait-Job -Timeout. If exceeded,
     # the job is stopped and the test FAILs with a timeout marker. Note:
     # grandchild processes (winget -> msiexec etc.) are NOT killed -- the
     # user may need to clean them up manually if a real hang occurs.
@@ -291,7 +359,7 @@ function Restore-Config {
 }
 
 # ---------------------------------------------------------------------------
-# Scenarios (10 total: 5 positive + 2 phase-coverage + 2 negative + 1 dryrun-assert)
+# Scenarios (11 total: 5 positive + 3 phase-coverage + 2 negative + 1 dryrun-assert)
 #
 # Independence (FR-1001): uninstall targets are non-overlapping where
 # practical. Mixed reuses jq (#2) and ms-vscode.PowerShell (#4) but does
@@ -312,12 +380,18 @@ function Test-Idempotency {
 
 function Test-PartialOptional {
     if (-not $script:DryRun) {
-        Uninstall-WingetTool "jqlang.jq"
-        Uninstall-WingetTool "BurntSushi.ripgrep.MSVC"
+        Assert-UninstallUsable (Uninstall-WingetTool "jqlang.jq") "jqlang.jq"
+        Assert-UninstallUsable (Uninstall-WingetTool "BurntSushi.ripgrep.MSVC") "BurntSushi.ripgrep.MSVC"
         Uninstall-VSCodeExtension "eamodio.gitlens"
 
-        if (Test-CmdOnPath "jq")                              { throw "jq still on PATH before run" }
-        if (Test-CmdOnPath "rg")                              { throw "rg still on PATH before run" }
+        if (Test-CmdOnPath "jq") {
+            Show-StillPresentProbe -Command "jq" -WingetId "jqlang.jq"
+            throw "jq still on PATH after winget uninstall (see probe above)"
+        }
+        if (Test-CmdOnPath "rg") {
+            Show-StillPresentProbe -Command "rg" -WingetId "BurntSushi.ripgrep.MSVC"
+            throw "rg still on PATH after winget uninstall (see probe above)"
+        }
         if (Test-VSCodeExtensionInstalled "eamodio.gitlens")  { throw "gitlens still installed before run" }
     }
     $r = Invoke-OnboardSubprocess -ScenarioName "T_partial_optional" -NonInteractive
@@ -332,8 +406,11 @@ function Test-PartialOptional {
 
 function Test-RequiredOnly {
     if (-not $script:DryRun) {
-        Uninstall-WingetTool "GitHub.cli"
-        if (Test-CmdOnPath "gh") { throw "gh still on PATH after uninstall + Update-PathFromRegistry" }
+        Assert-UninstallUsable (Uninstall-WingetTool "GitHub.cli") "GitHub.cli"
+        if (Test-CmdOnPath "gh") {
+            Show-StillPresentProbe -Command "gh" -WingetId "GitHub.cli"
+            throw "gh still on PATH after winget uninstall (see probe above)"
+        }
     }
     $r = Invoke-OnboardSubprocess -ScenarioName "T_required_only" -NonInteractive
     Assert-Exit0 $r "T_required_only"
@@ -361,13 +438,16 @@ function Test-ExtensionsOnly {
 function Test-Mixed {
     # FR-1001 strict independence: Mixed uses Obsidian (winget) + MS-CEINTL
     # language pack (extension), neither of which is touched by any other
-    # scenario. See spec §5.3 uninstall matrix.
+    # scenario. See spec section 5.3 uninstall matrix.
     if (-not $script:DryRun) {
-        Uninstall-WingetTool "Obsidian.Obsidian"
+        Assert-UninstallUsable (Uninstall-WingetTool "Obsidian.Obsidian") "Obsidian.Obsidian"
         Uninstall-VSCodeExtension "MS-CEINTL.vscode-language-pack-ja"
-        if (Test-CmdOnPath "obsidian") {
-            # Obsidian doesn't expose a 'obsidian' command; presence is via
-            # registry/known paths. Skip the strict pre-check.
+        # Obsidian exposes no command on PATH, so its removal is confirmed
+        # through winget rather than a probe. Before the uninstall reported
+        # its exit code this scenario passed while winget had refused to
+        # remove anything -- it verified only the extension half.
+        if ((& winget list --id "Obsidian.Obsidian" -e --disable-interactivity 2>&1 | Out-String) -match "Obsidian\.Obsidian") {
+            throw "Obsidian still registered with winget after uninstall"
         }
         if (Test-VSCodeExtensionInstalled "MS-CEINTL.vscode-language-pack-ja") {
             throw "ja lang pack still installed before run"
@@ -408,22 +488,156 @@ function Test-StrictDocPip {
     # auto -> verify strictdoc --version works again. The [VERIFIED] tag in log
     # would indicate the two-stage fallback (FR-312) fired, which is abnormal
     # for a clean uninstall path.
-    if (-not $script:DryRun) {
-        $py = Get-Command python -ErrorAction SilentlyContinue
-        if (-not $py) { throw "python not on PATH; cannot uninstall strictdoc" }
+    #
+    # This scenario is version-destructive and must undo that (FR-1001). It
+    # deletes strictdoc and lets 'auto' put it back, and 'auto' honours
+    # strictdoc.version, which defaults to 'latest'. On a VM that was not
+    # already at the newest release the version therefore CHANGES here -- a
+    # 0.23.1 machine came back as 0.27.1 -- and every later scenario, plus
+    # every later run on that VM, then starts from a version nobody chose.
+    # It went unnoticed until the runner began recording the version at all.
+    if ($script:DryRun) {
+        $r = Invoke-OnboardSubprocess -ScenarioName "T_strictdoc_pip" -NonInteractive
+        Assert-Exit0 $r "T_strictdoc_pip"
+        return
+    }
+
+    $py = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $py) { throw "python not on PATH; cannot uninstall strictdoc" }
+
+    $before = (& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)
+    if ($before) { $before = ([string]$before).Trim() }
+    if (-not $before) { throw "could not read the strictdoc version before uninstalling" }
+    Write-Host "    strictdoc before: $before"
+
+    try {
         Write-Host "    pip uninstall strictdoc -y"
         & python -m pip uninstall strictdoc -y 2>&1 | Out-Null
         Update-PathFromRegistry
-        if (Test-CmdOnPath "strictdoc") { throw "strictdoc still on PATH after pip uninstall" }
-    }
-    $r = Invoke-OnboardSubprocess -ScenarioName "T_strictdoc_pip" -NonInteractive
-    Assert-Exit0 $r "T_strictdoc_pip"
-    if (-not $script:DryRun) {
+        if (Test-CmdOnPath "strictdoc") {
+            Show-StillPresentProbe -Command "strictdoc"
+            throw "strictdoc still on PATH after pip uninstall (see probe above)"
+        }
+
+        $r = Invoke-OnboardSubprocess -ScenarioName "T_strictdoc_pip" -NonInteractive
+        Assert-Exit0 $r "T_strictdoc_pip"
+
         Update-PathFromRegistry
         if (-not (Test-CmdWorks "strictdoc")) { throw "strictdoc not reinstalled; see $($r.Log)" }
         # Soft assertion: [VERIFIED] should NOT appear on a clean reinstall.
         if ($r.Capture -match '\[VERIFIED\]') {
             Write-Host "    [WARN] [VERIFIED] tag observed -- two-stage fallback fired" -ForegroundColor Yellow
+        }
+    } finally {
+        # Runs on failure too: a half-finished scenario must not leave the VM
+        # on a different version than it started on.
+        $after = (& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)
+        if ($after) { $after = ([string]$after).Trim() }
+        if ($after -ne $before) {
+            Write-Host "    reinstall produced $after; restoring $before"
+            & python -m pip install --quiet "strictdoc==$before" 2>&1 | Out-Null
+            $restored = (& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)
+            if ($restored) { $restored = ([string]$restored).Trim() }
+            if ($restored -ne $before) {
+                Write-Host "    [WARN] strictdoc left at $restored (expected $before) -- fix manually" -ForegroundColor Yellow
+            }
+        }
+    }
+}
+
+function Test-StrictDocUpgrade {
+    # FR-334..338: 'upgrade' is the only path that changes the version of an
+    # installed strictdoc. Exercised as an explicit downgrade-then-restore so
+    # the assertion is a real version CHANGE, not just "the command exited 0".
+    #
+    # FR-335 is asserted first and matters most: a plain 'auto' must leave the
+    # installed version alone. If that ever regresses, re-running setup starts
+    # silently mutating working environments.
+    if ($script:DryRun) {
+        Write-Host "    skipped in dryrun mode (changes the installed strictdoc version)"
+        return
+    }
+
+    $py = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $py) { throw "python not on PATH; cannot exercise upgrade" }
+    if (-not (Test-CmdWorks "strictdoc")) { throw "strictdoc not installed; run setup-strictdoc.bat once first" }
+
+    $original = (& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)
+    if (-not $original) { throw "could not read the current strictdoc version" }
+    $original = ([string]$original).Trim()
+    Write-Host "    current strictdoc: $original"
+
+    $backup = Backup-Config
+    try {
+        if (-not (Test-Path $ConfigPath)) {
+            throw "setup.config.json missing -- run setup-strictdoc.bat once first"
+        }
+
+        # Pin to a version that is NOT the installed one so a no-op cannot pass.
+        $pinTo = if ($original -eq "0.23.1") { "0.23.0" } else { "0.23.1" }
+
+        $cfg = Get-Content $ConfigPath -Raw | ConvertFrom-Json
+        if (-not ($cfg.PSObject.Properties.Name -contains "strictdoc")) {
+            $cfg | Add-Member -NotePropertyName "strictdoc" -NotePropertyValue ([pscustomobject]@{ version = "latest" })
+        }
+        $cfg.strictdoc.version = "==$pinTo"
+        ($cfg | ConvertTo-Json -Depth 10) | Set-Content -Path $ConfigPath -Encoding UTF8
+
+        # FR-335: 'auto' reconciles the installed version with the config.
+        # This assertion was the exact opposite until the reconcile behaviour
+        # landed -- it used to require that 'auto' left the version alone.
+        $rAuto = Invoke-OnboardSubprocess -ScenarioName "T_strictdoc_upgrade_auto" -NonInteractive
+        Assert-Exit0 $rAuto "T_strictdoc_upgrade_auto"
+        $afterAuto = ([string](& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)).Trim()
+        if ($afterAuto -ne $pinTo) {
+            throw "FR-335: 'auto' should have applied the pin ==$pinTo, strictdoc is $afterAuto; see $($rAuto.Log)"
+        }
+        Write-Host "    FR-335 ok: 'auto' applied the pin $original -> $afterAuto"
+
+        # A second 'auto' with the pin now satisfied must be a no-op, and must
+        # reach that conclusion without calling pip (the plan compares strings).
+        $rAgain = Invoke-OnboardSubprocess -ScenarioName "T_strictdoc_upgrade_noop" -NonInteractive
+        Assert-Exit0 $rAgain "T_strictdoc_upgrade_noop"
+        $afterAgain = ([string](& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)).Trim()
+        if ($afterAgain -ne $pinTo) {
+            throw "FR-335: second 'auto' changed a satisfied pin to $afterAgain; see $($rAgain.Log)"
+        }
+        if (($rAgain.Capture -join "`n") -notmatch 'matches strictdoc\.version') {
+            Write-Host "    [WARN] satisfied pin did not report as a match -- pip may have been called" -ForegroundColor Yellow
+        }
+        Write-Host "    FR-335 ok: satisfied pin is a no-op"
+
+        # FR-334: 'upgrade' still exists and still moves the version.
+        $cfg.strictdoc.version = "==$original"
+        ($cfg | ConvertTo-Json -Depth 10) | Set-Content -Path $ConfigPath -Encoding UTF8
+        $rUp = Invoke-OnboardSubprocess -ScenarioName "T_strictdoc_upgrade" -SubCmd "upgrade" -NonInteractive
+        Assert-Exit0 $rUp "T_strictdoc_upgrade"
+        $afterUp = ([string](& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)).Trim()
+        if ($afterUp -ne $original) {
+            throw "FR-334: expected strictdoc $original after upgrade, got '$afterUp'; see $($rUp.Log)"
+        }
+        Write-Host "    FR-334 ok: 'upgrade' moved strictdoc $pinTo -> $afterUp"
+
+        # FR-336: the version change must point at the differences and at the
+        # command that undoes it.
+        $upText = ($rUp.Capture -join "`n")
+        if ($upText -notmatch '02-sdoc-authoring') {
+            Write-Host "    [WARN] FR-336: upgrade output did not reference docs/02-sdoc-authoring.md" -ForegroundColor Yellow
+        }
+        if ($upText -notmatch "strictdoc==$([regex]::Escape($original))") {
+            Write-Host "    [WARN] FR-336: upgrade output did not show the rollback command" -ForegroundColor Yellow
+        }
+    } finally {
+        # Restore the config first so the restoring 'upgrade' reads the pin we
+        # want, then put the original version back. Both run even on failure --
+        # leaving a downgraded strictdoc behind would contaminate every later
+        # scenario (FR-1001).
+        Restore-Config $backup
+        Write-Host "    restoring strictdoc $original"
+        & python -m pip install --quiet "strictdoc==$original" 2>&1 | Out-Null
+        $restored = ([string](& strictdoc --version 2>$null | Where-Object { $_ } | Select-Object -First 1)).Trim()
+        if ($restored -ne $original) {
+            Write-Host "    [WARN] strictdoc left at $restored (expected $original) -- fix manually" -ForegroundColor Yellow
         }
     }
 }
@@ -433,9 +647,13 @@ function Test-NegativeAbort {
     # Read-Host does not consume piped stdin (reads Console.ReadLine
     # directly), so the sub-process would hang waiting for user input. This
     # scenario is documented as a MANUAL negative test in vm-test-checklist.md.
-    # Mark as PASS-with-skip (does not block the suite) and direct the user.
-    Write-Host "    SKIPPED (FR-209 abort guidance is verified manually -- see vm-test-checklist.md)" -ForegroundColor Yellow
-    Write-Host "    Reason: PowerShell Read-Host cannot consume piped stdin (sub-process would hang)." -ForegroundColor DarkGray
+    #
+    # This used to print "SKIPPED" and then register as PASS, so the summary
+    # claimed coverage that never ran. Now that the driver has a real SKIP
+    # status, say what actually happened.
+    throw ("SKIP: FR-209 abort guidance cannot be automated (PowerShell Read-Host " +
+           "does not consume piped stdin, so the sub-process would hang). " +
+           "Verify by hand -- see SC-015 in vm-test-checklist.md.")
 }
 
 function Test-NegativeClaudeBoth {
@@ -516,9 +734,10 @@ $tests = @(
     @{ Name = "PartialOptional";    Func = ${function:Test-PartialOptional};    Note = "uninstall jq + rg + gitlens ext" }
     @{ Name = "RequiredOnly";       Func = ${function:Test-RequiredOnly};       Note = "uninstall gh CLI" }
     @{ Name = "ExtensionsOnly";     Func = ${function:Test-ExtensionsOnly};     Note = "uninstall 2 VS Code extensions" }
-    @{ Name = "Mixed";              Func = ${function:Test-Mixed};              Note = "uninstall jq + ms-vscode.PowerShell (no gh, FR-1001)" }
+    @{ Name = "Mixed";              Func = ${function:Test-Mixed};              Note = "uninstall Obsidian + ja language pack (FR-1001)" }
     @{ Name = "ClaudeExtension";    Func = ${function:Test-ClaudeExtension};    Note = "Phase A coverage (FR-805 / FR-1008)" }
-    @{ Name = "StrictDocPip";       Func = ${function:Test-StrictDocPip};       Note = "Phase C coverage (FR-311 / FR-1009)" }
+    @{ Name = "StrictDocPip";       Func = ${function:Test-StrictDocPip};       Note = "pip uninstall + reinstall, version restored (FR-1009)" }
+    @{ Name = "StrictDocUpgrade";   Func = ${function:Test-StrictDocUpgrade};   Note = "version change via 'upgrade' (FR-334..338)" }
     @{ Name = "NegativeAbort";      Func = ${function:Test-NegativeAbort};      Note = "negative: feed 'no' to yes prompt (FR-209)" }
     @{ Name = "NegativeClaudeBoth"; Func = ${function:Test-NegativeClaudeBoth}; Note = "negative: both claude flags true (FR-305)" }
     @{ Name = "DryrunAssert";       Func = ${function:Test-DryrunAssert};       Note = "dryrun output assertions (FR-1007)" }
@@ -643,6 +862,24 @@ if (-not $script:DryRun) {
 }
 Write-Host ""
 
+# Baseline versions, recorded BEFORE any scenario runs.
+#
+# Get-AllToolsStatus answers "is it there", not "which one". On an all-PASS run
+# nothing else prints a version, so the result ZIP could not say what was
+# actually tested -- and on a clean VM the installed strictdoc is whatever PyPI
+# served that day. StrictDocUpgrade also moves the version and puts it back, so
+# a baseline is what makes a failed restore detectable at the end.
+$script:BaselineStrictDoc = $null
+if (-not $script:DryRun) {
+    try {
+        $sdOut = & strictdoc --version 2>$null
+        $sdOut = $sdOut | Where-Object { $_ } | Select-Object -First 1
+        if ($sdOut) { $script:BaselineStrictDoc = ([string]$sdOut).Trim() }
+    } catch {}
+    Write-Host "Baseline strictdoc: $(if ($script:BaselineStrictDoc) { $script:BaselineStrictDoc } else { '(could not read)' })"
+    Write-Host ""
+}
+
 $results = [ordered]@{}
 $tStart  = Get-Date
 
@@ -659,8 +896,19 @@ foreach ($t in $tests) {
         Write-Host ("[PASS] {0} ({1:0}s)" -f $tname, $elapsed) -ForegroundColor Green
     } catch {
         $elapsed = ((Get-Date) - $tBeg).TotalSeconds
-        $results[$tname] = @{ Status = "FAIL"; Detail = ("{0} ({1:0}s)" -f $_.Exception.Message, $elapsed) }
-        Write-Host ("[FAIL] {0} : {1}" -f $tname, $_.Exception.Message) -ForegroundColor Red
+        $msg = $_.Exception.Message
+        # A scenario that could not run in this configuration is neither a
+        # pass nor a failure. Throwing "SKIP: <reason>" says so; anything
+        # else is a real failure. Without this a blocked scenario had to be
+        # reported as one or the other, and both were misleading.
+        if ($msg -like "SKIP:*") {
+            $reason = $msg.Substring(5).Trim()
+            $results[$tname] = @{ Status = "SKIP"; Detail = ("{0} ({1:0}s)" -f $reason, $elapsed) }
+            Write-Host ("[SKIP] {0} : {1}" -f $tname, $reason) -ForegroundColor Yellow
+        } else {
+            $results[$tname] = @{ Status = "FAIL"; Detail = ("{0} ({1:0}s)" -f $msg, $elapsed) }
+            Write-Host ("[FAIL] {0} : {1}" -f $tname, $msg) -ForegroundColor Red
+        }
     }
     Write-Host ""
 }
@@ -672,18 +920,52 @@ Write-Host "============================================================" -Foreg
 Write-Host "Final Summary" -ForegroundColor Magenta
 Write-Host "============================================================" -ForegroundColor Magenta
 $failCount = 0
+$skipCount = 0
 foreach ($k in $results.Keys) {
     $r = $results[$k]
-    $line = "  $($k.PadRight(22)) : $($r.Status)  $($r.Detail)"
+    # Skip reasons are a sentence long and wrecked this table's alignment.
+    # The full text already appeared on the scenario's own [SKIP] line above.
+    $detail = [string]$r.Detail
+    if ($detail.Length -gt 58) { $detail = $detail.Substring(0, 55) + "..." }
+    $line = "  $($k.PadRight(22)) : $($r.Status.PadRight(4))  $detail"
     if ($r.Status -eq "PASS") {
         Write-Host $line -ForegroundColor Green
+    } elseif ($r.Status -eq "SKIP") {
+        Write-Host $line -ForegroundColor Yellow
+        $skipCount++
     } else {
         Write-Host $line -ForegroundColor Red
         $failCount++
     }
 }
 Write-Host ""
-Write-Host ("Total elapsed: {0:0}s  ({1} of {2} passed)" -f $totalElapsed, ($tests.Count - $failCount), $tests.Count)
+$passCount = $tests.Count - $failCount - $skipCount
+$tally = "Total elapsed: {0:0}s  ({1} passed, {2} failed, {3} skipped of {4})" -f `
+         $totalElapsed, $passCount, $failCount, $skipCount, $tests.Count
+Write-Host $tally
+
+# Closing version check. StrictDocUpgrade changes the installed version and
+# restores it in a finally block; if that restore ever fails, every later run
+# on this VM starts from a version nobody chose. Comparing against the baseline
+# turns that into a visible line instead of a silent drift.
+if (-not $script:DryRun) {
+    $sdEnd = $null
+    try {
+        $o = & strictdoc --version 2>$null
+        $o = $o | Where-Object { $_ } | Select-Object -First 1
+        if ($o) { $sdEnd = ([string]$o).Trim() }
+    } catch {}
+    Write-Host ""
+    if (-not $sdEnd) {
+        Write-Host "strictdoc: BASELINE $script:BaselineStrictDoc -> NOT RUNNABLE - restore it manually" -ForegroundColor Red
+    } elseif ($script:BaselineStrictDoc -and $sdEnd -ne $script:BaselineStrictDoc) {
+        Write-Host "strictdoc: BASELINE $script:BaselineStrictDoc -> $sdEnd  (CHANGED - a scenario did not restore it)" -ForegroundColor Red
+        Write-Host "  Restore with: pip install `"strictdoc==$script:BaselineStrictDoc`"" -ForegroundColor Yellow
+    } else {
+        Write-Host "strictdoc: $sdEnd (unchanged from baseline)"
+    }
+}
+
 Write-Host ""
 Write-Host "Per-scenario logs in: $LogDir" -ForegroundColor DarkGray
 Write-Host "  (file pattern: <ScenarioName>.log + <ScenarioName>.runner-capture.log)" -ForegroundColor DarkGray

@@ -1,0 +1,87 @@
+[DOCUMENT]
+TITLE: 下位要求
+UID: DOC-LOWER
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+本書は `01-upper.sdoc` の各要求について **どう実現するか** を書く。
+
+**上下の関係は下位の側に書く。** 下位要求に `RELATIONS: TYPE: Parent` を置き、
+親の UID を指す。 上位要求の側には何も書かない。 **上位側に子を並べては
+ならない** — 下位要求が増えるたびに上位を触ることになり、 二重管理になる。
+
+親は **別のファイルにいてよい。** StrictDoc はプロジェクト全体で UID を 1 つの
+表に集めてから関係を解決するため、 ファイルの境目は関係しない。
+
+**要求の書き方は EARS にそろえてある。** 5 つの型と、 条件を主語より先に書く
+理由は `01-upper.sdoc` にある。
+<<<
+
+[REQUIREMENT]
+UID: SW-001
+STATUS: Approved
+TITLE: 変換の実行
+REVIEW_STATUS: NoFinding
+STATEMENT: >>>
+本ツールは、 入力ファイルを読み、 利用者が指定した出力形式へ変換した結果を
+出力ファイルへ書き出すこと。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYS-001
+
+[REQUIREMENT]
+UID: SW-002
+STATUS: Approved
+TITLE: 入力形式の検査
+REVIEW_STATUS: NoFinding
+STATEMENT: >>>
+もし入力ファイルの形式が利用者の指定した形式と異なるならば、 本ツールは、
+変換を行わず異常終了すること。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYS-002
+
+[REQUIREMENT]
+UID: SW-003
+STATUS: Approved
+TITLE: 出力先の確認
+REVIEW_STATUS: NotReviewed
+STATEMENT: >>>
+もし出力先に同名のファイルが既にあるならば、 本ツールは、 書き出しを行わず
+異常終了すること。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYS-003
+
+[REQUIREMENT]
+UID: SW-004
+STATUS: Draft
+TITLE: 書き込みの原子性
+REVIEW_STATUS: WontFix
+STATEMENT: >>>
+もし書き出しが途中で中断したならば、 本ツールは、 出力先に不完全なファイルを
+残さないこと。
+<<<
+RATIONALE: >>>
+中断で生まれた不完全なファイルが残ると、 次回の実行では
+SW-003 がそれを「既存ファイル」と見なして止まる。 利用者は原因の分からない
+異常終了を見ることになる。
+<<<
+REVIEW_COMMENT: >>>
+一時ファイルの置き場所が決まっていない。 同じドライブでないと改名が原子的に
+ならない場合がある。
+<<<
+REVIEW_ACTION: >>>
+この一式は書き方の実例であり、 実装の詳細は扱わない。 実際の仕様書では
+ここを決めること。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYS-003

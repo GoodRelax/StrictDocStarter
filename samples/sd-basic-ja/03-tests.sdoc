@@ -1,0 +1,162 @@
+[DOCUMENT]
+TITLE: テストケース
+UID: DOC-TESTS
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+テストケースは **StrictDoc の標準概念ではない。** `basic.sgra` で
+`TEST_CASE` というノード型を自分で足してある。 足したので `GIVEN` `WHEN`
+`THEN` という Gherkin の 3 語もそのままフィールドにできる。
+**`TITLE` がシナリオ名を兼ねるので、 この文法は `SCENARIO` というフィールドを
+持たない。**
+
+**関係の種類は `Parent` のまま、 `ROLE` で意味を変える。** ここでは
+`ROLE: Verifies` を付けた。 これで画面と JSON の両方に「検証する」という
+向きが出る。 `ROLE` は使う前に文法側で宣言しておく必要がある。
+
+この 4 件で `02-lower.sdoc` の下位要求 4 件を 1 対 1 で覆っている。
+覆えているかどうかは、 左のツールバーの
+**トレーサビリティマトリクス** の画面で一目で分かる。
+<<<
+
+[[SECTION]]
+TITLE: Gherkin とは何か
+
+[TEXT]
+STATEMENT: >>>
+**Gherkin は、 振る舞いを 3 つに割って書くための言語である。** Cucumber という
+テスト自動化の道具が読む形式として広まった。 公式の定義は 3 語をこう説明して
+いる。
+
+==========  ================================================
+語          何を書くか
+==========  ================================================
+Given       **前提。** 何かが起きる前の、 系の状態
+When        **出来事。** 人か外の系が起こす操作そのもの
+Then        **期待結果。** 起きるはずのこと
+==========  ================================================
+
+**割る理由は、 前提と操作と結果が混ざった文が検証できないからである。**
+「壊れたファイルを渡すと異常終了する」 と 1 文で書くと、 何を用意すれば試せる
+のかが読み取れない。 3 つに割れば、 用意するもの・押すもの・見るものが
+それぞれ決まる。
+
+**★ StrictDoc のフィールドは繰り返せない。** Gherkin の `And` と `But` は
+別のフィールドにできないので、 **`GIVEN` の中に複数行書く。**
+
+::
+
+    GIVEN: >>>
+    変換できる入力ファイルがある。
+    出力先に同名のファイルは無い。
+    <<<
+
+**この一式が使うのは Given / When / Then の 3 語だけである。** Gherkin には
+`Feature` `Rule` `Scenario Outline` `Examples` `Background` などもあるが、
+StrictDoc の文書構造が同じ役割を果たすので採らない。 `Feature` は文書と章、
+`Scenario` は `TITLE` に当たる。
+
+**`TEST_RESULT` は必須で、 NotRun / Passed / Failed / Blocked の 4 択である。**
+`ISSUE_KEY` と `TEST_REMARK` は任意なので、 必要なシナリオにだけ書く。
+
+**★ この文法の `TEST_CASE` は `STATEMENT` を持たない。** `.sdoc` では
+書いていないフィールドを StrictDoc が勝手に補うことは無いので、 `.md` の
+ような取り違えは起きない。 説明を書きたいときは `TEST_REMARK` に書く。
+<<<
+
+[[SECTION]]
+TITLE: 原典
+
+[TEXT]
+STATEMENT: >>>
+- **Gherkin の公式リファレンス** — https://cucumber.io/docs/gherkin/reference/
+  語の一覧と、 Given / When / Then それぞれの定義が載っている。
+  **本書の 3 語の説明は、 このページの定義をなぞったものである。**
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[TEST_CASE]
+UID: TC-001
+TITLE: 変換が成功する
+TEST_RESULT: Passed
+GIVEN: >>>
+利用者が指定した形式の入力ファイルを 1 つ用意し、 出力先に同名のファイルが
+無い。
+<<<
+WHEN: >>>
+利用者が本ツールを実行する。
+<<<
+THEN: >>>
+本ツールが正常終了し、 利用者が指定した形式の出力ファイルを作る。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-001
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-002
+TITLE: 想定外の形式を拒否する
+TEST_RESULT: Failed
+ISSUE_KEY: PROJ-142
+GIVEN: >>>
+利用者が指定した形式ではない入力ファイルを 1 つ用意する。
+<<<
+WHEN: >>>
+利用者が本ツールを実行する。
+<<<
+THEN: >>>
+本ツールが異常終了し、 出力ファイルを作らない。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-002
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-003
+TITLE: 既存ファイルを上書きしない
+TEST_RESULT: NotRun
+GIVEN: >>>
+利用者が出力先に、 本ツールが作る出力ファイルと同じ名前のファイルを置く。
+<<<
+WHEN: >>>
+利用者が本ツールを実行する。
+<<<
+THEN: >>>
+本ツールが異常終了し、 既存ファイルの中身が変わらない。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-003
+  ROLE: Verifies
+
+[TEST_CASE]
+UID: TC-004
+TITLE: 中断しても不完全なファイルを残さない
+TEST_RESULT: Blocked
+ISSUE_KEY: PROJ-207
+GIVEN: >>>
+本ツールが出力ファイルを書き出している途中である。
+<<<
+WHEN: >>>
+利用者が本ツールの処理を強制終了する。
+<<<
+THEN: >>>
+本ツールが出力先に不完全なファイルを残さない。
+<<<
+TEST_REMARK: >>>
+検証チームが、 書き出しの途中で処理を止める手順をまだ用意していない。
+手順が揃うまで、 検証チームはこのシナリオを保留する。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SW-004
+  ROLE: Verifies

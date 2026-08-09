@@ -1,0 +1,515 @@
+[DOCUMENT]
+TITLE: まずこれを読む
+UID: DOC-GUIDE
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+**本書の目的は、 `.sdoc` を初心者と AI がすぐ使えるようにすることである。**
+
+この一式は、 要求仕様書として最低限成り立つものを一通り並べてある。
+上位要求から下位要求、 テストケースまでが **別のファイルに分かれ、
+その間が繋がっている。** レビューの結果は要求そのものに書く。 自分の仕様書は
+**この一式を丸ごと写して、 中身を差し替えるところから始める。**
+
+**この段落には UID が無い。** `[TEXT]` という地の文であり、 要求ではない。
+StrictDoc は要求と地の文を別のものとして扱う。 混ぜてよい。
+
+同じ要求を `.md` で書いた一式が `samples/md-basic-ja/` にある。 文法ファイルは
+1 文字も違わず、 `SYS-001` から `SW-004` と `TC-001` から `TC-004` の文面も同じである。
+読者は 2 つを並べて、 同じ内容が記法でどう変わるかだけを見比べられる。
+
+**本書の一式は記法を見比べるための最小構成であり、 `md-basic-ja` の写しではない。**
+`md-basic-ja` は AI 向けの手引き・jq クエリ集・ユースケース・システム構成・
+ブラウザ操作の手引き・AI との分担という 6 文書をさらに持ち、 ユースケース `UC-001` を
+要求の親に置いている。 本書の一式はそのどれも持たない。 意図してそうしてある。
+逆にこちらだけが持つのは `MARKUP: Markdown` を宣言した `05-markdown.sdoc` と、
+その中の要求 `SW-005` の 1 件である。
+
+ファイルの並びは次のとおり。
+
+- `00-guide-for-human.sdoc` — 本書。 読む順と書き方
+- `01-upper.sdoc` — 上位要求 3 件。 何を作るか
+- `02-lower.sdoc` — 下位要求 4 件。 どう実現するか。 上位へ結ぶ
+- `03-tests.sdoc` — テストケース 4 件。 下位へ結ぶ
+- `04-review.sdoc` — **レビューの進め方。** 指摘は要求そのものに書く
+- `05-markdown.sdoc` — 本文を Markdown 記法で書く文書
+- `basic.sgra` — 全文書が共有する文法定義
+- `strictdoc_config.py` — プロジェクト設定。 **このフォルダ直下に無いと読まれない**
+- `_assets/` — 図・画像・リンク先の `.md`
+<<<
+
+[[SECTION]]
+TITLE: 基本
+
+[[SECTION]]
+TITLE: ブロックとフィールド
+
+[TEXT]
+STATEMENT: >>>
+`.sdoc` の外形は 3 つしかない。
+
+- `[DOCUMENT]` — 1 ファイルに 1 つ。 先頭に置く。 `TITLE:` だけが必須
+- `[GRAMMAR]` — 使うフィールドの宣言。 外部ファイルに出せる
+- ノード — `[TEXT]` / `[[SECTION]]` / `[REQUIREMENT]` と、 文法で足した型
+
+最小の形はこれだけである。
+
+::
+
+    [DOCUMENT]
+    TITLE: 何かの仕様書
+
+    [REQUIREMENT]
+    UID: REQ-001
+    TITLE: 何かをすること
+    STATEMENT: >>>
+    本システムは、 何かをすること。
+    <<<
+
+**複数行の値は `>>>` と `<<<` で囲む。** 1 行で済む値は `UID: REQ-001` の形で
+そのまま書く。 どちらになるかは文法の宣言ではなく、 書き方で決まる。
+
+**`UID:` は必ず付ける。** 無くても解析は通るが、 **他から参照できず JSON からも
+引けない。** 逆に、 引く必要が無いもの — 説明・前置き・章の導入 — は
+`[TEXT]` にして UID を付けない。 本書はほぼ全部が `[TEXT]` である。
+
+**`[GRAMMAR]` を外部ファイルに出す理由は、 文書をまたいで揃えるためである。**
+この一式では 6 つの文書が同じ `basic.sgra` を読む。
+
+::
+
+    [GRAMMAR]
+    IMPORT_FROM_FILE: basic.sgra
+
+`basic.sgra` が宣言しているのは 3 つのノード型である。
+
+- `SECTION` — 章。 入れ子にできる
+- `REQUIREMENT` — 要求。 `UID` / `STATUS` / `TITLE` / `REVIEW_STATUS` /
+  `STATEMENT` / `RATIONALE` / `REVIEW_COMMENT` / `REVIEW_ACTION`
+- `TEST_CASE` — テストケース。 Gherkin の `GIVEN` / `WHEN` / `THEN` と、
+  `TEST_RESULT` / `ISSUE_KEY` / `TEST_REMARK` を持つ。 **`STATEMENT` は持たない**
+
+**`TEST_CASE` は StrictDoc の標準概念ではない。** 文法で足したものである。
+`REVIEW_*` の 3 項目も同じで、 標準の `REQUIREMENT` には無い。 使い方は
+`04-review.sdoc` にある。
+**個別の文書にフィールドを足してはならない。** 文書ごとに違う形になり、
+どこに何があるか誰も分からなくなる。 足すときは `basic.sgra` に足す。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 上位要求と下位要求
+
+[TEXT]
+STATEMENT: >>>
+**繋がりは下位の側に書く。** 下位のノードに `RELATIONS:` を置き、 親の UID を
+指す。 上位の側には何も書かない。
+
+::
+
+    RELATIONS:
+    - TYPE: Parent
+      VALUE: SYS-001
+
+**親は別のファイルにいてよい。** StrictDoc はプロジェクト全体の UID を 1 つの
+表に集めてから関係を解決するので、 ファイルの境目は関係しない。
+この一式が実際にそうなっている。
+
+::
+
+    01-upper.sdoc   SYS-001   SYS-002   SYS-003
+                       |         |         |
+    02-lower.sdoc   SW-001    SW-002    SW-003 / SW-004
+                       |         |         |
+    03-tests.sdoc   TC-001    TC-002    TC-003 / TC-004
+
+**`ROLE:` を足すと関係に意味が付く。** 種類は `Parent` のままでよい。
+
+::
+
+    RELATIONS:
+    - TYPE: Parent
+      VALUE: SW-001
+      ROLE: Verifies
+
+`03-tests.sdoc` が `Verifies` を使っている。
+**`ROLE` は使う前に文法側で宣言しておく。** 宣言していない値を書くと落ちる。
+
+繋がりの確認は画面で行う。 文書の上の **VIEWS** から
+`TRACEABILITY` / `DEEP TRACEABILITY` を開くと親子が並び、 左のツールバーの
+**トレーサビリティマトリクス** を開くと、 どの要求がテストで覆えていないかが
+一覧で出る。
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 添付
+
+[[SECTION]]
+TITLE: リンク
+
+[TEXT]
+STATEMENT: >>>
+`.md` のファイルへリンクを張れる。 宛先は `_assets/note.md` である
+→ [LINK: DOC-NOTE]
+
+**必要なのは、 宛先の側が見出しの直下で UID を宣言していることだけである。**
+
+::
+
+    # 用語の対応表
+
+    **UID**: DOC-NOTE
+
+**出力先のパスは書かない。** StrictDoc が UID から解決する。 リンクに出る文字は
+宛先のタイトルから自動で作られ、 **自分では指定できない。**
+
+`[LINK:]` の宛先は要求でもよい。 同じ書き方で `[LINK: SW-001]` と書ける。
+
+**プロジェクト内の `.md` は、 置き場所に関係なく全部が文書として解析される。**
+`_assets/` の中も例外ではない。 そのため `.md` は必ず `#` の見出しで始める。
+**見出しの無い `.md` が 1 つあると export 全体が止まる。** どうしても文書に
+できないものは `strictdoc_config.py` の `exclude_doc_paths` で名指しして外す。
+
+**除外はファイル単位で書く。 フォルダごと除外してはならない。**
+
+::
+
+    exclude_doc_paths=["_assets/notes.md"]   # OK。 その 1 ファイルだけ外れる
+    exclude_doc_paths=["_assets/**"]         # 駄目。 画像も一緒に消える
+
+後者はフォルダを走査から外すため、 **アセット置き場としても認識されず画像が
+コピーされない。** それでも export は成功と報告し、 出来上がった HTML の
+画像だけが 404 になる。 気づきにくい。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 図
+
+[TEXT]
+STATEMENT: >>>
+図は 2 通りで入る。
+
+**1 つめ — 画像ファイルを埋め込む。** `_assets/` に置いて `.. image::` で指す。
+このフォルダは StrictDoc が自動でコピーするので、 設定に何も足さなくてよい。
+**拡大しても崩れないので SVG を既定にする。**
+
+.. image:: _assets/flow.svg
+   :alt: 入力ファイルから出力ファイルまでの流れと、 2 つの停止条件
+   :width: 700px
+
+**2 つめ — Mermaid の図を外部ファイルに出して取り込む。** 実体は
+`_assets/fig-flow.sdoc` で、 次の直後に展開されている。
+
+::
+
+    [DOCUMENT_FROM_FILE]
+    FILE: _assets/fig-flow.sdoc
+
+**取り込む側の拡張子は `.md` ではなく `.sdoc` にする。** `[DOCUMENT_FROM_FILE]`
+が `.sdoc` 以外を拒否するためである。 中身は Markdown のまま書ける —
+断片の側で `MARKUP: Markdown` を宣言しておけばよい。
+
+::
+
+    [DOCUMENT]
+    TITLE: 図 - 変換の流れ
+    UID: FIG-FLOW
+    OPTIONS:
+      MARKUP: Markdown
+
+    [TEXT]
+    STATEMENT: >>>
+    (ここに Mermaid のコードフェンスをそのまま書く)
+    <<<
+
+**この宣言は `STATEMENT:` の中には書けない。** 文書または章の本体に置く。
+だから下の図は、 この段落の外に出してある。
+
+取り込んだ図は **この画面に直接出ると同時に、 1 個の文書としても開ける。**
+`strictdoc server` は取り込まれた文書も個別に公開する。 `export` では既定で
+公開されないので、 必要なら ``--included-documents`` を付ける。
+**ただし JSON を引く目的で付けてはならない。** 同じ UID が 2 か所に現れる。
+
+**取り込みは 1 対 1 である。** 同じ断片を 2 つの文書へ取り込むことはできない。
+2 か所から見せたいなら、 一方は `[LINK: FIG-FLOW]` にする。
+<<<
+
+[DOCUMENT_FROM_FILE]
+FILE: _assets/fig-flow.sdoc
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 表
+
+[TEXT]
+STATEMENT: >>>
+`.sdoc` の本文は既定で RST として解析される。 表の書き方は 2 つある。
+
+**1 つめ — grid 形式。**
+
++------------+----------------+------------------------+
+| 形式       | 桁がずれたとき | 備考                   |
++============+================+========================+
+| grid       | export が停止  | 等幅で見た目を揃える   |
++------------+----------------+------------------------+
+| simple     | 耐える         | 末尾の罫線は全列分書く |
++------------+----------------+------------------------+
+
+**2 つめ — simple 形式。**
+
+==========  ================  ========================
+形式        桁がずれたとき    備考
+==========  ================  ========================
+grid        export が停止     等幅で見た目を揃える
+simple      耐える            末尾の罫線は全列分書く
+==========  ================  ========================
+
+**日本語はどちらでも使える。** 桁を数えるときは **文字数ではなく表示幅** で
+数える。 全角 1 文字が 2 桁である。 **等幅フォントで見た目が揃っていれば通る。**
+
+**★ ただし ○ や ✗ は 1 桁である** (実測)。 表を組むのは docutils であり、
+Unicode の東アジア文字幅が「曖昧 (Ambiguous)」の文字を **1 桁として数える。**
+○ は曖昧、 ✗ はそもそも半角である。 **等幅フォントでは 2 桁に見えるので、
+見た目で揃えると 1 桁ずつずれる。** ずれると export は
+`RST markup syntax error on line N: Malformed table.` で止まり、
+**JSON は通って HTML だけが落ちる。** 表に記号を使うなら
+`docutils.utils.column_width()` で数えること。
+
+**★ 先頭列のセルを空にしてはならない。** simple 形式では、 先頭列が空白の行は
+**前の行の続き** として扱われる。 見出しの先頭列を空にするだけなら通るが
+(実測)、 本文の行で空にすると意図しない結合が起きる。 `04-review.sdoc` の
+比較表が先頭列に「観点」を置いているのはこのためである。
+
+**grid 形式は 1 桁ずれると export 全体が止まる。** simple 形式は右にずれても
+正しい表になるので、 手で書くならこちらが安全である。 ただし
+**末尾の罫線を全列分書かないと止まる。**
+
+**パイプ表は既定では使えない。** `MARKUP: Markdown` を宣言した文書でだけ
+使える。 例は `05-markdown.sdoc` にある。 **こちらは桁を揃えなくても通る。**
+
+列が多い表は `.. csv-table::` も使える。 こちらは列数が合わなくても通る。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: JSON で引く
+
+[TEXT]
+STATEMENT: >>>
+**仕様書の全量を JSON に出し、 そこから jq で欲しい部分だけを引く。**
+これが本章のすべてである。 絞り込みは JSON を出した **後** に行う。
+
+**StrictDoc 自身にも問い合わせ言語があるが、 JSON には効かない。**
+``--filter-nodes`` は `.sdoc` と HTML の出力しか絞らず、 ``--formats=json``
+に付けても **エラーも警告も出さないまま全件が出る** (0.27.1 で実測)。
+**だから「全量を出してから引く」以外の道は無い。** 絞るのは jq の仕事である。
+<<<
+
+[[SECTION]]
+TITLE: 全量 JSON を出す
+
+[TEXT]
+STATEMENT: >>>
+**出力は 3 種類ある。 HTML は人が読むため、 JSON は機械が引くため、
+Markdown への変換は書式を乗り換えるためのものである。**
+
+::
+
+    strictdoc export --formats=json --output-dir out .
+
+JSON は `out/json/index.json` に出る。 **要求を直したら毎回出し直す。**
+``--formats=json`` に絞り込みの指定は無い。 **常に全量が出る。**
+
+**HTML を読むだけなら export は要らない。** このフォルダを
+`launch-strictdoc.bat` にドラッグすればサーバが立ち上がり、 編集して保存
+すれば約 0.6 秒で画面に反映される。 書式の乗り換えは最後の章
+「.sdoc と .md を行き来する」にまとめてある。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: jq で引く
+
+[TEXT]
+STATEMENT: >>>
+**jq は JSON 専用の小さなコマンドである。** StrictDoc とは無関係の道具で、
+`setup-strictdoc.bat` が既定で入れている。 JSON を読み込み、 書いた条件に
+合うものだけを出す。
+
+::
+
+    jq -r -f q-open-findings.jq out/json/index.json
+
+`q-open-findings.jq` の中身は、 例えば未対応の指摘を出すならこうなる。
+
+::
+
+    .DOCUMENTS[] | recurse(.NODES[]?)
+    | select(.REVIEW_STATUS == "Open")
+    | .UID + "  " + .TITLE
+
+**先頭の ``.`` は「入力そのもの」を指す。** そこから ``.名前`` で下へ降り、
+``[]`` で配列をバラす。 ``.DOCUMENTS[]`` は「入力の ``DOCUMENTS`` を 1 個ずつ」
+の意味である。 ``.`` はオプションではなくフィルタ本体で、
+``jq [オプション] <フィルタ> [ファイル]`` の真ん中に来る。
+
+**`REVIEW_STATUS` は文法が `REQUIREMENT` に足した項目である。** 状態の意味と
+値は `04-review.sdoc` にある。 **ノード型で絞りたいときのキーは `_NODE_TYPE` で、
+先頭に下線が付くので書き間違えやすい。** この一式に当てた実際の出力はこうなる。
+
+::
+
+    SYS-003  既存ファイルの保護
+
+**同じフィルタを `samples/md-basic-ja/` の JSON に当てても出力は 1 文字も
+変わらない。** これが「どちらで書いても JSON は同じ」の実物である。
+
+**フィルタを文字列で渡さずファイルに書くのは PowerShell のためである。**
+PowerShell はクォートの中の二重引用符を落とすので、 フィルタを直接引数に
+書く形が壊れる。 ``-f`` ならどの shell でも同じに動く。
+
+**cmd.exe で日本語を渡すときは、 先に ``chcp 65001`` を打つ。** 既定の cp932
+のままだと ``jq -r --arg kw 変換 -f ...`` は **エラーも出さずに 0 件** を返す。
+PowerShell では要らない。
+
+クエリの実例は `docs/03-sdoc-json-queries.md` に 7 本ある。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 答えを JSON のまま受け取る
+
+[TEXT]
+STATEMENT: >>>
+**``-r`` を付けなければ、 答えは JSON のまま出る。** 上の例は ``-r`` を付けて
+人が読む行を作っていた。 プログラムに渡すなら付けない。
+
+::
+
+    jq -f q-findings-json.jq out/json/index.json
+
+::
+
+    [ .DOCUMENTS[] | recurse(.NODES[]?)
+      | select(.REVIEW_STATUS? and .REVIEW_STATUS != "NoFinding"
+               and .REVIEW_STATUS != "NotReviewed") ]
+    | map({UID, REVIEW_STATUS, TITLE})
+
+::
+
+    [
+      {
+        "UID": "SYS-002",
+        "REVIEW_STATUS": "Fixed",
+        "TITLE": "想定外の入力の拒否"
+      },
+      {
+        "UID": "SYS-003",
+        "REVIEW_STATUS": "Open",
+        "TITLE": "既存ファイルの保護"
+      },
+      {
+        "UID": "SW-004",
+        "REVIEW_STATUS": "WontFix",
+        "TITLE": "書き込みの原子性"
+      }
+    ]
+
+**外側の ``[ ... ]`` は、 1 個ずつ出てくる結果を 1 つの配列にまとめるための
+ものである。** これが無いと JSON の値が縦に並ぶだけで、 配列にはならない。
+``map({UID, REVIEW_STATUS, TITLE})`` は欲しい欄だけを残す書き方で、
+全部の欄が要るならその行ごと外す。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 日本語について
+
+[TEXT]
+STATEMENT: >>>
+**``index.json`` の中で日本語は ``\uXXXX`` に化けている。** この文書の
+タイトルは、 ファイルの中ではこう書かれている。
+
+::
+
+    "TITLE": "\u307e\u305a\u3053\u308c\u3092\u8aad\u3080",
+
+StrictDoc が ``json.dumps(..., indent=4)`` をそのまま呼んでおり、 Python の
+既定で非 ASCII がすべてエスケープされるためである。 **これを変える設定も
+オプションも StrictDoc 側に無い。**
+
+**jq で引いている限り、 これは目に入らない。** jq が読み込むときに元の文字へ
+戻すので、 上の出力例はどれも読める形で出ている。 **効くのは JSON ファイル
+そのものを人や機械へ渡す場面だけである。** その場合は jq を 1 回通せば直る。
+
+::
+
+    jq . out/json/index.json > readable.json
+
+**``.`` は何も絞り込まないので中身は 1 文字も変わらない。** 変わるのは表記
+だけで、 **しかも小さくなる。**
+
+============  ==========
+出力          元との比
+============  ==========
+index.json    約 3 倍
+jq . 済み     約 1.9 倍
+jq -c . 済み  約 1.3 倍
+============  ==========
+
+比は元の `.sdoc` 一式に対する値である。 日本語 1 文字が
+``検`` の 6 バイトから UTF-8 の 3 バイトに戻り、 字下げも 4 スペースから
+2 スペースになる。 ``-c`` は字下げと改行そのものを外す。
+
+**この書き出しを PowerShell でやってはならない。** PowerShell の ``>`` は
+UTF-16 で書くため、 jq が読めないファイルができる。 cmd.exe で打つか、
+``cmd /c 'jq . out/json/index.json > readable.json'`` の形にする。
+
+**JSON を「軽いから」と説明してはならない。** 上表のとおり、 一番縮めても元の
+`.sdoc` より大きい。 値打ちは小ささではなく、
+**全文を読まずに答えだけを引けること** の側にある。
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: .sdoc と .md を行き来する
+
+[TEXT]
+STATEMENT: >>>
+`.md` との相互変換は両方向できる。
+
+::
+
+    strictdoc export --formats=sdoc     --output-dir out .   # .md -> .sdoc
+    strictdoc export --formats=markdown --output-dir out .   # .sdoc -> .md
+
+**`strictdoc convert` は Excel と ReqIF 専用であり、 これには使えない。**
+
+**`.md` で新規作成すれば、 ブラウザの編集画面だけで Markdown 記法が使える。**
+`.sdoc` で作った文書をブラウザから Markdown に切り替える手段は無いので、
+これは `.md` を選ぶ実際的な理由の 1 つである。 `.md` 側の一式と、 変換のときに
+気をつけることは `samples/md-basic-ja/02-guide-for-human.md` に書いてある。
+<<<
+
+[[/SECTION]]

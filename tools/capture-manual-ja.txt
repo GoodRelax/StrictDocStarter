@@ -1,0 +1,21 @@
+# Japanese the screenshot walk types into the StrictDoc forms.
+#
+# It lives here rather than in capture-manual-ja.py because NFR-010 asks every
+# .py in this repository to be English ASCII. This text is document content -
+# the same category as the .md files - so it is exempt, and ascii-audit.py does
+# not scan .txt.
+#
+# key = value. Write a line break as the two characters \n.
+# Change a value here and the screenshots say something different; the prose in
+# samples/md-basic-ja/09-browser-guide.md quotes "sentence", so keep them equal.
+
+sentence = \n\nこの一文はブラウザから足した。
+new_uid = SW-900
+new_title = 例
+new_statement = 例。
+document_title = 例 - 新しい文書
+document_path = 11-example.md
+
+# browser-28 presses this tile, so it has to be the title of a document that
+# really exists in samples/md-basic-ja.
+tree_map_tile = jq クエリ集 — AI 向け

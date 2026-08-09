@@ -12,12 +12,18 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# strictdoc writes UTF-8. Without this, PowerShell decodes its output using the
+# console code page (cp932 on a Japanese Windows), and any non-ASCII document
+# title comes back as mojibake -- which is exactly what the diagnostic dump after
+# a failed start used to show. Match gather-logs.ps1, which already does this.
+try { [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false) } catch {}
+
 # ---- locate self + libraries ----
 $ScriptDir     = Split-Path -Parent $MyInvocation.MyCommand.Path
 $StarterRoot   = $ScriptDir
 $ConfigPath    = Join-Path $ScriptDir 'server.config.json'
 $TemplatePath  = Join-Path $ScriptDir 'server.config.template.json'
-$SampleDefault = Join-Path $ScriptDir 'samples\sovd-automotive-ja'
+$SampleDefault = Join-Path $ScriptDir 'samples\md-sovd-automotive-ja'
 $libConfig     = Join-Path $ScriptDir 'lib\server-config.ps1'
 $libProcess    = Join-Path $ScriptDir 'lib\server-process.ps1'
 
@@ -116,8 +122,28 @@ if ($existingPort -gt 0) {
     Complete-AndExit -Code 0 -Pause $false
 }
 
-# ---- FR-1142..1145: ensure the project has a strictdoc_config.py (MERMAID / MATHJAX) ----
-Initialize-StrictDocProjectConfig -ProjectPath $projectPath
+# ---- FR-1142..1145 / FR-1163: ensure the project has a strictdoc_config.py, and offer to
+# ---- refresh one this launcher wrote itself when an older generation is found ----
+Initialize-StrictDocProjectConfig -ProjectPath $projectPath -ServerConfigPath $ConfigPath
+
+# ---- FR-1162: keep the project's stylesheet in step with color_mode. Must run after
+# ---- the config step above, which is what puts custom_css_path in the project ----
+Update-ProjectTheme -ProjectPath $projectPath -StarterRoot $ScriptDir -Mode (Get-ColorMode -ConfigPath $ConfigPath)
+
+# ---- FR-1164: drop generated pages whose source document has been deleted. The cache
+# ---- is left alone; only .html with no corresponding .sdoc/.md goes ----
+$effectiveOutput = if ([string]::IsNullOrWhiteSpace($outputPath)) { Join-Path $projectPath 'output\strictdoc' } else { $outputPath }
+Remove-OrphanedOutput -ProjectPath $projectPath -OutputPath $effectiveOutput
+
+# ---- FR-1165: OneDrive and friends mark synced folders ReadOnly, and strictdoc clears
+# ---- its template cache with a call that cannot delete ReadOnly directories ----
+$clearedRo = Repair-OutputTreeAttributes -OutputPath $effectiveOutput
+if ($clearedRo -gt 0) {
+    Write-Host "[INFO]  Cleared the read-only flag on $clearedRo item(s) under the output folder (file sync sets it)."
+}
+
+# ---- FR-1161: say how to keep the generated output out of Git; never edit .gitignore ----
+Show-GitignoreAdvice -ProjectPath $projectPath
 
 # ---- FR-1156 / FR-1156b: pick a free port from the start port ----
 $ceiling   = Get-PortCeiling -Start $startPort
@@ -139,7 +165,7 @@ while ($attempt -lt $maxRetries) {
         Complete-AndExit -Code 1 -Pause $true
     }
 
-    $adopt = Confirm-PortAdoption -Port $candidate
+    $adopt = Confirm-PortAdoption -Port $candidate -ProjectPath $projectPath
     $r = $adopt.Result
     if ($r -eq 'adopted' -or $r -eq 'timeout') {
         if ($r -eq 'timeout') {
@@ -164,7 +190,7 @@ while ($attempt -lt $maxRetries) {
 
 # ---- FR-1157c: startup failure (e.g. .sdoc parse error) -- surface the cause, no browser ----
 if ($startupFailed) {
-    Show-StartupErrorDiagnostic -StrictDocExe $strictdocExe -ProjectPath $projectPath -Port $candidate
+    Show-StartupErrorDiagnostic -StrictDocExe $strictdocExe -ProjectPath $projectPath -Port $candidate -OutputPath $effectiveOutput
     Complete-AndExit -Code 1 -Pause $true
 }
 if ($adoptedPort -le 0) {

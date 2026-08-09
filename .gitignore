@@ -15,6 +15,9 @@ in-private-work/
 # --- StrictDoc generated HTML / cache (strictdoc server / export) ---
 output/
 
+# --- JSON exported by try-json-query-ja.bat (regenerated on every run) ---
+exported-json/
+
 # --- Python bytecode / cache / temp execution files ---
 __pycache__/
 *.py[cod]

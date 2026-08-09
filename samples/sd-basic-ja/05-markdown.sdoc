@@ -1,0 +1,112 @@
+[DOCUMENT]
+TITLE: 本文を Markdown で書く
+UID: DOC-MARKUP-MD
+VERSION: 1.0
+OPTIONS:
+  MARKUP: Markdown
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+**この文書だけは本文が Markdown として解釈される。** 冒頭で宣言している。
+
+```text
+[DOCUMENT]
+TITLE: ...
+OPTIONS:
+  MARKUP: Markdown
+```
+
+宣言できる場所は **`[DOCUMENT]` の `OPTIONS:` だけ**である。 文法上ここ 1 か所しか
+無い。 節ごとや要求ごとに切り替えることはできない。
+
+効く範囲は**その文書の複数行フィールド全部**である。 `STATEMENT` も
+`RATIONALE` も、 文法で足した `GIVEN` のような欄も対象になる。
+`UID:` のような 1 行の欄は関係しない。
+
+**ブラウザの画面からこれを設定する手段は無い。** 文書設定の編集画面が持つのは
+TITLE / UID / VERSION / CLASSIFICATION / PREFIX だけである。 テキストエディタで
+`OPTIONS:` を書く以外に方法が無い。
+
+**トレーサビリティと JSON は一切影響を受けない。** 変わるのは本文の描き方だけ
+である。
+<<<
+
+[[SECTION]]
+TITLE: 引き換えに失うもの
+
+[TEXT]
+STATEMENT: >>>
+**RST のディレクティブが全部無効になる。** 画像の埋め込み、 数式、
+リテラルブロックは、 ただの文字として表示される。 画像は Markdown の記法
+`![alt](path)` で書き直す。
+
+**`[DOCUMENT_FROM_FILE]` も使えなくなる。** そのため
+**この文書には図を取り込めない。** 図を持つ文書では宣言しないこと。
+
+**これが `00-guide-for-human.sdoc` を Markdown にしていない理由である。** あちらは
+画像と取り込みの両方を使っている。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 引き換えに得るもの
+
+[TEXT]
+STATEMENT: >>>
+**パイプ表が使えて、 桁を揃えなくても通る。** これが最大の利点である。
+
+| 表の形式 | 桁がずれたとき | 宣言 |
+| --- | --- | --- |
+| grid | export が停止 | 不要 |
+| simple | 耐える | 不要 |
+| パイプ | 耐える | **MARKUP: Markdown が必要** |
+
+上の表は列幅を揃えていないが、 そのまま通っている。 `00-guide-for-human.sdoc` の
+grid 形式の表と見比べること。 **手で表を書き足していく文書では、 この差が
+そのまま作業量の差になる。**
+
+Mermaid のコードフェンスもそのまま図になる。 ただし図を書くなら、
+この文書ではなく `_assets/fig-flow.sdoc` のように断片へ外に出すほうがよい。
+断片であれば本体の文書が RST のままでいられる。
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 要求も同じように書ける
+
+[TEXT]
+STATEMENT: >>>
+本文の書き方が変わるだけなので、 要求ノードの書き方は他の文書と同じである。
+下の 1 件は `01-upper.sdoc` の `SYS-001` に繋がっている。 **この要求は
+`.sdoc` の一式にしか無い** — `MARKUP: Markdown` を持てるのが `.sdoc` だけで
+あり、 この文書自体が `.md` の一式に存在しないためである。
+<<<
+
+[REQUIREMENT]
+UID: SW-005
+STATUS: Draft
+TITLE: 変換結果の要約表示
+REVIEW_STATUS: NotReviewed
+STATEMENT: >>>
+変換が完了したとき、 本ツールは、 次の 3 点を標準出力へ 1 行で表示すること。
+
+- 入力ファイルの名前
+- 出力ファイルの名前
+- 変換に要した時間
+
+表示の形式は `<入力> -> <出力> (<秒数>s)` とする。
+<<<
+RATIONALE: >>>
+複数のファイルを続けて変換したとき、 どれが終わってどれが残っているかを
+利用者が判断できるようにする。
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYS-001
+
+[[/SECTION]]

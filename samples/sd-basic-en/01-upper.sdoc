@@ -1,0 +1,173 @@
+[DOCUMENT]
+TITLE: System requirements
+UID: DOC-UPPER
+VERSION: 1.0
+
+[GRAMMAR]
+IMPORT_FROM_FILE: basic.sgra
+
+[TEXT]
+STATEMENT: >>>
+This document states **what to build** and nothing else. It leaves how to build
+it to `02-lower.sdoc`.
+
+This paragraph is a `[TEXT]` node, and it carries no UID. **Do not give free
+text a UID.** One test decides the matter - **give a node a UID when you want to
+look it up by name later.** Nobody looks up an explanation or an introduction,
+so leave those without one.
+<<<
+
+[[SECTION]]
+TITLE: How we write a requirement - EARS
+
+[TEXT]
+STATEMENT: >>>
+Every requirement in this document and in `02-lower.sdoc` follows one of the
+five **EARS** patterns. EARS narrows the shape of a requirement sentence down to
+five forms. That narrowing stops you dropping the condition, and it stops you
+packing two requirements into one sentence.
+
+==================  ===================================================
+Pattern             Shape
+==================  ===================================================
+Ubiquitous          The <system> shall <response>.
+Event-driven        WHEN <trigger>, the <system> shall <response>.
+State-driven        WHILE <state>, the <system> shall <response>.
+Unwanted behaviour  IF <condition>, THEN the <system> shall <response>.
+Optional feature    WHERE <feature>, the <system> shall <response>.
+==================  ===================================================
+
+**One word at the head of the sentence tells you the pattern** - WHEN, WHILE, IF
+or WHERE. Only the ubiquitous pattern opens with the subject, because that
+pattern carries no condition at all.
+
+**shall marks a requirement.** EARS keeps three words apart: shall states a
+requirement, will states a fact about the world, and should states a preference.
+**Every requirement in this set carries a shall.**
+
+**Write the condition ahead of the subject.** This is the point of EARS. Once you
+open with the subject and write "The tool shall reject the file when the format
+differs", the reader carries the subject all the way to the condition and never
+notices a condition you left out. Put the condition first and **the head of the
+sentence already tells the reader when the requirement applies.**
+
+**This set deliberately keeps no EARS field on the requirement.** The pattern
+shows in the `STATEMENT` sentence itself. Once you also name the pattern in a
+field, a field and a sentence that disagree leave you with no way to decide which
+one to believe.
+
+`samples/md-basic-en` writes the same seven requirements in `.md`. **The wording
+does not differ by a single character.**
+<<<
+
+[[SECTION]]
+TITLE: The complex pattern - stacking conditions
+
+[TEXT]
+STATEMENT: >>>
+**A sixth pattern stacks the five above.** The EARS source calls it the
+**complex** pattern. You reach for it once a requirement carries two conditions
+or more.
+
+::
+
+    WHERE <feature>, WHILE <state>, WHEN <trigger>, the <system> shall <response>.
+
+**The stacking order is fixed.** You go outside in - WHERE, then WHILE, then WHEN
+(or IF). The source writes the complex template as
+`While <precondition(s)>, When <trigger>, the <system name> shall <system response>`,
+so **the state comes first and the trigger second.** To stack unwanted behaviour,
+you write IF ... THEN in place of WHEN.
+
+==============  ============================================================
+What you stack  What it means
+==============  ============================================================
+WHERE           It applies only to a product that carries the feature
+WHILE           It applies for as long as the state lasts. It has a duration
+WHEN            It applies at that instant. It has no duration
+IF ... THEN     It applies to unwanted input or an unwanted situation
+==============  ============================================================
+
+**Stack two conditions at most.** Nobody can enumerate the combinations behind a
+sentence that stacks three. **A requirement that needs three is telling you it is
+really two requirements.**
+
+This set carries no complex example. The subject is simple enough that no
+requirement needed a second condition. **Reach for the pattern only once you need
+it** - stacking has no value of its own.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Sources
+
+[TEXT]
+STATEMENT: >>>
+**One source defines EARS.** Read it whenever you are unsure.
+
+- **The official EARS page** - https://alistairmavin.com/ears/
+  Written by Alistair Mavin, who devised the approach. It carries the template
+  and an example for each of the six patterns. **The wording of this chapter
+  follows the templates on that page.**
+- EARS first appeared in a 2009 paper. Mavin, Wilkinson, Harwood, Novak,
+  "Easy Approach to Requirements Syntax (EARS)",
+  17th IEEE International Requirements Engineering Conference (RE'09),
+  pp. 317-322.
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[REQUIREMENT]
+UID: SYS-001
+STATUS: Approved
+TITLE: Converting a file
+REVIEW_STATUS: NoFinding
+STATEMENT: >>>
+The tool shall convert the input file the user specifies into the output format
+the user specifies.
+<<<
+RATIONALE: >>>
+This requirement is the reason the tool exists. If we drop it, every other
+requirement loses its meaning.
+<<<
+
+[REQUIREMENT]
+UID: SYS-002
+STATUS: Approved
+TITLE: Rejecting unexpected input
+REVIEW_STATUS: Fixed
+STATEMENT: >>>
+IF the input file does not match the format the user specifies, THEN the tool
+shall not perform the conversion.
+<<<
+REVIEW_COMMENT: >>>
+SW-002, the software requirement below this one, wrote the condition for refusing
+a conversion as a procedure to "check", so a reader could not tell from the head
+of the sentence which input the tool refuses.
+<<<
+REVIEW_ACTION: >>>
+We rewrote SW-002 so that it opens with the condition. The head of the sentence
+now names the input the tool refuses.
+<<<
+
+[REQUIREMENT]
+UID: SYS-003
+STATUS: Reviewed
+TITLE: Protecting an existing file
+REVIEW_STATUS: Open
+STATEMENT: >>>
+IF a file of the same name already sits at the destination, THEN the tool shall
+not overwrite that file.
+<<<
+RATIONALE: >>>
+If the tool destroys an existing file without warning, the user never notices the
+irreversible act. The tool keeps its default on the safe side.
+<<<
+REVIEW_COMMENT: >>>
+The requirement says "shall not overwrite" and stops there. Nobody decided what
+the tool does instead once it finds a file of the same name - abort, or write
+under another name?
+<<<
