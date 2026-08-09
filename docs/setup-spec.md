@@ -862,7 +862,8 @@ Choose (1-3) [default: 1]:
 | `setup.log` | **英語 ASCII only** (出力が英語のため自然に) |
 | `setup-spec.md` (本仕様書) | 日本語 OK |
 | `01-environment.md` (ユーザ手順) | 日本語 OK |
-| `README.md` (リポジトリトップ) | 日本語 OK (英語併記可) |
+| `README.md` (リポジトリトップ) | **英語**。 冒頭から `README-ja.md` へ誘導する (D-9w で分割) |
+| `README-ja.md` (リポジトリトップ) | 日本語。 `README.md` と同じ節構成を保つ |
 
 ### 4.7 Error Handling
 
