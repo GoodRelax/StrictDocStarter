@@ -1,7 +1,7 @@
-# Publish the four Markdown sample specifications to GitHub Pages.
+# Publish the six bundled sample specifications to GitHub Pages.
 #
 # Nothing generated is committed. 'output/' is git-ignored on purpose, and a
-# committed build would put roughly 100 MB into the history on every rebuild.
+# committed build would put roughly 170 MB into the history on every rebuild.
 # This job builds on a runner and hands the result straight to Pages, so the
 # repository stays clean and the published pages cannot go stale.
 #
@@ -55,7 +55,8 @@ jobs:
           # strictdoc at the parent folder makes it one project, and it then
           # refuses the duplicate UIDs and stops the whole export.
           mkdir -p site
-          for s in md-basic-en md-basic-ja md-sovd-automotive-en md-sovd-automotive-ja; do
+          for s in md-basic-en md-basic-ja sd-basic-en sd-basic-ja \
+                   md-sovd-automotive-en md-sovd-automotive-ja; do
             echo "::group::$s"
             strictdoc export "samples/$s" \
               --formats=html \
@@ -67,10 +68,15 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Add the landing page
-        # StrictDoc builds one site per project, so the page that ties the four
-        # together has to be written by hand.
-        run: cp .github/pages/index.html site/index.html
+      - name: Add the landing pages
+        # StrictDoc builds one site per project, so the page that ties the six
+        # together has to be written by hand. Two files rather than one page
+        # with a script: the language switch has to work with scripting off,
+        # and a static file can be reviewed before it is published.
+        run: |
+          set -euo pipefail
+          cp .github/pages/index.html site/index.html
+          cp .github/pages/index-ja.html site/index-ja.html
 
       - name: Report what will be published
         run: |
@@ -83,8 +89,17 @@ jobs:
           # of the two risks.
           du -sh site/*/_static | sed 's/^/  /'
           test -f site/index.html
-          for s in md-basic-en md-basic-ja md-sovd-automotive-en md-sovd-automotive-ja; do
+          test -f site/index-ja.html
+          for s in md-basic-en md-basic-ja sd-basic-en sd-basic-ja \
+                   md-sovd-automotive-en md-sovd-automotive-ja; do
             test -f "site/$s/index.html" || { echo "missing site/$s/index.html"; exit 1; }
+          done
+          # Every link the landing pages make must resolve, or a visitor lands
+          # on a 404 from the first page they see.
+          for f in site/index.html site/index-ja.html; do
+            grep -oE 'href="[a-z0-9-]+/"' "$f" | sed 's/href="//;s|/"||' | while read -r d; do
+              test -d "site/$d" || { echo "$f links to missing site/$d"; exit 1; }
+            done
           done
 
       - uses: actions/upload-pages-artifact@v3

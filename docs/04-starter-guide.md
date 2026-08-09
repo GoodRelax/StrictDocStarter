@@ -115,9 +115,9 @@ no and it will not ask again until a newer version ships.
 
 ## Bundled samples
 
-**You can read the four Markdown samples in your browser without installing anything:
-<https://goodrelax.github.io/StrictDocStarter/>.** They are rebuilt from this repository
-every time a sample changes.
+**You can read all six samples in your browser without installing anything:
+<https://goodrelax.github.io/StrictDocStarter/>.** A GitHub Actions workflow exports each
+one as its own project and publishes them; nothing generated is committed.
 
 Every sample comes as a pair: `md-` is written in Markdown, `sd-` in `.sdoc` (RST). The two
 share **the requirement core** — same grammar, same `SYS-` / `SW-` / `TC-` identifiers, same

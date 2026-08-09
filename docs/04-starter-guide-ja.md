@@ -127,9 +127,9 @@ StrictDoc 自身はダークモードを持たないため、これは**スタ�
 
 ## 同梱サンプル
 
-**Markdown のサンプル 4 件は、何も入れずにブラウザで読めます:
-<https://goodrelax.github.io/StrictDocStarter/>。** サンプルを変更するたびに、
-このリポジトリから作り直します。
+**同梱サンプル 6 件は、何も入れずにブラウザで読めます:
+<https://goodrelax.github.io/StrictDocStarter/>。** GitHub Actions が 1 件ずつ
+別プロジェクトとして書き出して公開します。生成物はコミットしません。
 
 サンプルはすべて対になっています。`md-` は Markdown、`sd-` は `.sdoc` (RST) で
 書いてあります。2 つは**要求の核**を共有しており、文法も `SYS-` / `SW-` / `TC-` の
