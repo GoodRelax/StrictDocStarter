@@ -50,9 +50,11 @@ Python もコマンドラインも手動設定も要りません。
 | [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) | **`.sdoc` と `.md` の書き方。** 書き手が要求 1 件ごとに公式ガイドを読み直さずに済む最小限 |
 | [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) | JSON 出力に対する、コピーして実行できる `jq` クエリ 5 種 |
 | [`claude-skills/strictdoc-md/`](claude-skills/strictdoc-md) | 仕様書の読み書きと監査を Claude に任せるための **Claude Code スキル** |
+| `try-json-query-ja.bat` | 仕様書を JSON に出し、`jq` で答えを引く手順を 7 段でなぞる練習用。ダブルクリックで動きます。`-en` は同じ内容の英語版 |
 
-うまく動かないときは `gather-logs.bat` を実行してください。ログと診断レポートを
-ZIP にまとめます。そのまま issue に添付できます。
+うまく動かないときは `gather-logs.bat` を実行してください。ログと診断レポートが
+ZIP にまとまります。展開して Claude Code に読ませ、原因を調べさせてください。
+レポートには PC 名やフォルダの場所が入るので、誰かに渡す前に中身を確認してください。
 
 ## ライセンス
 

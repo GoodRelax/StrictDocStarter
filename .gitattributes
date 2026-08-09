@@ -1,2 +1,16 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Keep the download to what a user actually opens.
+#
+# README tells a newcomer to download the ZIP that GitHub builds from this
+# branch, unzip it and double-click. Everything that lands in that folder is
+# something they have to look at and decide to ignore, so the two directories
+# below are cut from the archive. They stay in the repository, where they
+# belong -- export-ignore only affects `git archive`, which is what GitHub
+# serves for /archive/refs/heads/main.zip.
+#
+# tools/, docs/ and claude-skills/ deliberately stay in: README links to all
+# three, so a reader who follows those links must find them in the download.
+vm-tests/ export-ignore
+.github/ export-ignore

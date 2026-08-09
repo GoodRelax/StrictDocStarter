@@ -51,9 +51,12 @@ anything — including a full 122-requirement automotive specification.
 | [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) | **How to write** `.sdoc` and `.md` for StrictDoc — the minimum an author needs. Japanese |
 | [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) | Five copy-and-run `jq` queries over the JSON export. Japanese |
 | [`claude-skills/strictdoc-md/`](claude-skills/strictdoc-md) | A **Claude Code skill** that reads, writes and audits these specifications for you |
+| `try-json-query-en.bat` | A guided 7-step trial: export a specification to JSON, then pull answers out of it with `jq`. Double-click it. `-ja` is the same in Japanese |
 
-If something goes wrong, `gather-logs.bat` collects the logs and a diagnostics report
-into a ZIP you can attach to an issue.
+If something goes wrong, run `gather-logs.bat`. It gathers the logs and a diagnostics
+report into a ZIP. Extract it, then ask Claude Code to read the contents and work out
+what failed. The report names your machine and your folders, so read it before you
+share it with anyone.
 
 ## License
 

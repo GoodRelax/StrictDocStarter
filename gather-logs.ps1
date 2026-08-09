@@ -217,7 +217,7 @@ try {
     exit 1
 }
 
-# Open Explorer with the zip selected (so user can Ctrl+C it to clipboard)
+# Open Explorer with the zip selected, so the file is easy to find and extract.
 try {
     Start-Process "explorer.exe" -ArgumentList "/select,`"$zipPath`""
 } catch {
@@ -225,7 +225,12 @@ try {
 }
 
 Write-Host ""
-Write-Host "Next step: select $zipName in Explorer and Ctrl+C to copy to host clipboard." -ForegroundColor Cyan
+Write-Host "Next step: extract $zipName, then ask Claude Code to read the files" -ForegroundColor Cyan
+Write-Host "           inside it and work out what went wrong. Ask it in plain words," -ForegroundColor Cyan
+Write-Host "           for example: 'read these logs and tell me why setup failed'." -ForegroundColor Cyan
+Write-Host ""
+Write-Host "This report names this PC, your user account and the folders you use." -ForegroundColor Yellow
+Write-Host "Read it before you send it to anyone or attach it to a public issue." -ForegroundColor Yellow
 if (-not $env:NONINTERACTIVE_GATHER) {
     $null = Read-Host "Press Enter to close"
 }
