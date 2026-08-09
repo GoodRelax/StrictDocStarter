@@ -49,7 +49,7 @@ strictdoc-md/
     authoring.md        the .md shape, the rules that stop an export, a .sgra template
     notation.md         figures, math, code, tables, attachments
     traps.md            what breaks silently, and how to log a surprise
-    queries.md          37 jq queries with their measured output
+    queries.md          every jq query the guide teaches, with its measured output
   scripts/
     audit.sh            the five checks StrictDoc does not perform
 ```

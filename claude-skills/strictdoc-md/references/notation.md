@@ -178,6 +178,14 @@ escaping, not a defect.
 
 ---
 
+### 2.3 The `$` trap
+
+**It lives in `traps.md`, not here.** A paragraph or a table cell that ends in `$`
+stops the HTML export with no file name and no line number, so it belongs with the
+traps. The number is kept so the two files agree on one sequence.
+
+---
+
 ### 2.4 Code - always write the language name
 
 ````markdown

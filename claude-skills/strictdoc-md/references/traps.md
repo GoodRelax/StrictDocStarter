@@ -84,9 +84,10 @@ sort -t"$(printf '\t')" -k2,2 -k1,1 <specification folder>/strictdoc-quirks.tsv
 
 ---
 
----
+### 2.3 ★ The `$` trap - the export stops for no apparent reason
 
-### `traps.md` ★ The `$` trap - the export stops for no apparent reason
+This one is numbered as part of `notation.md`, which runs 2.1, 2.2, 2.4 and on.
+It lives here because it is a trap first and a notation rule second.
 
 **When `$` becomes the last character of a paragraph or of a table cell, the HTML export stops.**
 
