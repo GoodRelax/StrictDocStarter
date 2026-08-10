@@ -8,12 +8,12 @@ This document writes down how a user uses the tool. Where the system requirement
 `04-upper.md` write the conditions the tool must satisfy, this document writes the
 thread of using it. The two are different things.
 
-| | Use case (this document) | Requirement (`04-upper.md` / `06-lower.md`) |
-|---|---|---|
-| Subject | The user | The tool |
-| What it writes | How you use it. What happens | What it must satisfy |
-| Shape | Main success scenario plus extensions | One EARS sentence (a requirement-sentence pattern. `04-upper.md`) |
-| How you count | One per user goal | One per condition to satisfy |
+|                | Use case (this document)              | Requirement (`04-upper.md` / `06-lower.md`)                       |
+| -------------- | ------------------------------------- | ----------------------------------------------------------------- |
+| Subject        | The user                              | The tool                                                          |
+| What it writes | How you use it. What happens          | What it must satisfy                                              |
+| Shape          | Main success scenario plus extensions | One EARS sentence (a requirement-sentence pattern. `04-upper.md`) |
+| How you count  | One per user goal                     | One per condition to satisfy                                      |
 
 `USE_CASE` is not a standard StrictDoc node type. We added it in `basic.sgra`, and the
 same goes for the `UC_LEVEL` field. You may add as many node types and fields as you
@@ -40,12 +40,12 @@ Look at the content and you can see why the arrow runs this way. The system
 requirements come straight out of the thread of `UC-001`. We keep the extensions out of
 the node and put them in this table instead, beside the requirement each one produced.
 
-| Where in `UC-001` | The requirement it produced |
-|---|---|
-| Main success scenario, step 4 (write out the converted result) | `SYS-001` |
-| Extension 2a (the format differs - do not convert) | `SYS-002` |
-| Extension 3a (a file of that name exists - do not overwrite) | `SYS-003` |
-| Extension 4a (the write stopped - leave no partial file) | No new system requirement. `SW-004` takes it directly, and its parent is `SYS-003` |
+| Where in `UC-001`                                              | The requirement it produced                                                        |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Main success scenario, step 4 (write out the converted result) | `SYS-001`                                                                          |
+| Extension 2a (the format differs - do not convert)             | `SYS-002`                                                                          |
+| Extension 3a (a file of that name exists - do not overwrite)   | `SYS-003`                                                                          |
+| Extension 4a (the write stopped - leave no partial file)       | No new system requirement. `SW-004` takes it directly, and its parent is `SYS-003` |
 
 **It is the extensions that produce the requirements.** Write only the main success
 scenario and you lose the unwanted-behaviour requirements (`SYS-002` / `SYS-003`)
@@ -75,7 +75,7 @@ writes the relation, and here the system requirement is the child (`06-lower.md`
 **Type**: SECTION
 
 The use case follows Cockburn's form - the way of writing that Alistair Cockburn set out
-in *Writing Effective Use Cases* (2000). Its point is that you write the main success
+in _Writing Effective Use Cases_ (2000). Its point is that you write the main success
 scenario as numbered steps and then list the threads that leave it as "extensions",
 numbered off the step they leave.
 
@@ -139,11 +139,11 @@ that keeps it out of the node draws the line somewhere.
 
 `UC_LEVEL` is the height of the goal, in Cockburn's terms.
 
-| Value | What Cockburn calls it | Meaning | In this set |
-|---|---|---|---|
-| `Summary` | Kite | A business-level thread that bundles several goals | Not used |
-| `UserGoal` | Sea level | What a user wants to achieve in one go. The main battleground | `UC-001` only |
-| `Subfunction` | Fish | A part of the goal above. Alone it is not a user goal | Not used |
+| Value         | What Cockburn calls it | Meaning                                                       | In this set   |
+| ------------- | ---------------------- | ------------------------------------------------------------- | ------------- |
+| `Summary`     | Kite                   | A business-level thread that bundles several goals            | Not used      |
+| `UserGoal`    | Sea level              | What a user wants to achieve in one go. The main battleground | `UC-001` only |
+| `Subfunction` | Fish                   | A part of the goal above. Alone it is not a user goal         | Not used      |
 
 This set carries sea level and nothing else. We did once write a kite-level "receive the
 file at hand in another format", but its steps were "decide on the file", "convert it

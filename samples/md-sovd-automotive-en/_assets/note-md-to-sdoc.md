@@ -30,13 +30,13 @@ strictdoc export <specification folder> --formats=markdown --output-dir <output 
 **Only the body notation stays behind.** The body of an `.sdoc` parses as RST by
 default, so every RST directive arrives verbatim. This set rewrote five of them.
 
-| RST | Markdown |
-|---|---|
-| `.. raw:: html` + `<pre class="mermaid">` | a ` ```mermaid ` fence |
-| `.. math::` / `` :math:`x` `` | `$$ ... $$` / `$x$` |
-| `.. image:: path` | the Markdown image notation |
-| `.. list-table::` | a pipe table |
-| `.. code-block:: <language>` | a ` ``` ` fence carrying the language name |
+| RST                                       | Markdown                                   |
+| ----------------------------------------- | ------------------------------------------ |
+| `.. raw:: html` + `<pre class="mermaid">` | a ` ```mermaid ` fence                     |
+| `.. math::` / `` :math:`x` ``             | `$$ ... $$` / `$x$`                        |
+| `.. image:: path`                         | the Markdown image notation                |
+| `.. list-table::`                         | a pipe table                               |
+| `.. code-block:: <language>`              | a ` ``` ` fence carrying the language name |
 
 ## 2. The grammar has to declare `TITLE` early
 

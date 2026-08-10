@@ -7,7 +7,7 @@
 This document defines the **use cases** of the SOVD vehicle diagnostics system (usage
 scenarios in which an actor uses the system to achieve a goal). **A UC here is the parent
 of the requirements.** The domain requirements in `01-stakeholder-requirements.md` point
-at a UC via ``Parent``, and an acceptance test (the AT series in `10-test-spec.md`)
+at a UC via `Parent`, and an acceptance test (the AT series in `10-test-spec.md`)
 verifies the UC.
 
 **Distinguishing requirements from use cases (ISO/IEC/IEEE 29148 / A-SPICE):** a "condition the
@@ -19,13 +19,13 @@ it, so the lines run requirement -> UC (derivation) and acceptance test -> UC
 
 **Actors**
 
-| Actor | RBAC role | Description / main concern |
-|---|---|---|
-| Mechanic | ``Mechanic`` | Diagnoses the vehicle remotely from the field or the workshop. Performs data reads and DTC retrieval / clearing. |
-| OEM engineer | ``OEMEngineer`` | In addition to all diagnostic functions, can access DIDs containing personal data and perform OTA updates. |
-| Fleet operator | ``FleetOperator`` | Remotely monitors the status of many vehicles in bulk (mainly read). |
-| OEM backend | (system) | External system responsible for token issuance, revocation-list distribution, update-package signing / distribution, and DTC master provisioning. |
-| Attacker (threat actor) | (none) | Attempts spoofing, eavesdropping, and tampering. The target defended against by authentication, authorization, and cryptography (UC-001). |
+| Actor                   | RBAC role       | Description / main concern                                                                                                                        |
+| ----------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mechanic                | `Mechanic`      | Diagnoses the vehicle remotely from the field or the workshop. Performs data reads and DTC retrieval / clearing.                                  |
+| OEM engineer            | `OEMEngineer`   | In addition to all diagnostic functions, can access DIDs containing personal data and perform OTA updates.                                        |
+| Fleet operator          | `FleetOperator` | Remotely monitors the status of many vehicles in bulk (mainly read).                                                                              |
+| OEM backend             | (system)        | External system responsible for token issuance, revocation-list distribution, update-package signing / distribution, and DTC master provisioning. |
+| Attacker (threat actor) | (none)          | Attempts spoofing, eavesdropping, and tampering. The target defended against by authentication, authorization, and cryptography (UC-001).         |
 
 **Use case diagram (actors and use cases)**
 
@@ -37,12 +37,12 @@ trust anchor for tokens, revocation, and signatures.
 
 **Use case list (from UC to the requirements derived from it)**
 
-| UC | Use case | Primary actor | Requirements derived from it |
-|---|---|---|---|
-| UC-001 | Remote authenticated diagnostic access | Mechanic / OEM engineer | AUTH-L0-001 to 006 |
-| UC-002 | Remote read of vehicle data | Mechanic / OEM / Fleet | DATA-L0-001 to 005 |
-| UC-003 | Fault diagnostics (retrieve / clear) | Mechanic / OEM engineer | DTC-L0-001 to 003 / 005 |
-| UC-004 | OTA remote software update | OEM engineer / OEM backend | SWU-L0-001 to 008 |
+| UC     | Use case                               | Primary actor              | Requirements derived from it |
+| ------ | -------------------------------------- | -------------------------- | ---------------------------- |
+| UC-001 | Remote authenticated diagnostic access | Mechanic / OEM engineer    | AUTH-L0-001 to 006           |
+| UC-002 | Remote read of vehicle data            | Mechanic / OEM / Fleet     | DATA-L0-001 to 005           |
+| UC-003 | Fault diagnostics (retrieve / clear)   | Mechanic / OEM engineer    | DTC-L0-001 to 003 / 005      |
+| UC-004 | OTA remote software update             | OEM engineer / OEM backend | SWU-L0-001 to 008            |
 
 **All of those requirements live in `01-stakeholder-requirements.md`.** The L1 and lower
 requirements of each domain document grow from there.

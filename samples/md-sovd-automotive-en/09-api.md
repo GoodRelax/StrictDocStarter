@@ -8,9 +8,9 @@ This document is the **external HTTP API contract** of SOVD. It is the **promise
 clients (OEM cloud, workshop tools, in-vehicle apps), and in principle an integration
 partner can implement against this document alone.
 
-- Authentication: ``Authorization: Bearer <JWT>`` (03-auth). Communication is TLS 1.3 (AUTH-L1-005).
+- Authentication: `Authorization: Bearer <JWT>` (03-auth). Communication is TLS 1.3 (AUTH-L1-005).
 - Data model: JSON compliant with ASAM SOVD v1.0 Part 2.
-- Each API traces to the requirement it realizes via a ``Satisfies`` relation.
+- Each API traces to the requirement it realizes via a `Satisfies` relation.
 - METHOD / PATH / SCOPE / RESPONSE are data declarations, while **the STATEMENT describes the behavioral contract in EARS**
   (Ubiquitous = always / Event = nominal / Unwanted = off-nominal).
 
@@ -78,7 +78,7 @@ partner can implement against this document alone.
 
 - (Ubiquitous) The API shall require the read:did scope.
 - (Event) When an authorized client calls the API, it shall return the current value of that
-  DID as ASAM SOVD JSON. Example: ``GET /components/engine/data/rpm``.
+  DID as ASAM SOVD JSON. Example: `GET /components/engine/data/rpm`.
 - (Unwanted) If unauthenticated, then the API shall return 401.
 - (Unwanted) If the scope is insufficient, then the API shall return 403.
 - (Unwanted) If the specified DID does not exist, then the API shall return 404.
@@ -182,7 +182,7 @@ data: {"did":"0xF40C","value":824}
 - (Unwanted) If the vehicle speed is not 0 km/h, then the API shall return 409 Conflict and
   shall not clear the DTC.
 
-**RESPONSE**: 204 No Content  /  409 Conflict (vehicle moving)
+**RESPONSE**: 204 No Content / 409 Conflict (vehicle moving)
 
 **Relations**:
 

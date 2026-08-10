@@ -13,7 +13,7 @@ and design decisions.
 sentence** and is given a name that denotes that responsibility. Interfaces/structure are shown
 in the **class diagrams** (3.4), and each individual **behavior (the specification of a
 responsibility)** is expressed by a **test (10) scenario** (1 behavior = 1 scenario = 1
-verdict). Each component traces to the requirement it realizes via an ``Implements`` relation.
+verdict). Each component traces to the requirement it realizes via an `Implements` relation.
 
 The shared front matter is in `00-overview.md`, the API contract in `09-api.md`, and the
 tests in `10-test-spec.md`.

@@ -7,9 +7,9 @@
 本書は SOVD の **外部 HTTP API 契約** である。 SOVD クライアント (OEM クラウド・整備
 ツール・車載アプリ) との **約束** であり、 連携相手は原則本書だけを見れば実装できる。
 
-- 認証: ``Authorization: Bearer <JWT>`` (03-auth)。 通信は TLS 1.3 (AUTH-L1-005)。
+- 認証: `Authorization: Bearer <JWT>` (03-auth)。 通信は TLS 1.3 (AUTH-L1-005)。
 - データモデル: ASAM SOVD v1.0 Part 2 準拠の JSON。
-- 各 API は実現する要求へ ``Satisfies`` 関係でトレースする。
+- 各 API は実現する要求へ `Satisfies` 関係でトレースする。
 - METHOD / PATH / SCOPE / RESPONSE はデータ宣言、 **STATEMENT は EARS による振る舞い契約**
   (Ubiquitous=常時 / Event=正常系 / Unwanted=異常系) で記述する。
 
@@ -77,7 +77,7 @@
 
 - (Ubiquitous) 本 API は read:did スコープを要求すること。
 - (Event) 認可済みクライアントが本 API を呼んだとき、 当該 DID の現在値を ASAM SOVD
-  JSON で返すこと。 例: ``GET /components/engine/data/rpm``。
+  JSON で返すこと。 例: `GET /components/engine/data/rpm`。
 - (Unwanted) もし未認証の場合、 本 API は 401 を返すこと。
 - (Unwanted) もしスコープが不足する場合、 本 API は 403 を返すこと。
 - (Unwanted) もし指定 DID が存在しない場合、 本 API は 404 を返すこと。
@@ -181,7 +181,7 @@ data: {"did":"0xF40C","value":824}
 - (Unwanted) もし車速が 0 km/h でない場合、 本 API は 409 Conflict を返し、 DTC を
   クリアしないこと。
 
-**RESPONSE**: 204 No Content  /  409 Conflict (vehicle moving)
+**RESPONSE**: 204 No Content / 409 Conflict (vehicle moving)
 
 **Relations**:
 

@@ -284,7 +284,7 @@ recommended action) in NVRAM and include it in the API response.
 **ASIL**: QM
 **LAYER**: L2_ECU_SW
 
-**Statement**: The gateway ECU's UDS request P2 timeout shall be 50 ms and the P2* timeout shall
+**Statement**: The gateway ECU's UDS request P2 timeout shall be 50 ms and the P2\* timeout shall
 be 500 ms.
 
 **Relations**:

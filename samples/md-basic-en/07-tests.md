@@ -69,11 +69,11 @@ Gherkin is a language for writing down behaviour split three ways. It spread
 as the format that Cucumber, a test automation tool, reads. The official
 reference defines the three words like this.
 
-| Word | What you write |
-| --- | --- |
+| Word    | What you write                                                         |
+| ------- | ---------------------------------------------------------------------- |
 | `Given` | The precondition. The state the system sits in before anything happens |
-| `When` | The event. The operation a person or another system performs |
-| `Then` | The expected outcome. What ought to happen |
+| `When`  | The event. The operation a person or another system performs           |
+| `Then`  | The expected outcome. What ought to happen                             |
 
 The reason for the split is that nobody can verify a sentence that mixes
 precondition, operation and outcome. Write "handing it a broken file makes it

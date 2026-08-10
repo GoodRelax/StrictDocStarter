@@ -5,7 +5,7 @@
 **Version**: 1.0
 
 This document is the **execution record** of each test in `10-test-spec.md`. Each result traces
-to the corresponding test specification via the ``ResultOf`` relation. Since the specification is
+to the corresponding test specification via the `ResultOf` relation. Since the specification is
 stable while results grow with each execution (1 specification : N results), they are separated
 into a distinct document. Each result's TITLE begins with the verdict, so OK/NG is visible at a
 glance even in the tree.

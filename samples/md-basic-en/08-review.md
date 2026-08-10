@@ -13,11 +13,11 @@ do not. "Why we do not use a separate node" gives the reason.
 We added these three fields to the requirement. **`basic.sgra` declares them on
 `REQUIREMENT` alone, so a test case carries none of them.**
 
-| Field | What it holds | Who writes it |
-| --- | --- | --- |
-| `REVIEW_STATUS` | The state of the review. Required | The reviewer and the author |
-| `REVIEW_COMMENT` | The finding itself. What is wrong | The reviewer |
-| `REVIEW_ACTION` | What the author did about it, or why they will not | The author |
+| Field            | What it holds                                      | Who writes it               |
+| ---------------- | -------------------------------------------------- | --------------------------- |
+| `REVIEW_STATUS`  | The state of the review. Required                  | The reviewer and the author |
+| `REVIEW_COMMENT` | The finding itself. What is wrong                  | The reviewer                |
+| `REVIEW_ACTION`  | What the author did about it, or why they will not | The author                  |
 
 ## The five states
 
@@ -29,13 +29,13 @@ We added these three fields to the requirement. **`basic.sgra` declares them on
   REQUIRED: True
 ```
 
-| Value | Meaning | `REVIEW_COMMENT` | `REVIEW_ACTION` |
-| --- | --- | --- | --- |
-| `NotReviewed` | Nobody has looked at it yet | empty | empty |
-| `NoFinding` | Somebody looked. No finding | empty | empty |
-| `Open` | A finding, still open | needed | empty |
-| `Fixed` | The author acted on the finding | needed | needed |
-| `WontFix` | The author considered it and decided against acting | needed | needed (give the reason) |
+| Value         | Meaning                                             | `REVIEW_COMMENT` | `REVIEW_ACTION`          |
+| ------------- | --------------------------------------------------- | ---------------- | ------------------------ |
+| `NotReviewed` | Nobody has looked at it yet                         | empty            | empty                    |
+| `NoFinding`   | Somebody looked. No finding                         | empty            | empty                    |
+| `Open`        | A finding, still open                               | needed           | empty                    |
+| `Fixed`       | The author acted on the finding                     | needed           | needed                   |
+| `WontFix`     | The author considered it and decided against acting | needed           | needed (give the reason) |
 
 We set `REQUIRED: True`. Forget the field and `strictdoc export` stops, so no
 requirement ever reaches the reader without a review field. That is why
@@ -104,13 +104,13 @@ and reorder the columns, so "list the `Open` ones" finishes on the spot.
 
 We gave something up as well.
 
-| | Field of the requirement (this set) | Separate node + relation |
-| --- | --- | --- |
-| The state shows in a list of requirements | yes | no |
-| Several findings on one requirement | no, one only | yes |
-| A UID and a history per finding | no | yes |
-| Appears in the project-wide matrix | no | yes |
-| Effort to write | three added lines | raise a node in another document |
+|                                           | Field of the requirement (this set) | Separate node + relation         |
+| ----------------------------------------- | ----------------------------------- | -------------------------------- |
+| The state shows in a list of requirements | yes                                 | no                               |
+| Several findings on one requirement       | no, one only                        | yes                              |
+| A UID and a history per finding           | no                                  | yes                              |
+| Appears in the project-wide matrix        | no                                  | yes                              |
+| Effort to write                           | three added lines                   | raise a node in another document |
 
 Once you have to stack findings and track them one by one, the separate node
 suits you better. Add the type to `basic.sgra` then. `02-guide-for-human.md`
@@ -153,15 +153,15 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS == "NotReviewed
 The seven requirements of `04-upper.md` and `06-lower.md` show all five states
 between them.
 
-| UID | `REVIEW_STATUS` | What it illustrates |
-| --- | --- | --- |
-| `SYS-001` | `NoFinding` | Somebody looked and found nothing |
-| `SYS-002` | `Fixed` | A finding, acted on |
-| `SYS-003` | `Open` | A finding, still open |
-| `SW-001` | `NoFinding` | |
-| `SW-002` | `NoFinding` | |
-| `SW-003` | `NotReviewed` | Nobody has looked yet |
-| `SW-004` | `WontFix` | Considered, and decided against acting |
+| UID       | `REVIEW_STATUS` | What it illustrates                    |
+| --------- | --------------- | -------------------------------------- |
+| `SYS-001` | `NoFinding`     | Somebody looked and found nothing      |
+| `SYS-002` | `Fixed`         | A finding, acted on                    |
+| `SYS-003` | `Open`          | A finding, still open                  |
+| `SW-001`  | `NoFinding`     |                                        |
+| `SW-002`  | `NoFinding`     |                                        |
+| `SW-003`  | `NotReviewed`   | Nobody has looked yet                  |
+| `SW-004`  | `WontFix`       | Considered, and decided against acting |
 
 A test case carries no `REVIEW_STATUS`. `basic.sgra` declares the three fields
 on `REQUIREMENT` alone. A test case carries `TEST_RESULT`, `ISSUE_KEY` and

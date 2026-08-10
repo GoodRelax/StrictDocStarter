@@ -69,7 +69,14 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":147,"TEST_CASE":4,"TEXT":148,"USE_CASE":1}
+{
+  "DOCUMENT": 13,
+  "REQUIREMENT": 7,
+  "SECTION": 147,
+  "TEST_CASE": 4,
+  "TEXT": 148,
+  "USE_CASE": 1
+}
 ```
 
 ### A3. 目次
@@ -94,15 +101,55 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
 ```
 
 ```json
-{"DOCUMENT":["GRAMMAR","NODES","TITLE","UID","VERSION","_NODE_TYPE","_OPTIONS"],
- "REQUIREMENT":["RATIONALE","RELATIONS","REVIEW_ACTION","REVIEW_COMMENT","REVIEW_STATUS",
-                "STATEMENT","STATUS","TITLE","UID","_NODE_TYPE","_TOC"],
- "SECTION":["NODES","TITLE","_NODE_TYPE","_TOC"],
- "TEST_CASE":["GIVEN","ISSUE_KEY","RELATIONS","TEST_REMARK","TEST_RESULT","THEN",
-              "TITLE","UID","WHEN","_NODE_TYPE","_TOC"],
- "TEXT":["STATEMENT","_NODE_TYPE","_TOC"],
- "USE_CASE":["REVIEW_COMMENT","REVIEW_STATUS","STATEMENT","TITLE","UC_LEVEL","UID",
-             "_NODE_TYPE","_TOC"]}
+{
+  "DOCUMENT": [
+    "GRAMMAR",
+    "NODES",
+    "TITLE",
+    "UID",
+    "VERSION",
+    "_NODE_TYPE",
+    "_OPTIONS"
+  ],
+  "REQUIREMENT": [
+    "RATIONALE",
+    "RELATIONS",
+    "REVIEW_ACTION",
+    "REVIEW_COMMENT",
+    "REVIEW_STATUS",
+    "STATEMENT",
+    "STATUS",
+    "TITLE",
+    "UID",
+    "_NODE_TYPE",
+    "_TOC"
+  ],
+  "SECTION": ["NODES", "TITLE", "_NODE_TYPE", "_TOC"],
+  "TEST_CASE": [
+    "GIVEN",
+    "ISSUE_KEY",
+    "RELATIONS",
+    "TEST_REMARK",
+    "TEST_RESULT",
+    "THEN",
+    "TITLE",
+    "UID",
+    "WHEN",
+    "_NODE_TYPE",
+    "_TOC"
+  ],
+  "TEXT": ["STATEMENT", "_NODE_TYPE", "_TOC"],
+  "USE_CASE": [
+    "REVIEW_COMMENT",
+    "REVIEW_STATUS",
+    "STATEMENT",
+    "TITLE",
+    "UC_LEVEL",
+    "UID",
+    "_NODE_TYPE",
+    "_TOC"
+  ]
+}
 ```
 
 `-c` を付けたので jq は 1 行で出す。上は読みやすさのために折り返してある。
@@ -444,11 +491,11 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(.REVIEW_STATUS? and .REVIEW_S
 Git Bash に `bash -c "..."` の形でクエリを渡すと、 二重バックスラッシュが半分に減る。
 strictdoc 0.27.1 / jq 1.8.1 / Windows 11 で実測した。
 
-| 渡し方 | `scan("!\\[...")` の結果 |
-|---|---|
-| `jq -f クエリ.jq` | 通る |
-| シェルスクリプトに書いて `bash script.sh` | 通る |
-| `bash -c 'jq -r ...'` | `Invalid escape` で落ちる |
+| 渡し方                                    | `scan("!\\[...")` の結果  |
+| ----------------------------------------- | ------------------------- |
+| `jq -f クエリ.jq`                         | 通る                      |
+| シェルスクリプトに書いて `bash script.sh` | 通る                      |
+| `bash -c 'jq -r ...'`                     | `Invalid escape` で落ちる |
 
 AI がコマンドを実行するときはたいてい `bash -c` の形になる。だから二重バックスラッシュを
 含むクエリは書かない。 同じ結果は文字列操作で書ける。
@@ -559,7 +606,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 ````
 
 ```text
-DOC-AI-GUIDE   ` フェンス | 通る | `<pre class="mermaid">` |  ライフライン 0  クラス 0
+DOC-AI-GUIDE   ` フェンス   | 通る               | `<pre class="mermaid">`                                       |  ライフライン 0  クラス 0
 DOC-AI-GUIDE  stateDiagram-v2  ライフライン 0  クラス 0
 DOC-AI-QUERIES  ")) | split("  ライフライン 0  クラス 0
 DOC-AI-QUERIES  ")) | split("  ライフライン 0  クラス 0
@@ -568,7 +615,7 @@ DOC-GUIDE  flowchart LR  ライフライン 0  クラス 0
 DOC-ARCH  flowchart LR  ライフライン 0  クラス 0
 DOC-ARCH  sequenceDiagram  ライフライン 3  クラス 0
 DOC-LOWER  flowchart LR  ライフライン 0  クラス 0
-DOC-BROWSER     ライフライン 0  クラス 0
+DOC-BROWSER   ` で囲んだ文字を打つだけである。  ライフライン 0  クラス 0
 DOC-FIG-STATE  stateDiagram-v2  ライフライン 0  クラス 0
 ```
 
@@ -632,7 +679,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":53,"json":5,"markdown":3,"mermaid":6,"python":4,"text":75}
+{ "bash": 55, "json": 5, "markdown": 3, "mermaid": 6, "python": 4, "text": 75 }
 ```
 
 `mermaid` もここに出る。 図もコードフェンスだからである。
@@ -698,7 +745,7 @@ DOC-BROWSER  _assets/browser-22-new-document-form.png
 ところが JSON の export は成功する (実測)。だから JSON を出してからこのクエリを
 当てれば、 HTML を作る前に場所が分かる。
 
-````bash
+```bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, out: []};
@@ -710,7 +757,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | .out[]
 | select(test("[^$][$] *$") or test("[^$][$] *[|]"))
 | $doc + "  " + .' <json>
-````
+```
 
 このサンプルでは 0 件。0 件が正常である。 わざと壊した文書に当てると、 こう出る:
 
@@ -745,7 +792,7 @@ DOC-LINT  | CRASH cell ending in math | $T$ |
 1. 図を取り出す — G28。
 
 2. どのファイルにあるかを突き止める。 UID の宣言を固定文字列で探す。
-`-F` を付けるのは `**` を正規表現と解釈させないためである。
+   `-F` を付けるのは `**` を正規表現と解釈させないためである。
 
 ```bash
 grep -rlF '**UID**: DOC-FIG-STATE' <仕様書のフォルダ> --include=*.md
@@ -768,7 +815,7 @@ UID を書いてあるだけのファイルは出ない。 上のクエリは `*
 3. その `.md` を直接編集する。 フェンスの中身を差し替える。
 
 4. 横に並ぶ数を測り直す。 目安を超えたなら、 本文にあった図は
-`_assets/fig-*.md` へ移し、 元の場所には `[LINK:]` を残す (G29)。
+   `_assets/fig-*.md` へ移し、 元の場所には `[LINK:]` を残す (G29)。
 
 5. 再度 export する。 StrictDoc は JSON を自動では更新しない。
 
@@ -777,7 +824,7 @@ strictdoc export <仕様書のフォルダ> --formats=json --output-dir <出力�
 ```
 
 6. HTML も通ることを確かめる。 `--formats=json` は `$` の罠を素通しする。
-図や数式を触ったときは `--formats=html` も必ず通す。
+   図や数式を触ったときは `--formats=html` も必ず通す。
 
 ```bash
 strictdoc export <仕様書のフォルダ> --formats=html --output-dir <出力先>
@@ -829,12 +876,12 @@ jq -r --arg doc DOC-LOWER --arg at 6.1 '.DOCUMENTS[] | select(.UID == $doc) | re
 ```
 
 ```text
-| 記号 | 単位 | 意味 |
-|---|---|---|
-| $S_{need}$ バイト | バイト | 変換に必要な空き容量 |
-| $S_{out}$ バイト | バイト | 出力ファイルの大きさ |
-| $S_{tmp}$ バイト | バイト | 一時ファイルの大きさ。 $S_{out}$ と等しい |
-| 経路 | — | `入力 \| 変換 \| 出力` の 3 段 |
+| 記号              | 単位   | 意味                                      |
+| ----------------- | ------ | ----------------------------------------- |
+| $S_{need}$ バイト | バイト | 変換に必要な空き容量                      |
+| $S_{out}$ バイト  | バイト | 出力ファイルの大きさ                      |
+| $S_{tmp}$ バイト  | バイト | 一時ファイルの大きさ。 $S_{out}$ と等しい |
+| 経路              | —      | `入力 \| 変換 \| 出力` の 3 段            |
 ```
 
 `--arg` で場所を渡すので、 クエリの本体は書き換えずに使い回せる。
@@ -847,7 +894,7 @@ jq -r --arg doc DOC-LOWER --arg at 6.1 '.DOCUMENTS[] | select(.UID == $doc) | re
 0 件が正常である。 表を書き足したら毎回これを通す。セルの数が見出し行と違う行は、
 HTML にしたときに黙って欠ける。
 
-````bash
+```bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as $n
 | ($n.UID // $n._TOC // "-") as $at
 | $n.STATEMENT | split("\n")
@@ -862,7 +909,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as
       else .want = 0
       end)
 | .bad[] | $doc + "  " + $at + "  " + .' <json>
-````
+```
 
 わざと壊した文書に当てると、 こう出る。
 

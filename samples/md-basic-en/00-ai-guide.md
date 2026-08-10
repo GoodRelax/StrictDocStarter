@@ -25,23 +25,23 @@ rules apply to every Markdown StrictDoc project.
 Here is how the worked example is laid out. StrictDoc parses every `.md` file as a
 document. This guide is no exception: it becomes one document, `DOC-AI-GUIDE`.
 
-| File | Contents | Document UID |
-|---|---|---|
-| `00-ai-guide.md` | This guide | `DOC-AI-GUIDE` (no requirements) |
-| `01-ai-queries.md` | The detailed version of this guide's queries | `DOC-AI-QUERIES` (no requirements) |
-| `02-guide-for-human.md` | The explanatory document for humans. An AI does not need to read it | `DOC-GUIDE` (no requirements) |
-| `03-usecases.md` | 1 use case (Cockburn form, sea level). The parent of the system requirements | `DOC-USECASES` |
-| `04-upper.md` | 3 system requirements | `DOC-UPPER` |
-| `05-architecture.md` | The map of the system structure. It holds no requirement | `DOC-ARCH` (no requirements) |
-| `06-lower.md` | 4 software requirements. They link up to the system requirements | `DOC-LOWER` |
-| `07-tests.md` | 4 test cases. They link up to the software requirements | `DOC-TESTS` |
-| `08-review.md` | How we review. A finding goes on the requirement itself | `DOC-REVIEW` (no requirements) |
-| `09-browser-guide.md` | The guide to driving StrictDoc from the browser | `DOC-BROWSER` (no requirements) |
-| `10-cowork-with-claude.md` | How to write alongside an AI | `DOC-COWORK` (no requirements) |
-| `_assets/note.md` | A terminology table. A link target | `DOC-NOTE` (no requirements) |
-| `_assets/fig-state.md` | One large figure. A link target | `DOC-FIG-STATE` (no requirements) |
-| `basic.sgra` | The grammar definition. You declare node types, fields and `Role` here | — |
-| `strictdoc_config.py` | The project settings | — |
+| File                       | Contents                                                                     | Document UID                       |
+| -------------------------- | ---------------------------------------------------------------------------- | ---------------------------------- |
+| `00-ai-guide.md`           | This guide                                                                   | `DOC-AI-GUIDE` (no requirements)   |
+| `01-ai-queries.md`         | The detailed version of this guide's queries                                 | `DOC-AI-QUERIES` (no requirements) |
+| `02-guide-for-human.md`    | The explanatory document for humans. An AI does not need to read it          | `DOC-GUIDE` (no requirements)      |
+| `03-usecases.md`           | 1 use case (Cockburn form, sea level). The parent of the system requirements | `DOC-USECASES`                     |
+| `04-upper.md`              | 3 system requirements                                                        | `DOC-UPPER`                        |
+| `05-architecture.md`       | The map of the system structure. It holds no requirement                     | `DOC-ARCH` (no requirements)       |
+| `06-lower.md`              | 4 software requirements. They link up to the system requirements             | `DOC-LOWER`                        |
+| `07-tests.md`              | 4 test cases. They link up to the software requirements                      | `DOC-TESTS`                        |
+| `08-review.md`             | How we review. A finding goes on the requirement itself                      | `DOC-REVIEW` (no requirements)     |
+| `09-browser-guide.md`      | The guide to driving StrictDoc from the browser                              | `DOC-BROWSER` (no requirements)    |
+| `10-cowork-with-claude.md` | How to write alongside an AI                                                 | `DOC-COWORK` (no requirements)     |
+| `_assets/note.md`          | A terminology table. A link target                                           | `DOC-NOTE` (no requirements)       |
+| `_assets/fig-state.md`     | One large figure. A link target                                              | `DOC-FIG-STATE` (no requirements)  |
+| `basic.sgra`               | The grammar definition. You declare node types, fields and `Role` here       | —                                  |
+| `strictdoc_config.py`      | The project settings                                                         | —                                  |
 
 The numbers give the reading order. `00` and `01` are for an AI, `02` is for a human,
 `03` to `07` are the specification itself, and `08` to `10` cover the review, the browser
@@ -70,17 +70,17 @@ On the other hand, the proper names that appear in this guide belong to this wor
 example. When you use the guide on another project, substitute them as the table
 below shows. You do not need to substitute the rules themselves.
 
-| Name in this guide | What it stands for | In the other project |
-|---|---|---|
-| `samples/md-basic-en` | The specification folder | The other project's folder |
-| `basic.sgra` | The grammar file | Any name works. Only the extension has to be `.sgra` |
-| `DOC-UPPER` / `DOC-LOWER` and so on | The document UID | The other project decides it. Look it up with example 1 |
-| `SYS-*` / `SW-*` / `TC-*` | The UIDs of requirements and tests | The other project's numbering. Look it up with example 3 |
-| `DOC-FIG-` | The prefix for the UID of a figure document | You decide it. Pass it to the audit query with `--arg figprefix` |
-| `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` / `DOC-REVIEW` | The UIDs of the explanatory documents | The other project's explanatory documents. Exclude them with `--arg skip` when you count |
-| File names such as `04-upper.md` | The file name of a document | They never land in the JSON. Look them up with the `grep` in example 16 |
-| `_assets` | The place for attachments | Fixed. You cannot change it ("Attachments") |
-| `strictdoc-quirks.tsv` | The quirk log | Create one under the same name ("How to write the log") |
+| Name in this guide                                             | What it stands for                          | In the other project                                                                     |
+| -------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `samples/md-basic-en`                                          | The specification folder                    | The other project's folder                                                               |
+| `basic.sgra`                                                   | The grammar file                            | Any name works. Only the extension has to be `.sgra`                                     |
+| `DOC-UPPER` / `DOC-LOWER` and so on                            | The document UID                            | The other project decides it. Look it up with example 1                                  |
+| `SYS-*` / `SW-*` / `TC-*`                                      | The UIDs of requirements and tests          | The other project's numbering. Look it up with example 3                                 |
+| `DOC-FIG-`                                                     | The prefix for the UID of a figure document | You decide it. Pass it to the audit query with `--arg figprefix`                         |
+| `DOC-AI-GUIDE` / `DOC-AI-QUERIES` / `DOC-GUIDE` / `DOC-REVIEW` | The UIDs of the explanatory documents       | The other project's explanatory documents. Exclude them with `--arg skip` when you count |
+| File names such as `04-upper.md`                               | The file name of a document                 | They never land in the JSON. Look them up with the `grep` in example 16                  |
+| `_assets`                                                      | The place for attachments                   | Fixed. You cannot change it ("Attachments")                                              |
+| `strictdoc-quirks.tsv`                                         | The quirk log                               | Create one under the same name ("How to write the log")                                  |
 
 These two alone are conventions that you decide yourself. They are not part of the
 StrictDoc specification.
@@ -124,14 +124,14 @@ separated, 6 columns, one line per entry. **Only append. Never rewrite or delete
 line that is already there.** StrictDoc does not parse `.tsv`, so the file has no
 effect at all on your documents (measured).
 
-| Column | Contents |
-|---|---|
-| `date` | `YYYY-MM-DD` |
-| `sd_version` | The output of `strictdoc --version` |
-| `step` | What you were doing. `export-html` / `export-json` / `jq` / `server` / `edit` |
-| `symptom` | The first line of the error, as it stands. Cut it if it runs long |
-| `workaround` | How you worked around it. In one line |
-| `where` | Which file, and where in it |
+| Column       | Contents                                                                      |
+| ------------ | ----------------------------------------------------------------------------- |
+| `date`       | `YYYY-MM-DD`                                                                  |
+| `sd_version` | The output of `strictdoc --version`                                           |
+| `step`       | What you were doing. `export-html` / `export-json` / `jq` / `server` / `edit` |
+| `symptom`    | The first line of the error, as it stands. Cut it if it runs long             |
+| `workaround` | How you worked around it. In one line                                         |
+| `where`      | Which file, and where in it                                                   |
 
 If the file does not exist yet, create it together with its header line.
 
@@ -152,11 +152,11 @@ because the error that lands in `symptom` is English.
 
 **Type**: SECTION
 
-| Log it | Do not log it |
-|---|---|
-| An error that this guide does not list | A trap that this guide lists (a trailing `$`, for one) |
-| Behavior that differs from what this guide describes | Your own typo |
-| A step that failed because the version differs | Something that never comes back once you fix it |
+| Log it                                               | Do not log it                                          |
+| ---------------------------------------------------- | ------------------------------------------------------ |
+| An error that this guide does not list               | A trap that this guide lists (a trailing `$`, for one) |
+| Behavior that differs from what this guide describes | Your own typo                                          |
+| A step that failed because the version differs       | Something that never comes back once you fix it        |
 
 When you cannot decide, write it down. One line costs little, and the knowledge
 you lose never comes back.
@@ -257,16 +257,16 @@ not allowed` - pointing at the head of the node, never mentioning the blank line
 
 **Type**: SECTION
 
-| Rule | Error message you get |
-|---|---|
-| Start the file with an H1. Put exactly one of them in a file | `the document must start with an H1 heading` |
-| Do not skip a heading level. Never put `###` right after `#` | `heading level forward jumps are not allowed: L1 -> L3` |
-| Do not put two or more empty lines right after a heading | `two or more consecutive empty lines are not allowed` |
-| Spell a field name exactly as the grammar declares it | `Invalid requirement field` |
-| Write a field named `TYPE` as `**TYPE**:`, in capitals | `**Type**:` is taken as the node-type selector before anything else |
-| Do not write a `Role` that the grammar does not declare | `Semantic error: Requirement relation type/role is not registered: Parent / Verifies` |
-| Declare `SECTION` when you write your own grammar | `Semantic error: Invalid node type: SECTION.` |
-| Give `SECTION` a `PROPERTIES: IS_COMPOSITE: True` | `The SECTION grammar element must be declared as composite.` (the Hint shows you the fix) |
+| Rule                                                                | Error message you get                                                                                                                                 |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Start the file with an H1. Put exactly one of them in a file        | `the document must start with an H1 heading`                                                                                                          |
+| Do not skip a heading level. Never put `###` right after `#`        | `heading level forward jumps are not allowed: L1 -> L3`                                                                                               |
+| Do not put two or more empty lines right after a heading            | `two or more consecutive empty lines are not allowed`                                                                                                 |
+| Spell a field name exactly as the grammar declares it               | `Invalid requirement field`                                                                                                                           |
+| Write a field named `TYPE` as `**TYPE**:`, in capitals              | `**Type**:` is taken as the node-type selector before anything else                                                                                   |
+| Do not write a `Role` that the grammar does not declare             | `Semantic error: Requirement relation type/role is not registered: Parent / Verifies`                                                                 |
+| Declare `SECTION` when you write your own grammar                   | `Semantic error: Invalid node type: SECTION.`                                                                                                         |
+| Give `SECTION` a `PROPERTIES: IS_COMPOSITE: True`                   | `The SECTION grammar element must be declared as composite.` (the Hint shows you the fix)                                                             |
 | Put `**Relations**` behind the body fields, one blank line after it | `duplicate field names in a valid requirement node are not allowed` - but only once a formatter has run, so an export that passes proves nothing here |
 
 You do not have to declare `TEXT`. It is built in (measured). We exported with a grammar
@@ -339,8 +339,8 @@ For every other error, the first line tells you where it is.
   declare it after `TITLE`
 - Declare `FIELDS` in `.sgra` in this order (it is not the order you write them in `.md`).
   `MID / UID / LEVEL / STATUS / TAGS (the built-in meta fields) → TITLE →
-  your own single-line fields → STATEMENT →
-  multi-line fields such as RATIONALE`. Break the order and json, html and sdoc all stop on the
+your own single-line fields → STATEMENT →
+multi-line fields such as RATIONALE`. Break the order and json, html and sdoc all stop on the
   spot (measured). The error is
   `Semantic error: Wrong field order for requirement: [...]`, and the `Hint:` line names the field
   that broke it and prints the order the grammar declares, so you fix it where you stand
@@ -489,16 +489,16 @@ ELEMENTS:
 
 How to read it:
 
-| What you write | What it means |
-|---|---|
-| `- TAG: <name>` | Declares one node type. `**Type**: <name>` on the `.md` side points at it |
-| `PROPERTIES: IS_COMPOSITE: True` | The node can hold other nodes inside it. `SECTION` requires this |
-| `- TITLE: <name>` | Declares one field. `**<name>**:` on the `.md` side points at it |
-| `TYPE: String` | Any string |
-| `TYPE: SingleChoice(A, B, C)` | An enumeration. A value that this list omits stops the export |
-| `REQUIRED: True` | Omitting the field stops the export |
-| `RELATIONS: - TYPE: Parent` | You can now draw a `Parent` link in `**Relations**:` |
-| `ROLE: <name>` | You can now write `**Role**:` on that relation. Without it you cannot use `Role` |
+| What you write                   | What it means                                                                    |
+| -------------------------------- | -------------------------------------------------------------------------------- |
+| `- TAG: <name>`                  | Declares one node type. `**Type**: <name>` on the `.md` side points at it        |
+| `PROPERTIES: IS_COMPOSITE: True` | The node can hold other nodes inside it. `SECTION` requires this                 |
+| `- TITLE: <name>`                | Declares one field. `**<name>**:` on the `.md` side points at it                 |
+| `TYPE: String`                   | Any string                                                                       |
+| `TYPE: SingleChoice(A, B, C)`    | An enumeration. A value that this list omits stops the export                    |
+| `REQUIRED: True`                 | Omitting the field stops the export                                              |
+| `RELATIONS: - TYPE: Parent`      | You can now draw a `Parent` link in `**Relations**:`                             |
+| `ROLE: <name>`                   | You can now write `**Role**:` on that relation. Without it you cannot use `Role` |
 
 Rules:
 
@@ -509,8 +509,8 @@ Rules:
   Write it as `**TYPE**:` in the `.md`, and declare it after `TITLE`
 - The order in which you declare the fields constrains the `.md` side. Declare them in the order
   `MID / UID / LEVEL / STATUS / TAGS (the built-in meta fields) → TITLE →
-  your own single-line fields → STATEMENT →
-  multi-line fields such as RATIONALE`. In any other order json, html and sdoc all stop on the
+your own single-line fields → STATEMENT →
+multi-line fields such as RATIONALE`. In any other order json, html and sdoc all stop on the
   spot (measured). The `Hint:` line names the field that broke it and prints the declared order
 - `--formats=json` already tells you whether the order is right. "json passes but sdoc fails"
   does not happen. `--formats=sdoc` is no use as a round-trip check either: the `.sgra` the
@@ -529,11 +529,11 @@ Restart the server after you edit `strictdoc_config.py` (measured).
 StrictDoc reads this file exactly once, at startup. When you edit a document's `.md`, the
 server picks the change up in under a second, but **it never picks up the project settings again.**
 
-| What you edited | Restart the server |
-|---|---|
-| A `.md` document | Not needed. The server applies it automatically |
-| A `.sgra` grammar | Not needed |
-| `strictdoc_config.py` | Needed |
+| What you edited       | Restart the server                              |
+| --------------------- | ----------------------------------------------- |
+| A `.md` document      | Not needed. The server applies it automatically |
+| A `.sgra` grammar     | Not needed                                      |
+| `strictdoc_config.py` | Needed                                          |
 
 This symptom hides itself well. You fixed the setting, the screen still shows the old state,
 so you conclude that you got the setting wrong. The server also keeps writing HTML from the old
@@ -549,17 +549,17 @@ settings, so the output folder stays stale too. When in doubt, stop the server a
 We measured everything below on strictdoc 0.27.1. "Passes" means the export
 succeeded and produced the HTML we intended.
 
-| Notation | Result | HTML it produces |
-|---|---|---|
-| a ` ```mermaid ` fence | passes | `<pre class="mermaid">` |
-| `$E = mc^2$` (inline) | passes | `<span class="math notranslate nohighlight">\( ... \)</span>` |
-| `$$ ... $$` (block) | passes | `<div class="math notranslate nohighlight">\[ ... \]</div>` |
-| a ` ```python ` fence | passes but gets no color | `<code class="language-python">` |
-| a pipe table | passes | `<table>` |
-| `![alt](_assets/x.svg)` | passes | `<img>` |
-| `[LINK: UID]` | passes | `<a href="....html#UID">🔗 title</a>` |
-| RST's `.. math::` | does not pass | `<p>.. math::</p>` - just a paragraph |
-| `[DOCUMENT_FROM_FILE]` | does not pass | see "Never write `[DOCUMENT_FROM_FILE]`" below |
+| Notation                | Result                   | HTML it produces                                              |
+| ----------------------- | ------------------------ | ------------------------------------------------------------- |
+| a ` ```mermaid ` fence  | passes                   | `<pre class="mermaid">`                                       |
+| `$E = mc^2$` (inline)   | passes                   | `<span class="math notranslate nohighlight">\( ... \)</span>` |
+| `$$ ... $$` (block)     | passes                   | `<div class="math notranslate nohighlight">\[ ... \]</div>`   |
+| a ` ```python ` fence   | passes but gets no color | `<code class="language-python">`                              |
+| a pipe table            | passes                   | `<table>`                                                     |
+| `![alt](_assets/x.svg)` | passes                   | `<img>`                                                       |
+| `[LINK: UID]`           | passes                   | `<a href="....html#UID">🔗 title</a>`                         |
+| RST's `.. math::`       | does not pass            | `<p>.. math::</p>` - just a paragraph                         |
+| `[DOCUMENT_FROM_FILE]`  | does not pass            | see "Never write `[DOCUMENT_FROM_FILE]`" below                |
 
 StrictDoc bundles MathJax and Mermaid into the output folder (`_static/mathjax/tex-mml-chtml.js` /
 `_static/mermaid/mermaid.min.js`). StrictDoc makes no outside connection. You add nothing to the configuration.
@@ -570,11 +570,11 @@ StrictDoc bundles MathJax and Mermaid into the output folder (`_static/mathjax/t
 
 There is one purpose - to stop a large figure from cutting the body in half.
 
-| Kind of figure | Guideline for moving it out |
-|---|---|
-| Sequence diagram | 5 lifelines or more |
-| Class diagram | 5 classes or more |
-| Flowchart | no guideline |
+| Kind of figure   | Guideline for moving it out |
+| ---------------- | --------------------------- |
+| Sequence diagram | 5 lifelines or more         |
+| Class diagram    | 5 classes or more           |
+| Flowchart        | no guideline                |
 
 Treat this table as a guideline, not a gate. The writer makes the final call.
 
@@ -595,11 +595,11 @@ classes for you.
 We do not cut by line count, because line count does not predict how large a figure
 draws. We measured the three figures this guide ships with.
 
-| Figure | Lines | Natural width | Size in a 520 px body column |
-|---|---:|---:|---:|
-| The flowchart in `06-lower.md` | 8 | 1608 px | 32 % |
-| The interaction figure in `05-architecture.md` | 8 | 868 px | 60 % |
-| The state machine in `_assets/fig-state.md` | 19 | 1118 px | 47 % |
+| Figure                                         | Lines | Natural width | Size in a 520 px body column |
+| ---------------------------------------------- | ----: | ------------: | ---------------------------: |
+| The flowchart in `06-lower.md`                 |     8 |       1608 px |                         32 % |
+| The interaction figure in `05-architecture.md` |     8 |        868 px |                         60 % |
+| The state machine in `_assets/fig-state.md`    |    19 |       1118 px |                         47 % |
 
 Two figures of the same 8 lines split into 32 % and 60 %, and the 19-line figure
 landed between them. Line count does not even preserve the ordering. What counts is
@@ -621,20 +621,20 @@ figure itself is unreadable, the only cure is to make the figure narrower.
 Line count does not predict what a figure costs to read either. The two bands below
 overlap, and the wider band is the cheaper one at its low end.
 
-| Content | tokens |
-|---|---:|
-| One paragraph of free text | 15-50 |
-| A 6-15 line Mermaid figure | 124-179 |
+| Content                     |  tokens |
+| --------------------------- | ------: |
+| One paragraph of free text  |   15-50 |
+| A 6-15 line Mermaid figure  | 124-179 |
 | A 16-24 line Mermaid figure | 110-228 |
 
 We measured what you gain by moving a figure out as well. Against the cost of reading
 every `.md` in the set:
 
-| What you pull | Share of reading everything |
-|---|---:|
-| The requirement list alone | under 0.2 % |
-| The large figure alone, named by UID | about 0.5 % |
-| Every `TEXT` node (figures and math included) | over 90 % |
+| What you pull                                 | Share of reading everything |
+| --------------------------------------------- | --------------------------: |
+| The requirement list alone                    |                 under 0.2 % |
+| The large figure alone, named by UID          |                 about 0.5 % |
+| Every `TEXT` node (figures and math included) |                   over 90 % |
 
 As long as you pull requirements, the reader pays not one token for a figure you moved into its own document.
 Naming that one figure costs over three times what the whole requirement list costs.
@@ -673,10 +673,10 @@ of `[LINK:]` from the title of the target, so you cannot choose that text.
 Rule: give a figure document one shared prefix, in its file name and in its UID.
 StrictDoc does not fix the prefix itself; each project agrees on its own.
 
-| | Rule | What this worked example agrees on |
-|---|---|---|
-| File name | Start it with a prefix that marks it as a figure | `fig-` - `_assets/fig-state.md` |
-| `**UID**:` | Start it with a prefix that marks it as a figure | `DOC-FIG-` - `DOC-FIG-STATE` |
+|            | Rule                                             | What this worked example agrees on |
+| ---------- | ------------------------------------------------ | ---------------------------------- |
+| File name  | Start it with a prefix that marks it as a figure | `fig-` - `_assets/fig-state.md`    |
+| `**UID**:` | Start it with a prefix that marks it as a figure | `DOC-FIG-` - `DOC-FIG-STATE`       |
 
 Only the UID works for a machine. The audit query (example 14b) decides which figures you
 already moved out from the prefix you pass with `--arg figprefix`.
@@ -711,10 +711,10 @@ you cannot use this method.
 
 **Type**: SECTION
 
-| How you write it | What comes out |
-|---|---|
-| `$ ... $` | It sits inside the sentence |
-| `$$ ... $$` | It becomes a line of its own |
+| How you write it | What comes out               |
+| ---------------- | ---------------------------- |
+| `$ ... $`        | It sits inside the sentence  |
+| `$$ ... $$`      | It becomes a line of its own |
 
 You cannot use RST's `.. math::`. Write it and the characters `.. math::` come out as a paragraph.
 **The export does not stop, so you notice nothing until you look at the HTML.**
@@ -740,28 +740,28 @@ error: string index out of range
 It prints neither a file name nor a line number. This is a defect on the strictdoc 0.27.1 side
 (`_math_inline_rule` in `markdown_to_html_fragment_writer.py` reads past the end of the string).
 
-| How you write it | Result |
-|---|---|
-| `The time is $T$` (the paragraph ends with math) | stops |
-| `The time is $T$ here.` | passes |
-| `\| symbol \| $T$ \|` (the cell ends with math) | stops |
-| `\| symbol \| $T$ s \|` | passes |
-| `\| symbol \| $$T$$ \|` (the cell uses `$$`) | passes |
-| `The cost is 100 $` (it ends with a bare `$`) | stops |
-| `The cost is 100 \$` | passes |
-| `` The cost is `100 $` `` (inside a code span) | passes |
-| a `$$ ... $$` block at the end of a section | passes |
+| How you write it                                 | Result |
+| ------------------------------------------------ | ------ |
+| `The time is $T$` (the paragraph ends with math) | stops  |
+| `The time is $T$ here.`                          | passes |
+| `\| symbol \| $T$ \|` (the cell ends with math)  | stops  |
+| `\| symbol \| $T$ s \|`                          | passes |
+| `\| symbol \| $$T$$ \|` (the cell uses `$$`)     | passes |
+| `The cost is 100 $` (it ends with a bare `$`)    | stops  |
+| `The cost is 100 \$`                             | passes |
+| `` The cost is `100 $` `` (inside a code span)   | passes |
+| a `$$ ... $$` block at the end of a section      | passes |
 
 Remember one thing - always put a character after the closing `$`.
 A sentence ends with a period, so you keep this rule naturally in prose. The table cell is where you cannot.
 
 One more. When one line carries two `$` characters, MathJax turns what sits between them into math. Money is not the only case.
 
-| What you write | What comes out |
-|---|---|
-| `The cost is $100 to $200` | MathJax turns "100 to " into math |
-| `$HOME and $PATH` | MathJax turns "HOME and " into math |
-| `The cost is $100 only` (one `$`) | It comes out as written |
+| What you write                    | What comes out                      |
+| --------------------------------- | ----------------------------------- |
+| `The cost is $100 to $200`        | MathJax turns "100 to " into math   |
+| `$HOME and $PATH`                 | MathJax turns "HOME and " into math |
+| `The cost is $100 only` (one `$`) | It comes out as written             |
 
 A space after the `$` does not stop it (`$ 100 to $ 200` turns into math as well).
 Escape it as `\$100`, or put it in a code span as `` `$100` ``. **The export does not stop.**
@@ -781,10 +781,10 @@ Zero hits is normal. The query sits in example 17 (G33 in the detailed version).
 
 **Do not close a table cell with a lone `$`.** You have two ways out, and you take the first one.
 
-| How you write it | HTML it produces | How it looks |
-|---|---|---|
-| `\| $T$ s \|` (add a unit or a word) | `<span class="math ...">` | It fits inside the text. Use this one |
-| `\| $$T$$ \|` (make it a block) | `<div class="math ...">` | It becomes a line of its own inside the cell and centers itself |
+| How you write it                     | HTML it produces          | How it looks                                                    |
+| ------------------------------------ | ------------------------- | --------------------------------------------------------------- |
+| `\| $T$ s \|` (add a unit or a word) | `<span class="math ...">` | It fits inside the text. Use this one                           |
+| `\| $$T$$ \|` (make it a block)      | `<div class="math ...">`  | It becomes a line of its own inside the cell and centers itself |
 
 ### Code - always write the language name
 
@@ -825,11 +825,11 @@ Three backticks close the fence partway through. StrictDoc reads a four-backtick
 This is the include notation of `.sdoc`. **It not only fails to work in `.md`, it also breaks
 silently depending on how you write it** (measured).
 
-| How you write it | What happens |
-|---|---|
-| `[DOCUMENT_FROM_FILE]: path` | Markdown reads it as a link reference definition and drops the whole line |
-| `[DOCUMENT_FROM_FILE]` after you wrote the line above | It resolves to that definition and becomes a broken link |
-| `[DOCUMENT_FROM_FILE]` on its own | It comes out as plain text |
+| How you write it                                      | What happens                                                              |
+| ----------------------------------------------------- | ------------------------------------------------------------------------- |
+| `[DOCUMENT_FROM_FILE]: path`                          | Markdown reads it as a link reference definition and drops the whole line |
+| `[DOCUMENT_FROM_FILE]` after you wrote the line above | It resolves to that definition and becomes a broken link                  |
+| `[DOCUMENT_FROM_FILE]` on its own                     | It comes out as plain text                                                |
 
 The export succeeds in every case. When you want to split content into its own document, use the `[LINK:]` from 2.1.
 
@@ -841,8 +841,8 @@ A pipe table is the only table you get. RST grid and simple formats do not pass.
 
 ```markdown
 | symbol | meaning |
-|---|---|
-| a | alpha |
+| ------ | ------- |
+| a      | alpha   |
 ```
 
 A table passes even when you drop the pipes at both ends (measured), but always write them.
@@ -860,19 +860,19 @@ so you can pull the table out on its own, rewrite it and write it back (example 
 
 The export succeeds in every case. Only the HTML comes out broken.
 
-| How you write it | What happens |
-|---|---|
-| The row holds more cells than the header | Markdown throws the extras away. In `\| this \| row \| is \| long \|`, "long" disappears |
-| The row holds fewer cells than the header | Markdown pads with empty cells. The harm is small |
-| An unescaped `\|` inside a cell | The column splits right there |
+| How you write it                          | What happens                                                                             |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------- |
+| The row holds more cells than the header  | Markdown throws the extras away. In `\| this \| row \| is \| long \|`, "long" disappears |
+| The row holds fewer cells than the header | Markdown pads with empty cells. The harm is small                                        |
+| An unescaped `\|` inside a cell           | The column splits right there                                                            |
 
 **A code span does not protect `|`.** It differs from `$` here.
 
-| How you write it | Result |
-|---|---|
-| `a \| b` (escaped) | Passes. The cell shows `a \| b` |
+| How you write it                                    | Result                                      |
+| --------------------------------------------------- | ------------------------------------------- |
+| `a \| b` (escaped)                                  | Passes. The cell shows `a \| b`             |
 | `` `a \| b` `` (escaped inside a code span as well) | Passes. This is the correct way to write it |
-| `` `a \| b` `` with the `\` removed | Splits. A code span does not protect `\|` |
+| `` `a \| b` `` with the `\` removed                 | Splits. A code span does not protect `\|`   |
 
 A code span protects `$`, yet it does not protect `|`. Do not confuse the two.
 
@@ -888,9 +888,9 @@ Do not end a cell with `$` ("The `$` trap"). **This one alone stops the export.*
 StrictDoc copies whatever you put in `_assets/` to the output, whatever its type (measured).
 This mechanism does not serve images alone.
 
-| What you do | How you write it |
-|---|---|
-| Place an image | `![description](_assets/x.svg)` |
+| What you do                          | How you write it                                              |
+| ------------------------------------ | ------------------------------------------------------------- |
+| Place an image                       | `![description](_assets/x.svg)`                               |
 | Attach something other than an image | `[description](_assets/x.csv)` - write it as an ordinary link |
 
 We put `.csv`, `.pdf` and `.zip` files in `_assets/` and ran the export: all three reached the
@@ -898,10 +898,10 @@ output, and every link resolved (measured). An SVG stays sharp when you zoom in,
 
 **An attachment breaks silently in two ways. The export reports success.**
 
-| How it breaks | What happens |
-|---|---|
-| The file you reference does not exist | The `<img>` or the `<a>` still comes out. Open it and you get a 404 |
-| You put the file outside `_assets/` | The file exists, yet StrictDoc does not copy it. Open it and you get a 404 |
+| How it breaks                         | What happens                                                               |
+| ------------------------------------- | -------------------------------------------------------------------------- |
+| The file you reference does not exist | The `<img>` or the `<a>` still comes out. Open it and you get a 404        |
+| You put the file outside `_assets/`   | The file exists, yet StrictDoc does not copy it. Open it and you get a 404 |
 
 The asset folder always carries the name `_assets`. Create a folder under another name, such as
 `attachments/`, and StrictDoc does not scan it (measured; the source writes the name directly as
@@ -932,10 +932,10 @@ open the target `.md` and edit it ("Rewriting an existing specification" collect
 You cannot mechanically write back from JSON to `.md` -
 the JSON holds no file paths.
 
-| What you do | Do you open the `.md`? |
-|---|---|
-| Learn, count or search the content | No. Export JSON and query it with `jq` |
-| Rewrite the content | Yes. Locate the place with example 16 first, then open it |
+| What you do                        | Do you open the `.md`?                                    |
+| ---------------------------------- | --------------------------------------------------------- |
+| Learn, count or search the content | No. Export JSON and query it with `jq`                    |
+| Rewrite the content                | Yes. Locate the place with example 16 first, then open it |
 
 ### Step 1 - Convert to JSON
 
@@ -981,13 +981,36 @@ StrictDoc emits every node with neither an error nor a warning. Do the narrowing
 The structure of the JSON:
 
 ```json
-{"DOCUMENTS": [
-  {"_NODE_TYPE": "DOCUMENT", "UID": "...", "TITLE": "...", "GRAMMAR": {},
-   "NODES": [
-     {"_NODE_TYPE": "SECTION", "TITLE": "...", "NODES": [
-       {"_NODE_TYPE": "TEXT", "_TOC": "2.1.1", "STATEMENT": "Free text. It has no UID"}]},
-     {"_NODE_TYPE": "REQUIREMENT", "UID": "...", "TITLE": "...", "STATEMENT": "...",
-      "RELATIONS": [{"TYPE": "Parent", "VALUE": "...", "ROLE": "..."}]}]}]}
+{
+  "DOCUMENTS": [
+    {
+      "_NODE_TYPE": "DOCUMENT",
+      "UID": "...",
+      "TITLE": "...",
+      "GRAMMAR": {},
+      "NODES": [
+        {
+          "_NODE_TYPE": "SECTION",
+          "TITLE": "...",
+          "NODES": [
+            {
+              "_NODE_TYPE": "TEXT",
+              "_TOC": "2.1.1",
+              "STATEMENT": "Free text. It has no UID"
+            }
+          ]
+        },
+        {
+          "_NODE_TYPE": "REQUIREMENT",
+          "UID": "...",
+          "TITLE": "...",
+          "STATEMENT": "...",
+          "RELATIONS": [{ "TYPE": "Parent", "VALUE": "...", "ROLE": "..." }]
+        }
+      ]
+    }
+  ]
+}
 ```
 
 Figures, math and code land almost entirely in free-text nodes with `_NODE_TYPE == "TEXT"`.
@@ -1089,7 +1112,7 @@ These two use a fence of four backticks. The query body itself contains
 ` ``` ` ("StrictDoc interprets nothing inside a fence").
 
 13. Where the figures, math, code, tables, and images are. The second column
-holds the `UID`, or `_TOC` when the node has none.
+    holds the `UID`, or `_TOC` when the node has none.
 
 Pass the UIDs of the explanatory documents to `--arg skip` as a comma-separated
 list. Without it the output mixes in a large amount of their content (below).
@@ -1140,7 +1163,7 @@ every odd-numbered piece is fence content, so its first line is the language nam
 and code share one node, that test drops the code.
 
 14. Count what sits side by side in a figure. This form lines up every figure for
-you to look at.
+    you to look at.
 
 ````bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
@@ -1153,7 +1176,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 ````
 
 ```text
-DOC-AI-GUIDE   ` fence | passes | `<pre class="mermaid">` |  lifelines 0  classes 0
+DOC-AI-GUIDE   ` fence  | passes                   | `<pre class="mermaid">`                                       |  lifelines 0  classes 0
 DOC-AI-GUIDE  stateDiagram-v2  lifelines 0  classes 0
 DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
 DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
@@ -1166,7 +1189,7 @@ DOC-GUIDE  flowchart LR  lifelines 0  classes 0
 DOC-ARCH  flowchart LR  lifelines 0  classes 0
 DOC-ARCH  sequenceDiagram  lifelines 3  classes 0
 DOC-LOWER  flowchart LR  lifelines 0  classes 0
-DOC-BROWSER     lifelines 0  classes 0
+DOC-BROWSER   `. The  lifelines 0  classes 0
 DOC-FIG-STATE  stateDiagram-v2  lifelines 0  classes 0
 ```
 
@@ -1243,7 +1266,7 @@ jq -r '.DOCUMENTS[] | select(.UID == "DOC-LOWER") | recurse(.NODES[]?) | select(
 ````
 
 16. Track down which file defines a given UID.
-The JSON carries no file path, so here alone you use `grep`.
+    The JSON carries no file path, so here alone you use `grep`.
 
 ```bash
 grep -rlF '**UID**: DOC-FIG-STATE' <specification folder> --include=*.md
@@ -1261,9 +1284,9 @@ whether a returned file is a specification or a guide from the table at the top 
 this document.
 
 17. Lines that hold the `$` trap ("The `$` trap"). 0 rows is the normal result. Run this
-every time you add a figure or a formula.
+    every time you add a figure or a formula.
 
-````bash
+```bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, out: []};
@@ -1275,15 +1298,15 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | .out[]
 | select(test("[^$][$] *$") or test("[^$][$] *[|]"))
 | $doc + "  " + .' <json>
-````
+```
 
 The `reduce` part throws away the content of every code fence. A `$` does no harm
 inside a fence, so without that the query fills up with false positives. It
 remembers the length of the marker that opened the fence, and it closes only on a
 marker of the same length or longer. In a document like this one, where a ` ```` `
-holds a ` ``` ` inside it, the simple approach of "cut on ``` and take the
+holds a ` ``` ` inside it, the simple approach of "cut on ```and take the
 even-numbered pieces" falls apart. Applied to this guide, it exposes 141 lines that
-really sit inside a fence (measured). None of those 141 ends with `$` today, so it
+really sit inside a fence (measured). None of those 141 ends with`$` today, so it
 costs 0 false positives right now - and that turns non-zero the moment somebody writes
 one.
 
@@ -1299,7 +1322,7 @@ fail the export, so this query never shows it. Whenever you write an amount of
 money or an environment variable, look at the HTML with your own eyes.
 
 18. Check that the attachments arrived ("Attachments"). 0 rows is the normal result.
-This one query catches both a missing target and a file you put outside `_assets/`.
+    This one query catches both a missing target and a file you put outside `_assets/`.
 
 It judges every reference that `jq` lists by whether the file exists on the
 exported HTML side. Run `--formats=html` first.
@@ -1344,7 +1367,7 @@ comm -13 <(jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | spli
 ```
 
 19. Extract a whole table. Point at the position with the UID for a requirement
-and with `_TOC` for free text (the second column of example 13).
+    and with `_TOC` for free text (the second column of example 13).
 
 ```bash
 jq -r --arg doc DOC-LOWER --arg at 6.1 '.DOCUMENTS[] | select(.UID == $doc) | recurse(.NODES[]?)
@@ -1353,12 +1376,12 @@ jq -r --arg doc DOC-LOWER --arg at 6.1 '.DOCUMENTS[] | select(.UID == $doc) | re
 ```
 
 ```text
-| Symbol | Unit | Meaning |
-|---|---|---|
-| $S_{need}$ bytes | bytes | Free space the conversion needs |
-| $S_{out}$ bytes | bytes | Size of the output file |
-| $S_{tmp}$ bytes | bytes | Size of the temporary file. It equals $S_{out}$ bytes |
-| Path | - | The three stages `input \| convert \| output` |
+| Symbol           | Unit  | Meaning                                               |
+| ---------------- | ----- | ----------------------------------------------------- |
+| $S_{need}$ bytes | bytes | Free space the conversion needs                       |
+| $S_{out}$ bytes  | bytes | Size of the output file                               |
+| $S_{tmp}$ bytes  | bytes | Size of the temporary file. It equals $S_{out}$ bytes |
+| Path             | -     | The three stages `input \| convert \| output`         |
 ```
 
 This table is a worked example that obeys every rule in "Tables". The word "bytes"
@@ -1370,9 +1393,9 @@ reuse the same one everywhere. **This does not pick up a table that lacks a pipe
 both ends** ("Tables").
 
 20. Find the tables that break ("Three ways to write a table that breaks silently"). 0 rows is the normal result. Run this
-every time you add a table.
+    every time you add a table.
 
-````bash
+```bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as $n
 | ($n.UID // $n._TOC // "-") as $at
 | $n.STATEMENT | split("\n")
@@ -1387,7 +1410,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as
       else .want = 0
       end)
 | .bad[] | $doc + "  " + $at + "  " + .' <json>
-````
+```
 
 Point it at a deliberately broken document and it prints this:
 
@@ -1414,7 +1437,7 @@ character class such as `[$]` or `[|]`, or use `split()` / `contains()`.
 A single backslash such as `split("\n")` survives (measured). Only the double form halves.
 
 2. Put the query in a file when it has to get complicated. Place it in a `.jq` file and
-pass it with `-f`. The query never goes through the shell, so no backslash problem appears.
+   pass it with `-f`. The query never goes through the shell, so no backslash problem appears.
 
 ```bash
 jq -r -f <query file>.jq <json>
@@ -1474,28 +1497,28 @@ No tool turns the JSON back into `.md` mechanically. The JSON holds no file path
 open the `.md` and rewrite it there. The procedure is fixed.
 
 1. Locate the place you have to fix - example 13 prints where it sits, and examples 15 / 16b
-pull out its content.
+   pull out its content.
 
 2. Locate the file - the `grep` of example 16. You open no `.md` up to this point.
 
 3. Open that `.md` and rewrite it. Watch out for the two traps of example 15 when you paste
-the text back (the blank lines around it, and the CRLF that jq on Windows emits).
+   the text back (the blank lines around it, and the CRLF that jq on Windows emits).
 
 4. Count the side-by-side things again when you touch a figure - example 14. Once it passes
-the guideline, follow "Figures - a large figure goes into its own document", move it out into `_assets/fig-*.md`, and leave a `[LINK:]` in its
-old place.
+   the guideline, follow "Figures - a large figure goes into its own document", move it out into `_assets/fig-*.md`, and leave a `[LINK:]` in its
+   old place.
 
 5. Fix the free text around a figure once you move that figure out of the body. A sentence
-such as "as the figure below shows" or "we put a small figure in the body" then points at
-nothing. No query detects this. Read it with your own eyes.
+   such as "as the figure below shows" or "we put a small figure in the body" then points at
+   nothing. No query detects this. Read it with your own eyes.
 
 6. You do not have to touch `strictdoc_config.py` when you add a new `_assets/fig-*.md`
-(measured). `exclude_doc_paths` names each file explicitly, so a new file passes straight
-through and becomes an ordinary document.
+   (measured). `exclude_doc_paths` names each file explicitly, so a new file passes straight
+   through and becomes an ordinary document.
 
 7. Export again and check. StrictDoc does not update the JSON on its own. Run both json and
-html, and confirm that example 14b (a rule violation), example 17 (the `$` trap) and example 11
-(a broken link) all return zero rows.
+   html, and confirm that example 14b (a rule violation), example 17 (the `$` trap) and example 11
+   (a broken link) all return zero rows.
 
 ```bash
 strictdoc export <specification folder> --formats=json --output-dir <output dir>

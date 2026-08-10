@@ -1,6 +1,22 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 
+# Check every Markdown file out with LF, on every platform.
+#
+# The specification samples are shipped in a shape a Markdown formatter has
+# nothing to say about, so that a reader who opens a file and saves it sees no
+# diff at all. Line endings are part of that shape: Prettier writes LF by
+# default, so identical content fails `prettier --check` for no reason other
+# than being CRLF (measured on 3.5.3 - the same 44 lines pass as LF and fail as
+# CRLF). Without this line the samples could never be a formatting fixed point
+# on Windows, however carefully they were written.
+#
+# This costs the reader nothing. The index already holds LF, so pinning the
+# working tree to LF produces no diff and no re-commit; it only decides which
+# bytes a checkout writes. Windows scripts are deliberately not listed here -
+# .bat and .ps1 keep the CRLF they need.
+*.md text eol=lf
+
 # Keep the download to what a user actually opens.
 #
 # README tells a newcomer to download the ZIP that GitHub builds from this

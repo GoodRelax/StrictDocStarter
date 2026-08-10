@@ -29,13 +29,13 @@ strictdoc export <仕様書のフォルダ> --formats=markdown --output-dir <出
 ので、 RST のディレクティブはそのままの文字列で出てくる。 この一式では次の 5 つを
 手で書き換えた。
 
-| RST | Markdown |
-|---|---|
-| `.. raw:: html` + `<pre class="mermaid">` | ` ```mermaid ` のフェンス |
-| `.. math::` / `` :math:`x` `` | `$$ ... $$` / `$x$` |
-| `.. image:: path` | `![説明](path)` |
-| `.. list-table::` | パイプ表 |
-| `.. code-block:: <言語>` | ` ``` ` + 言語名のフェンス |
+| RST                                       | Markdown                   |
+| ----------------------------------------- | -------------------------- |
+| `.. raw:: html` + `<pre class="mermaid">` | ` ```mermaid ` のフェンス  |
+| `.. math::` / `` :math:`x` ``             | `$$ ... $$` / `$x$`        |
+| `.. image:: path`                         | `![説明](path)`            |
+| `.. list-table::`                         | パイプ表                   |
+| `.. code-block:: <言語>`                  | ` ``` ` + 言語名のフェンス |
 
 ## 2. ★ 文法の宣言順を直さないと `.md` は読めない
 

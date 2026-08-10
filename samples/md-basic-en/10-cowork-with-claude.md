@@ -34,14 +34,14 @@ resolves. Once it does, the skill reaches for itself whenever the work matches.
 
 The skill holds this.
 
-| File | What it carries |
-| --- | --- |
-| `SKILL.md` | The rules, the preconditions, the four traps. Claude Code reads this one first |
-| `references/authoring.md` | The shape of `.md`, the rules that stop the export, the `.sgra` template |
-| `references/notation.md` | How to write figures, math, code, tables and attachments |
-| `references/traps.md` | What breaks silently. How to keep the quirk log |
-| `references/queries.md` | The jq query collection, with the output each one produced |
-| `scripts/audit.sh` | The six checks StrictDoc does not report |
+| File                      | What it carries                                                                |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| `SKILL.md`                | The rules, the preconditions, the four traps. Claude Code reads this one first |
+| `references/authoring.md` | The shape of `.md`, the rules that stop the export, the `.sgra` template       |
+| `references/notation.md`  | How to write figures, math, code, tables and attachments                       |
+| `references/traps.md`     | What breaks silently. How to keep the quirk log                                |
+| `references/queries.md`   | The jq query collection, with the output each one produced                     |
+| `scripts/audit.sh`        | The six checks StrictDoc does not report                                       |
 
 It needs two things on `PATH`: `strictdoc` and `jq`. Without either, the skill can do
 nothing.
@@ -88,11 +88,11 @@ AI decides for you, and you end up fixing it afterwards.
 
 This is as far as the default grammar carries you (measured).
 
-| Available out of the box | Needs a `.sgra` |
-| --- | --- |
-| `UID` / `Statement` / `Rationale` / `STATUS` | `Role` (a meaning such as `Verifies`) |
-| `**Type**: SECTION` | A type of your own such as `TEST_CASE` |
-| The `Parent` relation | A field of your own |
+| Available out of the box                     | Needs a `.sgra`                        |
+| -------------------------------------------- | -------------------------------------- |
+| `UID` / `Statement` / `Rationale` / `STATUS` | `Role` (a meaning such as `Verifies`)  |
+| `**Type**: SECTION`                          | A type of your own such as `TEST_CASE` |
+| The `Parent` relation                        | A field of your own                    |
 
 **Always run the export after the AI writes.** A `.md` that does not export is not a
 specification.
@@ -134,13 +134,13 @@ This is what the skill's `audit.sh` covers. It runs six checks.
 sh claude-skills/strictdoc-md/scripts/audit.sh <specification> <output dir> <UIDs to skip>
 ```
 
-| Check | What it finds |
-| --- | --- |
-| `trailing dollar` | A paragraph or a cell ends in `$`. The HTML export stops |
-| `broken table row` | A row of a table is broken |
-| `attachment not published` | A referenced file never reached the output. An attachment left outside `_assets/` |
-| `review comment missing` | A finding with nothing in it. `REVIEW_STATUS` is `Open` / `Fixed` / `WontFix` but there is no `REVIEW_COMMENT` |
-| `wording candidates` | EARS shape, word order, passive voice, missing subject, negative form. These are candidates rather than violations, and a human and an AI decide |
+| Check                      | What it finds                                                                                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `trailing dollar`          | A paragraph or a cell ends in `$`. The HTML export stops                                                                                         |
+| `broken table row`         | A row of a table is broken                                                                                                                       |
+| `attachment not published` | A referenced file never reached the output. An attachment left outside `_assets/`                                                                |
+| `review comment missing`   | A finding with nothing in it. `REVIEW_STATUS` is `Open` / `Fixed` / `WontFix` but there is no `REVIEW_COMMENT`                                   |
+| `wording candidates`       | EARS shape, word order, passive voice, missing subject, negative form. These are candidates rather than violations, and a human and an AI decide |
 
 The third argument reaches only the checks that aggregate. `attachment not published`
 ignores it and reads every document - it drops fenced blocks and inline code first, so a
@@ -178,13 +178,13 @@ is right.
 You call them all the same way. Put the name of the skill first and carry on in plain
 English.
 
-| Example | What the AI uses behind the scenes | What the human decides |
-| --- | --- | --- |
-| 1. Import from another format | Another skill plus `.sgra` plus the export checks | How much counts as one requirement |
-| 2. List the unsuitable requirements | `wording candidates` in `audit.sh` | Which candidates are real mistakes |
-| 3. List the parents and children | JSON plus a `jq` walk over the relations | How many levels to follow |
-| 4. Write a test specification | JSON plus `TEST_CASE` from the `.sgra` | How many "as many as needed" is |
-| 5. List what the review has not finished | JSON plus `REVIEW_STATUS` in `jq` | Which states count as finished |
+| Example                                  | What the AI uses behind the scenes                | What the human decides             |
+| ---------------------------------------- | ------------------------------------------------- | ---------------------------------- |
+| 1. Import from another format            | Another skill plus `.sgra` plus the export checks | How much counts as one requirement |
+| 2. List the unsuitable requirements      | `wording candidates` in `audit.sh`                | Which candidates are real mistakes |
+| 3. List the parents and children         | JSON plus a `jq` walk over the relations          | How many levels to follow          |
+| 4. Write a test specification            | JSON plus `TEST_CASE` from the `.sgra`            | How many "as many as needed" is    |
+| 5. List what the review has not finished | JSON plus `REVIEW_STATUS` in `jq`                 | Which states count as finished     |
 
 In the queries below, `<json>` means `<output dir>/json/index.json`.
 
@@ -232,13 +232,13 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="REQUIREMENT")] 
 **What the AI does behind the scenes.** It exports to JSON and runs `wording candidates`
 from `audit.sh`. That check raises candidates under five verdicts.
 
-| Verdict | What it finds |
-| --- | --- |
-| `ears-shape` | The sentence carries no `shall` |
+| Verdict      | What it finds                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------- |
+| `ears-shape` | The sentence carries no `shall`                                                                               |
 | `ears-order` | The sentence opens with something other than `WHEN` / `WHILE` / `IF` / `WHERE`, yet one of them appears later |
-| `passive` | A form of "be" plus a past participle |
-| `no-subject` | Nothing - an English sentence states its subject |
-| `negative` | `shall not` / `must not` / `never` |
+| `passive`    | A form of "be" plus a past participle                                                                         |
+| `no-subject` | Nothing - an English sentence states its subject                                                              |
+| `negative`   | `shall not` / `must not` / `never`                                                                            |
 
 All a machine can decide is whether the string is present.
 
@@ -352,16 +352,16 @@ requirement out of the JSON, counts the conditions, and adds them to the `.md` i
 `TEST_CASE` shape the `.sgra` declares. The test cases in this set carry eight fields,
 three of them from Gherkin.
 
-| Field | What you write |
-| --- | --- |
-| `UID` | The identifier of the test case. Required |
-| `TITLE` | The name of the scenario |
-| `GIVEN` | The precondition |
-| `WHEN` | The operation |
-| `THEN` | The expected outcome |
-| `TEST_RESULT` | The result of running it |
-| `ISSUE_KEY` | The number of the issue ticket |
-| `TEST_REMARK` | A note |
+| Field         | What you write                            |
+| ------------- | ----------------------------------------- |
+| `UID`         | The identifier of the test case. Required |
+| `TITLE`       | The name of the scenario                  |
+| `GIVEN`       | The precondition                          |
+| `WHEN`        | The operation                             |
+| `THEN`        | The expected outcome                      |
+| `TEST_RESULT` | The result of running it                  |
+| `ISSUE_KEY`   | The number of the issue ticket            |
+| `TEST_REMARK` | A note                                    |
 
 You tie it to the requirement with a `Parent` relation carrying the `Verifies` role. The
 real thing sits in `07-tests.md`.
@@ -397,13 +397,13 @@ jq -r '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE=="TEST_CASE") | (
 **What the AI does behind the scenes.** It exports to JSON and narrows on
 `REVIEW_STATUS` with `jq`. The `.sgra` of this set declares five values.
 
-| Value | Meaning |
-| --- | --- |
-| `NotReviewed` | Nobody has looked at it yet |
-| `NoFinding` | Someone looked and found nothing |
-| `Open` | There is a finding and nobody has fixed it |
-| `Fixed` | There was a finding and someone fixed it |
-| `WontFix` | There was a finding and someone decided not to fix it |
+| Value         | Meaning                                               |
+| ------------- | ----------------------------------------------------- |
+| `NotReviewed` | Nobody has looked at it yet                           |
+| `NoFinding`   | Someone looked and found nothing                      |
+| `Open`        | There is a finding and nobody has fixed it            |
+| `Fixed`       | There was a finding and someone fixed it              |
+| `WontFix`     | There was a finding and someone decided not to fix it |
 
 ```text
 jq -r '.DOCUMENTS[] | (.UID // .TITLE) as $doc
@@ -436,15 +436,15 @@ check raises a node whose `REVIEW_STATUS` is `Open` / `Fixed` / `WontFix` while 
 
 **Type**: SECTION
 
-| Work | Whose | Why |
-| --- | --- | --- |
-| Listing, aggregating, searching | AI | JSON and `jq` make it fast and cheap |
-| Finding gaps (no test, a broken relation) | AI | It follows mechanically |
-| Fixing the notation (tables, figures, attachments) | AI | The rules are written down |
-| Crossing versions, rewriting in bulk | AI | A human misses cases |
-| Deciding what to build | Human | You cannot hand over the content of a specification |
-| Deciding how fine a requirement is | Human | The right answer only follows from context |
-| Confirming that it passed | Human | Never take an AI's "done" on trust |
+| Work                                               | Whose | Why                                                 |
+| -------------------------------------------------- | ----- | --------------------------------------------------- |
+| Listing, aggregating, searching                    | AI    | JSON and `jq` make it fast and cheap                |
+| Finding gaps (no test, a broken relation)          | AI    | It follows mechanically                             |
+| Fixing the notation (tables, figures, attachments) | AI    | The rules are written down                          |
+| Crossing versions, rewriting in bulk               | AI    | A human misses cases                                |
+| Deciding what to build                             | Human | You cannot hand over the content of a specification |
+| Deciding how fine a requirement is                 | Human | The right answer only follows from context          |
+| Confirming that it passed                          | Human | Never take an AI's "done" on trust                  |
 
 When you split a large job across several AIs, split it by file and **never let two of
 them touch the same file.** Freeze the conventions that cross files first and hand them
@@ -479,10 +479,10 @@ cp -r claude-skills/strictdoc-md ~/.claude/skills/
 
 There are two places it can go.
 
-| Where | What it reaches |
-| --- | --- |
-| `~/.claude/skills/` | Every project of that user |
-| `<project>/.claude/skills/` | That project alone |
+| Where                       | What it reaches            |
+| --------------------------- | -------------------------- |
+| `~/.claude/skills/`         | Every project of that user |
+| `<project>/.claude/skills/` | That project alone         |
 
 Claude Code picks it up the next time you start a session. Drop it in while one is open
 and that session will not see it.

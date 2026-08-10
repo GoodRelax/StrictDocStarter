@@ -65,11 +65,11 @@ its own standard style.**
 Adding one sentence to `SYS-001` in `04-upper.md` produced a diff of 11 added lines and
 4 removed ones (measured on strictdoc 0.27.1, twice, with the same result).
 
-| What happened | How far it reached |
-| --- | --- |
-| StrictDoc added `**Type**: REQUIREMENT \` | Not only the edited `SYS-001` but `SYS-002` and `SYS-003` too |
-| StrictDoc changed `**STATUS**:` into `**Status**:` | Every requirement in that document |
-| StrictDoc opened `**Statement**: text` out into 3 lines | The edited requirement only |
+| What happened                                           | How far it reached                                            |
+| ------------------------------------------------------- | ------------------------------------------------------------- |
+| StrictDoc added `**Type**: REQUIREMENT \`               | Not only the edited `SYS-001` but `SYS-002` and `SYS-003` too |
+| StrictDoc changed `**STATUS**:` into `**Status**:`      | Every requirement in that document                            |
+| StrictDoc opened `**Statement**: text` out into 3 lines | The edited requirement only                                   |
 
 No other file changes. StrictDoc rewrites only the document that holds the requirement
 you edited.
@@ -144,13 +144,13 @@ document that already exists.
 
 Type runs down the menu, position runs across. The grammar of this set offers five types.
 
-| Type | What it is for |
-| --- | --- |
-| `TEXT` | Free text, carrying no UID |
-| `SECTION` | A chapter heading |
-| `REQUIREMENT` | A requirement |
-| `USE_CASE` | A use case. A type `basic.sgra` added |
-| `TEST_CASE` | A test case. A type `basic.sgra` added |
+| Type          | What it is for                         |
+| ------------- | -------------------------------------- |
+| `TEXT`        | Free text, carrying no UID             |
+| `SECTION`     | A chapter heading                      |
+| `REQUIREMENT` | A requirement                          |
+| `USE_CASE`    | A use case. A type `basic.sgra` added  |
+| `TEST_CASE`   | A test case. A type `basic.sgra` added |
 
 `TEST_CASE` appears because this set carries `basic.sgra`. A document with no grammar
 offers only `TEXT`, `SECTION` and `REQUIREMENT`.
@@ -254,7 +254,7 @@ Saving turns it into a table.
 **A code span does not protect a pipe inside a cell.** Escape it as `\|`. This holds
 whether you type it in the browser or write it in an editor.
 
-Mermaid works the same way: you type the text wrapped in ```` ```mermaid ````. The
+Mermaid works the same way: you type the text wrapped in ` ```mermaid `. The
 browser draws the figure. StrictDoc only hands the text over.
 
 ![The Mermaid flowchart the browser drew after the save](_assets/browser-12-mermaid.png)
@@ -292,11 +292,11 @@ Press `Document` in the header breadcrumbs to choose how the same document is sh
 
 ![Switching views. Document / Table / Traceability / Deep Traceability](_assets/browser-13-views.png)
 
-| View | What you see |
-| --- | --- |
-| Document | The default. The form you read a specification in |
-| Table | One requirement per row. Fast for counting and for finding gaps |
-| Traceability | Two columns. A requirement, and whatever connects to it |
+| View              | What you see                                                          |
+| ----------------- | --------------------------------------------------------------------- |
+| Document          | The default. The form you read a specification in                     |
+| Table             | One requirement per row. Fast for counting and for finding gaps       |
+| Traceability      | Two columns. A requirement, and whatever connects to it               |
 | Deep Traceability | The same, but it follows the connections through any number of levels |
 
 `Table` is the list of requirements.
@@ -332,11 +332,11 @@ are hidden, the button reads something like `COLUMNS - 10 hidden`.
 
 The columns in the list come from three places.
 
-| Where it comes from | Column |
-| --- | --- |
-| Never in the list. Always first | `Type` |
-| The built-in fields | `Level` `UID` `STATUS` `REFS` `Title` `Statement` `Rationale` |
-| The fields the grammar added | Whatever `basic.sgra` defined, such as `REVIEW_STATUS`, follows |
+| Where it comes from             | Column                                                          |
+| ------------------------------- | --------------------------------------------------------------- |
+| Never in the list. Always first | `Type`                                                          |
+| The built-in fields             | `Level` `UID` `STATUS` `REFS` `Title` `Statement` `Rationale`   |
+| The fields the grammar added    | Whatever `basic.sgra` defined, such as `REVIEW_STATUS`, follows |
 
 The `Type` column alone cannot be hidden. It does not appear in the list either.
 
@@ -436,12 +436,12 @@ it never reaches the browser's. `Ctrl` + `+` from the keyboard still works.
 This screen alone puts the figure on a board of its own. The page itself does not scroll.
 There are four things to remember.
 
-| Gesture | What it does |
-| --- | --- |
-| Wheel | Scrolls the figure up and down |
-| `Shift` + wheel | Scrolls the figure left and right |
-| `Ctrl` + wheel | Makes the figure bigger or smaller |
-| Drag with `Space` held | Grabs the figure and moves it |
+| Gesture                | What it does                       |
+| ---------------------- | ---------------------------------- |
+| Wheel                  | Scrolls the figure up and down     |
+| `Shift` + wheel        | Scrolls the figure left and right  |
+| `Ctrl` + wheel         | Makes the figure bigger or smaller |
+| Drag with `Space` held | Grabs the figure and moves it      |
 
 It shrinks to 25 % and grows to 100 %. It never grows past its original size. There is no
 button that resets it, so reload the page when you get lost.
@@ -520,14 +520,14 @@ works better. That is what this set does.
 
 **Type**: SECTION
 
-| What you want | The browser | Instead |
-| --- | --- | --- |
-| Upload a file (an image, an attachment) | No | Put it in `_assets/` yourself |
-| Create a new project | No | Prepare the folder and `strictdoc_config.py` |
-| Rename a file or move a document | No | Move it in Explorer and restart the server |
-| Edit while keeping your own style | No | Edit in an editor. The browser always normalises |
-| Count things or build a list | Search exists, but it is slow | Pull the JSON with `jq` (`01-ai-queries.md`) |
-| Rewrite in bulk | One at a time, yes | Leave it to an editor or an AI (`10-cowork-with-claude.md`) |
+| What you want                           | The browser                   | Instead                                                     |
+| --------------------------------------- | ----------------------------- | ----------------------------------------------------------- |
+| Upload a file (an image, an attachment) | No                            | Put it in `_assets/` yourself                               |
+| Create a new project                    | No                            | Prepare the folder and `strictdoc_config.py`                |
+| Rename a file or move a document        | No                            | Move it in Explorer and restart the server                  |
+| Edit while keeping your own style       | No                            | Edit in an editor. The browser always normalises            |
+| Count things or build a list            | Search exists, but it is slow | Pull the JSON with `jq` (`01-ai-queries.md`)                |
+| Rewrite in bulk                         | One at a time, yes            | Leave it to an editor or an AI (`10-cowork-with-claude.md`) |
 
 **What the browser suits is fixing things one at a time while you look for them.** Once
 you know what to fix and there is a lot of it, an editor is faster and the diff is
@@ -537,20 +537,20 @@ smaller.
 
 **Type**: SECTION
 
-| Where | What it looks like | What it does |
-| --- | --- | --- |
-| Top right of the index, `...` | | Add a document / edit the project title |
-| Top right of a document, `...` | | Edit the grammar / delete the document |
-| Head of the document body | `Edit title and meta` | Edit the title, UID and version |
-| First beside a node | Pencil | Edit |
-| Second beside a node | Bin | Delete. No confirmation |
-| Third beside a node | Stacked squares | Duplicate. The UID comes out empty |
-| Fourth beside a node | Plus | Add a node above or below |
-| Tabs of the form | `Fields` / `Relations` | Switch between fields and relations |
-| Bottom left of the form | `Save` / `Cancel` | Commit / discard |
-| `Document` in the breadcrumbs | | Switch between the four views |
-| The strip at the far left | | Index / statistics / matrix / search / tree map |
-| Corner of a panel | `<` / `>` | Fold or open the document tree and the contents |
-| Edge of a panel | | Grab and pull to change the width |
-| Header of the table view | `COLUMNS` / `NODES` | Choose columns / narrow rows |
-| Heading in the table view | The up-down mark | Sort by that column |
+| Where                          | What it looks like     | What it does                                    |
+| ------------------------------ | ---------------------- | ----------------------------------------------- |
+| Top right of the index, `...`  |                        | Add a document / edit the project title         |
+| Top right of a document, `...` |                        | Edit the grammar / delete the document          |
+| Head of the document body      | `Edit title and meta`  | Edit the title, UID and version                 |
+| First beside a node            | Pencil                 | Edit                                            |
+| Second beside a node           | Bin                    | Delete. No confirmation                         |
+| Third beside a node            | Stacked squares        | Duplicate. The UID comes out empty              |
+| Fourth beside a node           | Plus                   | Add a node above or below                       |
+| Tabs of the form               | `Fields` / `Relations` | Switch between fields and relations             |
+| Bottom left of the form        | `Save` / `Cancel`      | Commit / discard                                |
+| `Document` in the breadcrumbs  |                        | Switch between the four views                   |
+| The strip at the far left      |                        | Index / statistics / matrix / search / tree map |
+| Corner of a panel              | `<` / `>`              | Fold or open the document tree and the contents |
+| Edge of a panel                |                        | Grab and pull to change the width               |
+| Header of the table view       | `COLUMNS` / `NODES`    | Choose columns / narrow rows                    |
+| Heading in the table view      | The up-down mark       | Sort by that column                             |

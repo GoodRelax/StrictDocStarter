@@ -73,7 +73,14 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":143,"TEST_CASE":4,"TEXT":144,"USE_CASE":1}
+{
+  "DOCUMENT": 13,
+  "REQUIREMENT": 7,
+  "SECTION": 143,
+  "TEST_CASE": 4,
+  "TEXT": 144,
+  "USE_CASE": 1
+}
 ```
 
 ### A3. The table of contents
@@ -99,15 +106,55 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
 ```
 
 ```json
-{"DOCUMENT":["GRAMMAR","NODES","TITLE","UID","VERSION","_NODE_TYPE","_OPTIONS"],
- "REQUIREMENT":["RATIONALE","RELATIONS","REVIEW_ACTION","REVIEW_COMMENT","REVIEW_STATUS",
-                "STATEMENT","STATUS","TITLE","UID","_NODE_TYPE","_TOC"],
- "SECTION":["NODES","TITLE","_NODE_TYPE","_TOC"],
- "TEST_CASE":["GIVEN","ISSUE_KEY","RELATIONS","TEST_REMARK","TEST_RESULT","THEN",
-              "TITLE","UID","WHEN","_NODE_TYPE","_TOC"],
- "TEXT":["STATEMENT","_NODE_TYPE","_TOC"],
- "USE_CASE":["REVIEW_COMMENT","REVIEW_STATUS","STATEMENT","TITLE","UC_LEVEL","UID",
-             "_NODE_TYPE","_TOC"]}
+{
+  "DOCUMENT": [
+    "GRAMMAR",
+    "NODES",
+    "TITLE",
+    "UID",
+    "VERSION",
+    "_NODE_TYPE",
+    "_OPTIONS"
+  ],
+  "REQUIREMENT": [
+    "RATIONALE",
+    "RELATIONS",
+    "REVIEW_ACTION",
+    "REVIEW_COMMENT",
+    "REVIEW_STATUS",
+    "STATEMENT",
+    "STATUS",
+    "TITLE",
+    "UID",
+    "_NODE_TYPE",
+    "_TOC"
+  ],
+  "SECTION": ["NODES", "TITLE", "_NODE_TYPE", "_TOC"],
+  "TEST_CASE": [
+    "GIVEN",
+    "ISSUE_KEY",
+    "RELATIONS",
+    "TEST_REMARK",
+    "TEST_RESULT",
+    "THEN",
+    "TITLE",
+    "UID",
+    "WHEN",
+    "_NODE_TYPE",
+    "_TOC"
+  ],
+  "TEXT": ["STATEMENT", "_NODE_TYPE", "_TOC"],
+  "USE_CASE": [
+    "REVIEW_COMMENT",
+    "REVIEW_STATUS",
+    "STATEMENT",
+    "TITLE",
+    "UC_LEVEL",
+    "UID",
+    "_NODE_TYPE",
+    "_TOC"
+  ]
+}
 ```
 
 `-c` makes jq print one line; the block above wraps it for reading. All six node types
@@ -442,11 +489,11 @@ The queries in this chapter follow two rules.
 When you hand a query to Git Bash as `bash -c "..."`, Git Bash cuts every double
 backslash in half. We measured this on strictdoc 0.27.1 / jq 1.8.1 / Windows 11.
 
-| How you pass it | Result of `scan("!\\[...")` |
-|---|---|
-| `jq -f query.jq` | passes |
-| You put it in a shell script and run `bash script.sh` | passes |
-| `bash -c 'jq -r ...'` | fails with `Invalid escape` |
+| How you pass it                                       | Result of `scan("!\\[...")` |
+| ----------------------------------------------------- | --------------------------- |
+| `jq -f query.jq`                                      | passes                      |
+| You put it in a shell script and run `bash script.sh` | passes                      |
+| `bash -c 'jq -r ...'`                                 | fails with `Invalid escape` |
 
 An AI usually runs its commands in the `bash -c` form. **So do not write a query that
 contains a double backslash.** String operations give you the same result.
@@ -558,7 +605,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 ````
 
 ```text
-DOC-AI-GUIDE   ` fence | passes | `<pre class="mermaid">` |  lifelines 0  classes 0
+DOC-AI-GUIDE   ` fence  | passes                   | `<pre class="mermaid">`                                       |  lifelines 0  classes 0
 DOC-AI-GUIDE  stateDiagram-v2  lifelines 0  classes 0
 DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
 DOC-AI-GUIDE  ")) | split("  lifelines 0  classes 0
@@ -571,7 +618,7 @@ DOC-GUIDE  flowchart LR  lifelines 0  classes 0
 DOC-ARCH  flowchart LR  lifelines 0  classes 0
 DOC-ARCH  sequenceDiagram  lifelines 3  classes 0
 DOC-LOWER  flowchart LR  lifelines 0  classes 0
-DOC-BROWSER     lifelines 0  classes 0
+DOC-BROWSER   `. The  lifelines 0  classes 0
 DOC-FIG-STATE  stateDiagram-v2  lifelines 0  classes 0
 ```
 
@@ -641,7 +688,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":56,"json":5,"markdown":3,"mermaid":6,"python":4,"text":76}
+{ "bash": 59, "json": 5, "markdown": 3, "mermaid": 6, "python": 4, "text": 76 }
 ```
 
 `mermaid` shows up here too. A figure is a code fence as well.
@@ -704,7 +751,7 @@ file name and no line number.
 The JSON export, however, succeeds (measured). So export the JSON first and run this
 query, and you find the place before you build the HTML.
 
-````bash
+```bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, out: []};
@@ -716,7 +763,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | .out[]
 | select(test("[^$][$] *$") or test("[^$][$] *[|]"))
 | $doc + "  " + .' <json>
-````
+```
 
 This sample returns 0 entries. 0 entries is the normal result. Run it on a document we
 broke on purpose and it prints this:
@@ -750,7 +797,7 @@ character as `\$` (the third line above). An escaped one is safe, so look at it 
 1. Extract the figure - G28.
 
 2. Find which file holds it. Search for the UID declaration as a fixed string.
-You add `-F` so that grep does not read `**` as a regular expression.
+   You add `-F` so that grep does not read `**` as a regular expression.
 
 ```bash
 grep -rlF '**UID**: DOC-FIG-STATE' <specification folder> --include=*.md
@@ -767,7 +814,7 @@ samples/md-basic-ja/_assets/fig-state.md
 3. Edit that `.md` directly. Replace the fence content.
 
 4. Count what sits side by side again. Once the figure passes the guideline, move it out
-of the body into `_assets/fig-*.md` and leave a `[LINK:]` in its old place (G29).
+   of the body into `_assets/fig-*.md` and leave a `[LINK:]` in its old place (G29).
 
 5. Export again. StrictDoc does not update the JSON on its own.
 
@@ -776,7 +823,7 @@ strictdoc export <specification folder> --formats=json --output-dir <output dir>
 ```
 
 6. Confirm that the HTML passes too. `--formats=json` lets the `$` trap through.
-Whenever you touch a figure or a formula, run `--formats=html` as well.
+   Whenever you touch a figure or a formula, run `--formats=html` as well.
 
 ```bash
 strictdoc export <specification folder> --formats=html --output-dir <output dir>

@@ -275,7 +275,7 @@ DTC 履歴を、 最大 1024 件まで循環バッファで保持すること。
 **ASIL**: QM
 **LAYER**: L2_ECU_SW
 
-**Statement**: ゲートウェイ ECU の UDS 要求の P2 タイムアウトは 50 ms、 P2* タイムアウトは
+**Statement**: ゲートウェイ ECU の UDS 要求の P2 タイムアウトは 50 ms、 P2\* タイムアウトは
 500 ms とすること。
 
 **Relations**:

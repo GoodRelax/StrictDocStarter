@@ -65,12 +65,12 @@ car over the Internet.
 
 **1.2 Issues — Who is troubled by what**
 
-| Stakeholder | Pain point |
-|---|---|
-| Driver / owner | Even when the warning light comes on, the cause is unknown until reaching the workshop, which is unsettling. Wants to reduce trips to the workshop. |
-| Mechanic | Cannot diagnose until the car arrives. Even when it does, connecting the connector each time is a hassle. |
-| OEM (manufacturer) | Wants to grasp faults occurring in the field remotely and fix them with software updates. |
-| Fleet operator | Cannot go and check the health of hundreds of vehicles one by one. |
+| Stakeholder        | Pain point                                                                                                                                          |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Driver / owner     | Even when the warning light comes on, the cause is unknown until reaching the workshop, which is unsettling. Wants to reduce trips to the workshop. |
+| Mechanic           | Cannot diagnose until the car arrives. Even when it does, connecting the connector each time is a hassle.                                           |
+| OEM (manufacturer) | Wants to grasp faults occurring in the field remotely and fix them with software updates.                                                           |
+| Fleet operator     | Cannot go and check the health of hundreds of vehicles one by one.                                                                                  |
 
 In addition, once diagnostics go **over the Internet**, the danger that "anyone can call it" arises.
 **Authentication, authorization, and encryption** that prevent spoofing, eavesdropping, and tampering
@@ -81,12 +81,12 @@ become essential as the common foundation for all functions.
 This specification defines the four functional domains of SOVD that support the remote diagnostics
 described above.
 
-| Domain (document) | What becomes possible remotely |
-|---|---|
+| Domain (document)                        | What becomes possible remotely                                                                                         |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Authentication / Authorization (03-auth) | The **foundation** where only legitimate mechanics / OEMs / fleets can access, with operations separated by privilege. |
-| Data Access (04-data-access) | Read vehicle data such as mileage, voltage, and each ECU's temperature, even from away. |
-| DTC Diagnostics (05-dtc-diagnostics) | Retrieve fault codes remotely to narrow down the cause, and clear them after repair. |
-| SW Update / OTA (06-sw-update) | Deliver new fault-fixing firmware over the air without bringing the car into the workshop. |
+| Data Access (04-data-access)             | Read vehicle data such as mileage, voltage, and each ECU's temperature, even from away.                                |
+| DTC Diagnostics (05-dtc-diagnostics)     | Retrieve fault codes remotely to narrow down the cause, and clear them after repair.                                   |
+| SW Update / OTA (06-sw-update)           | Deliver new fault-fixing firmware over the air without bringing the car into the workshop.                             |
 
 Each domain is decomposed into the four layers L0 (stakeholder) → L1 (system) → L2 (ECU software) →
 L3 (unit), chained via Parent/Child, and explicitly states the assurance levels for functional safety
@@ -110,7 +110,7 @@ L3 (unit), chained via Parent/Child, and explicitly states the assurance levels 
 - The physical and data-link layers of the in-vehicle network (CAN / Automotive Ethernet)
 - Application logic of individual ECUs (the functions of the diagnostic targets themselves)
 - The complete implementation specification of the SOVD server (vehicle side) (this sample goes only to the requirements level)
-- Actuator drive (SOVD operations / ``exec:actuator`` scope) — to focus the teaching material on the
+- Actuator drive (SOVD operations / `exec:actuator` scope) — to focus the teaching material on the
   four domains of authentication, data read, DTC, and OTA, this sample does not develop requirements,
   APIs, or tests for it (SOVD itself provides actuator operations)
 - Bulk aggregation of many vehicles and fleet management dashboards (individual vehicle diagnostics are within the scope of this specification; aggregation and cross-vehicle monitoring are the responsibility of the OEM backend side)
@@ -166,12 +166,12 @@ graph TD
 SOVD exposes functions as HTTP resources (method + path). Each resource is associated with a required
 scope (defined in 03-auth).
 
-| Method | SOVD resource (example) | Functional domain (document) | Required scope |
-|---|---|---|---|
-| GET | ``/components/{ecu}/data/{did}`` | Data Access (04) | ``read:did`` |
-| GET | ``/components/{ecu}/faults`` | DTC / Diagnostics (05) | ``read:dtc`` |
-| DELETE | ``/components/{ecu}/faults`` | DTC / Diagnostics (05) | ``write:dtc`` |
-| POST | ``/updates`` | SW Update / OTA (06) | ``write:swupdate`` |
+| Method | SOVD resource (example)        | Functional domain (document) | Required scope   |
+| ------ | ------------------------------ | ---------------------------- | ---------------- |
+| GET    | `/components/{ecu}/data/{did}` | Data Access (04)             | `read:did`       |
+| GET    | `/components/{ecu}/faults`     | DTC / Diagnostics (05)       | `read:dtc`       |
+| DELETE | `/components/{ecu}/faults`     | DTC / Diagnostics (05)       | `write:dtc`      |
+| POST   | `/updates`                     | SW Update / OTA (06)         | `write:swupdate` |
 
 Note: This table shows representative examples of SOVD resources; for the formal contract of the HTTP
 API, see `09-api.md` (as this sample is teaching material, the API contract excerpts the main
@@ -180,24 +180,24 @@ contract).
 
 **3.4 Document structure**
 
-| Document | Content | Layer |
-|---|---|---|
-| 00-overview (this document) | Purpose, background story, scope, terminology, referenced standards, notation, revision history | Front matter |
-| 01-stakeholder-requirements | Stakeholder requirements (top-level SYS-L0-001 + each domain's L0, EARS) | L0 requirements |
-| 02-usecases | Use cases (actors, UC diagram, UC-001–004 scenarios) | L0 UC |
-| 03-auth | Authentication / authorization (OAuth2 / JWT / TLS / RBAC) | L1–L3 |
-| 04-data-access | Vehicle data identification (DID) / read | L1–L3 |
-| 05-dtc-diagnostics | DTC / freeze frame | L1–L3 |
-| 06-sw-update | OTA update / signature verification / rollback | L1–L3 |
-| 07-common-platform | Common platform: shared units reused by multiple functions (UDS transfer / authorization / TLS / JSON) | L3 (shared) |
-| 08-architecture | System architecture: approach / components / modules / classes / behavior / ADR | Design (HOW) |
-| 09-api | SOVD HTTP API contract (for integration partners) | Contract |
-| 10-test-spec | Test specification (strategy + unit / integration / system / acceptance) | Test (specification) |
-| 11-test-results | Test results (execution records, separated from the specification. 1 spec : N results) | Test (results) |
+| Document                    | Content                                                                                                | Layer                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------- |
+| 00-overview (this document) | Purpose, background story, scope, terminology, referenced standards, notation, revision history        | Front matter         |
+| 01-stakeholder-requirements | Stakeholder requirements (top-level SYS-L0-001 + each domain's L0, EARS)                               | L0 requirements      |
+| 02-usecases                 | Use cases (actors, UC diagram, UC-001–004 scenarios)                                                   | L0 UC                |
+| 03-auth                     | Authentication / authorization (OAuth2 / JWT / TLS / RBAC)                                             | L1–L3                |
+| 04-data-access              | Vehicle data identification (DID) / read                                                               | L1–L3                |
+| 05-dtc-diagnostics          | DTC / freeze frame                                                                                     | L1–L3                |
+| 06-sw-update                | OTA update / signature verification / rollback                                                         | L1–L3                |
+| 07-common-platform          | Common platform: shared units reused by multiple functions (UDS transfer / authorization / TLS / JSON) | L3 (shared)          |
+| 08-architecture             | System architecture: approach / components / modules / classes / behavior / ADR                        | Design (HOW)         |
+| 09-api                      | SOVD HTTP API contract (for integration partners)                                                      | Contract             |
+| 10-test-spec                | Test specification (strategy + unit / integration / system / acceptance)                               | Test (specification) |
+| 11-test-results             | Test results (execution records, separated from the specification. 1 spec : N results)                 | Test (results)       |
 
 This sample traces the V-model of "**use cases (02) → stakeholder requirements (01) → requirements
 (03-07) → design (08) → API contract (09) → test specification (10) → results (11)**" end to end with
-the ``Implements`` / ``Satisfies`` / ``Verifies`` / ``ResultOf`` relations (DEEP TRACE lets you follow
+the `Implements` / `Satisfies` / `Verifies` / `ResultOf` relations (DEEP TRACE lets you follow
 requirements' test coverage and gaps). **Each domain in the stakeholder requirements (01) points at
 the matching use case (02-usecases) via `Parent`** - ISO/IEC/IEEE 29148 treats a use case as a
 technique for expressing stakeholder requirements and derives the system requirements from it.
@@ -210,26 +210,26 @@ Note: The requirement field definitions shared by all documents are placed in `s
 
 **Type**: SECTION
 
-| Term | Description |
-|---|---|
-| SOVD | Service-Oriented Vehicle Diagnostics. An HTTP/REST-based vehicle diagnostics method (ASAM SOVD / ISO 17978). |
-| UDS | Unified Diagnostic Services (ISO 14229). The traditional in-vehicle diagnostic protocol. The gateway converts from SOVD to UDS. |
-| OBD port | The vehicle's diagnostic connector. Traditionally the physical IF where a diagnostic tester is connected by wire. |
-| TCU | Telematics Control Unit. The in-vehicle communication unit that connects to the cloud over a cellular network (the "car's modem"). It relays remote diagnostics communication. |
-| ECU | Electronic Control Unit. The in-vehicle electronic control unit. |
-| Gateway ECU | The in-vehicle gateway that terminates the external IF (SOVD/HTTP) and relays UDS to the internal ECUs. |
-| DID | Data Identifier. A 16-bit number that identifies a vehicle data item (e.g., 0xF40C = engine RPM). |
-| DTC | Diagnostic Trouble Code. A fault code. A record of "what is wrong" with the car. |
-| Freeze Frame | A snapshot of the vehicle state at the moment a DTC occurs. |
-| OTA | Over-The-Air. Wireless software updating. |
-| OAuth 2.0 / PKCE | An authorization framework (RFC 6749) and a protection extension for public clients (PKCE, RFC 7636). |
-| JWT | JSON Web Token (RFC 7519). A signed access token format. |
-| mTLS | Mutual TLS. A method in which both the server and the client authenticate with X.509 certificates. |
-| Scope | The range of operations a token permits (e.g., ``read:did`` / ``write:dtc`` / ``write:swupdate``). |
-| ASIL | Automotive Safety Integrity Level (ISO 26262). The functional safety assurance level (QM < A < B < C < D). |
-| CAL | Cybersecurity Assurance Level (ISO/SAE 21434). The cybersecurity assurance level (CAL1 < … < CAL4). |
-| NRC | Negative Response Code. The UDS negative response code. |
-| A/B partition | A method that holds two firmware regions for updating, switching between them to update and roll back. |
+| Term             | Description                                                                                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| SOVD             | Service-Oriented Vehicle Diagnostics. An HTTP/REST-based vehicle diagnostics method (ASAM SOVD / ISO 17978).                                                                   |
+| UDS              | Unified Diagnostic Services (ISO 14229). The traditional in-vehicle diagnostic protocol. The gateway converts from SOVD to UDS.                                                |
+| OBD port         | The vehicle's diagnostic connector. Traditionally the physical IF where a diagnostic tester is connected by wire.                                                              |
+| TCU              | Telematics Control Unit. The in-vehicle communication unit that connects to the cloud over a cellular network (the "car's modem"). It relays remote diagnostics communication. |
+| ECU              | Electronic Control Unit. The in-vehicle electronic control unit.                                                                                                               |
+| Gateway ECU      | The in-vehicle gateway that terminates the external IF (SOVD/HTTP) and relays UDS to the internal ECUs.                                                                        |
+| DID              | Data Identifier. A 16-bit number that identifies a vehicle data item (e.g., 0xF40C = engine RPM).                                                                              |
+| DTC              | Diagnostic Trouble Code. A fault code. A record of "what is wrong" with the car.                                                                                               |
+| Freeze Frame     | A snapshot of the vehicle state at the moment a DTC occurs.                                                                                                                    |
+| OTA              | Over-The-Air. Wireless software updating.                                                                                                                                      |
+| OAuth 2.0 / PKCE | An authorization framework (RFC 6749) and a protection extension for public clients (PKCE, RFC 7636).                                                                          |
+| JWT              | JSON Web Token (RFC 7519). A signed access token format.                                                                                                                       |
+| mTLS             | Mutual TLS. A method in which both the server and the client authenticate with X.509 certificates.                                                                             |
+| Scope            | The range of operations a token permits (e.g., `read:did` / `write:dtc` / `write:swupdate`).                                                                                   |
+| ASIL             | Automotive Safety Integrity Level (ISO 26262). The functional safety assurance level (QM < A < B < C < D).                                                                     |
+| CAL              | Cybersecurity Assurance Level (ISO/SAE 21434). The cybersecurity assurance level (CAL1 < … < CAL4).                                                                            |
+| NRC              | Negative Response Code. The UDS negative response code.                                                                                                                        |
+| A/B partition    | A method that holds two firmware regions for updating, switching between them to update and roll back.                                                                         |
 
 ## 5. Referenced Standards
 
@@ -254,7 +254,7 @@ Note: The requirement field definitions shared by all documents are placed in `s
 **6.1 Requirement level keywords (RFC 2119 / 8174)**
 
 "Shall do" (= SHALL / MUST) denotes mandatory, "recommended" (= SHOULD) denotes recommended, and
-"may do" (= MAY) denotes optional. EARS's ``shall`` is synonymous with SHALL.
+"may do" (= MAY) denotes optional. EARS's `shall` is synonymous with SHALL.
 
 **6.2 EARS syntax (requirement statement format)**
 
@@ -262,14 +262,14 @@ All requirement statements follow EARS (Easy Approach to Requirements Syntax), w
 subject in the active voice, as a single requirement, in a verifiable form. The correspondence with the
 Japanese keywords is as follows.
 
-| Pattern | Japanese form | Use |
-|---|---|---|
-| Ubiquitous | "The <subject> shall <response>." | A requirement that always holds |
-| Event-driven | "When <trigger>, the <subject> shall <response>." | An event-triggered requirement |
-| State-driven | "While <state>, the <subject> shall <response>." | A state-dependent requirement |
-| Unwanted | "If <trigger>, then the <subject> shall <response>." | Abnormal cases / prohibitions |
-| Optional | "Where <feature is included>, the <subject> shall <response>." | Optional functions |
-| Complex | A combination of the above | Compound conditions |
+| Pattern      | Japanese form                                                  | Use                             |
+| ------------ | -------------------------------------------------------------- | ------------------------------- |
+| Ubiquitous   | "The <subject> shall <response>."                              | A requirement that always holds |
+| Event-driven | "When <trigger>, the <subject> shall <response>."              | An event-triggered requirement  |
+| State-driven | "While <state>, the <subject> shall <response>."               | A state-dependent requirement   |
+| Unwanted     | "If <trigger>, then the <subject> shall <response>."           | Abnormal cases / prohibitions   |
+| Optional     | "Where <feature is included>, the <subject> shall <response>." | Optional functions              |
+| Complex      | A combination of the above                                     | Compound conditions             |
 
 The subject is made concrete per layer: L0 = the system, L1 = the vehicle (SOVD gateway),
 L2 = the gateway ECU, L3 = each software unit.
@@ -304,17 +304,17 @@ custom field, so **the grammar declares it after `TITLE`.**
 `Level`, and **the export succeeds while the table-of-contents number `_TOC` is overwritten with
 the field's value.** This set names the test level `TEST_LEVEL`.
 
-| Field | Meaning |
-|---|---|
-| UID | Unique identifier. ``<domain>-<layer>-<sequence>`` (e.g., ``AUTH-L1-001``). |
-| TYPE | Functional / Non-Functional / Constraint / Restriction / UseCase |
-| ASIL | Functional safety assurance level (QM / A / B / C / D) |
-| CAL | Cybersecurity assurance level (CAL1–CAL4, security-related requirements only) |
-| LAYER | L0_Stakeholder / L1_System / L2_ECU_SW / L3_Unit |
-| STATEMENT | The requirement statement in EARS form |
-| RATIONALE | Rationale (why this requirement is needed. Optional) |
-| VERIFICATION | Acceptance criteria (how to verify that it is satisfied. Optional) |
-| RELATIONS | Traces to upper / lower requirements via Parent / Child |
+| Field        | Meaning                                                                       |
+| ------------ | ----------------------------------------------------------------------------- |
+| UID          | Unique identifier. `<domain>-<layer>-<sequence>` (e.g., `AUTH-L1-001`).       |
+| TYPE         | Functional / Non-Functional / Constraint / Restriction / UseCase              |
+| ASIL         | Functional safety assurance level (QM / A / B / C / D)                        |
+| CAL          | Cybersecurity assurance level (CAL1–CAL4, security-related requirements only) |
+| LAYER        | L0_Stakeholder / L1_System / L2_ECU_SW / L3_Unit                              |
+| STATEMENT    | The requirement statement in EARS form                                        |
+| RATIONALE    | Rationale (why this requirement is needed. Optional)                          |
+| VERIFICATION | Acceptance criteria (how to verify that it is satisfied. Optional)            |
+| RELATIONS    | Traces to upper / lower requirements via Parent / Child                       |
 
 ## 7. Assumptions & Constraints
 
@@ -332,6 +332,6 @@ the field's value.** This set names the test level `TEST_LEVEL`.
 
 **Type**: SECTION
 
-| Version | Date | Change description |
-|---|---|---|
-| v0.1 | 2026-06-06 | Initial version. Fully rewritten to conform to the ANMS template. Established the front matter (this document) starting from the background story of remote diagnostics, converted requirement statements to EARS, separated ASIL/CAL, and arranged acceptance criteria (VERIFICATION) and traces. Made the grammar common in `sovd-grammar.sgra`. Integrated the old 05/06 notation demos into the body and reorganized them into appendix 90. |
+| Version | Date       | Change description                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v0.1    | 2026-06-06 | Initial version. Fully rewritten to conform to the ANMS template. Established the front matter (this document) starting from the background story of remote diagnostics, converted requirement statements to EARS, separated ASIL/CAL, and arranged acceptance criteria (VERIFICATION) and traces. Made the grammar common in `sovd-grammar.sgra`. Integrated the old 05/06 notation demos into the body and reorganized them into appendix 90. |

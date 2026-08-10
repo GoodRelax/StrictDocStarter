@@ -6,12 +6,12 @@
 
 This document is the **test specification** for SOVD. As the right-hand side of the V-model, it
 defines tests at each level (unit / integration / system / acceptance) and traces them to the
-verification targets via the ``Verifies`` relation.
+verification targets via the `Verifies` relation.
 
 **Granularity rule: 1 behavior = 1 scenario = 1 test = 1 verdict.** This lets you record
 "one related test PASSed while another FAILed" individually (the test-case granularity of
 Cucumber/ISTQB). Only pure data variations of the same behavior are consolidated into a single
-test using ``Scenario Outline`` + ``Examples``. Each test is written as executable Gherkin with
+test using `Scenario Outline` + `Examples`. Each test is written as executable Gherkin with
 concrete inputs and expected results. Test results are separated into
 `11-test-results.md` (1 specification : N executions).
 
@@ -19,15 +19,15 @@ concrete inputs and expected results. Test results are separated into
 
 **Type**: SECTION
 
-| Level | Target artifact | Verifies target | Policy |
-|---|---|---|---|
-| Unit | Component / class (08) | COMPONENT | One scenario per component behavior. Branch / boundary coverage |
-| Integration | Inter-module (L2) | L2 requirements | Integration points of major bridges / flows |
-| System | System requirements (L1) | L1 requirements | End-to-end of major functions |
-| Acceptance | Stakeholder / API (L0 / 09) | L0 requirements / API | All use cases |
+| Level       | Target artifact             | Verifies target       | Policy                                                          |
+| ----------- | --------------------------- | --------------------- | --------------------------------------------------------------- |
+| Unit        | Component / class (08)      | COMPONENT             | One scenario per component behavior. Branch / boundary coverage |
+| Integration | Inter-module (L2)           | L2 requirements       | Integration points of major bridges / flows                     |
+| System      | System requirements (L1)    | L1 requirements       | End-to-end of major functions                                   |
+| Acceptance  | Stakeholder / API (L0 / 09) | L0 requirements / API | All use cases                                                   |
 
-Fixed data: DID ``0xF40C`` = engine speed (rpm, Engine ECU addr ``0x10``),
-``0xF40D`` = vehicle speed, DTC ``P0301`` = misfire.
+Fixed data: DID `0xF40C` = engine speed (rpm, Engine ECU addr `0x10`),
+`0xF40D` = vehicle speed, DTC `P0301` = misfire.
 
 ## 5.2 Unit Tests
 
@@ -1829,7 +1829,7 @@ Feature: Update interruption tolerance
 The verification coverage of requirements is assessed via the following 3 paths (not every "hole"
 in the matrix is a defect).
 
-- **Direct coverage**: a test ``Verifies`` a requirement/component (the tests in this document).
+- **Direct coverage**: a test `Verifies` a requirement/component (the tests in this document).
 - **Transitive coverage**: if the lower-level child requirements/components are verified, the
   higher-level requirement is backed by them (traceable via DEEP TRACE).
 - **Verified by review / static analysis**: Constraints that do not lend themselves to runtime
@@ -1851,12 +1851,12 @@ the nature of each (traceability is needed for all requirements, but test cases 
 cases are backed by acceptance tests, the requirements of each layer by the corresponding test
 level, and constraints and some NFRs by review and static analysis.
 
-| Requirement type | Primary verification means | Example (trace) |
-|---|---|---|
-| Use case (L0) | Acceptance test (UAT / Gherkin) -> result | UC-001 <- AT-001 <- TR-AT-001 |
-| System requirement (L1) | System test (ST) | DATA-L1-001 <- ST-001 |
-| ECU SW requirement (L2) | Integration test (IT) | DATA-L2-002 <- IT-002 |
-| Unit / component (L3) | Unit test (UT) | DidResolver <- UT-013 |
-| Constraint | Review, static analysis, process audit | MISRA C / ISO 14229 conformance / ASIL D process |
-| Non-functional (some) | Measurement, code review | Memory limit / threading model |
+| Requirement type         | Primary verification means                         | Example (trace)                                                |
+| ------------------------ | -------------------------------------------------- | -------------------------------------------------------------- |
+| Use case (L0)            | Acceptance test (UAT / Gherkin) -> result          | UC-001 <- AT-001 <- TR-AT-001                                  |
+| System requirement (L1)  | System test (ST)                                   | DATA-L1-001 <- ST-001                                          |
+| ECU SW requirement (L2)  | Integration test (IT)                              | DATA-L2-002 <- IT-002                                          |
+| Unit / component (L3)    | Unit test (UT)                                     | DidResolver <- UT-013                                          |
+| Constraint               | Review, static analysis, process audit             | MISRA C / ISO 14229 conformance / ASIL D process               |
+| Non-functional (some)    | Measurement, code review                           | Memory limit / threading model                                 |
 | Higher-level requirement | Transitive coverage (backed by child verification) | L0 is indirectly assured by verification of its child L1 group |

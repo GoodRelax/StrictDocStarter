@@ -23,13 +23,13 @@ EARS patterns. EARS narrows the shape of a requirement sentence down to five
 forms. That narrowing stops you dropping the condition, and it stops you packing
 two requirements into one sentence.
 
-| Pattern | Shape |
-|---|---|
-| Ubiquitous | The `<system>` shall `<response>`. |
-| Event-driven | WHEN `<trigger>`, the `<system>` shall `<response>`. |
-| State-driven | WHILE `<state>`, the `<system>` shall `<response>`. |
+| Pattern            | Shape                                                     |
+| ------------------ | --------------------------------------------------------- |
+| Ubiquitous         | The `<system>` shall `<response>`.                        |
+| Event-driven       | WHEN `<trigger>`, the `<system>` shall `<response>`.      |
+| State-driven       | WHILE `<state>`, the `<system>` shall `<response>`.       |
 | Unwanted behaviour | IF `<condition>`, THEN the `<system>` shall `<response>`. |
-| Optional feature | WHERE `<feature>`, the `<system>` shall `<response>`. |
+| Optional feature   | WHERE `<feature>`, the `<system>` shall `<response>`.     |
 
 One word at the head of the sentence tells you the pattern - `WHEN`, `WHILE`,
 `IF` or `WHERE`. Only the ubiquitous pattern opens with the subject, because that
@@ -76,12 +76,12 @@ The stacking order is fixed. You go outside in - `WHERE` → `WHILE` → `WHEN`
 so the state comes first and the trigger second. To stack unwanted behaviour,
 you write `If ... Then ...` in place of `When`.
 
-| What you stack | What it means |
-| --- | --- |
-| `WHERE` | It applies only to a product that carries the feature. This is about product configuration |
-| `WHILE` | It applies for as long as the state lasts. It has a duration |
-| `WHEN` | It applies at that instant. It has no duration |
-| `IF ... THEN` | It applies to unwanted input or an unwanted situation |
+| What you stack | What it means                                                                              |
+| -------------- | ------------------------------------------------------------------------------------------ |
+| `WHERE`        | It applies only to a product that carries the feature. This is about product configuration |
+| `WHILE`        | It applies for as long as the state lasts. It has a duration                               |
+| `WHEN`         | It applies at that instant. It has no duration                                             |
+| `IF ... THEN`  | It applies to unwanted input or an unwanted situation                                      |
 
 **Stack two conditions at most.** Nobody can enumerate the combinations behind a
 sentence that stacks three. A requirement that needs three is telling you it is

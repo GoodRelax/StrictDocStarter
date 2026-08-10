@@ -116,12 +116,12 @@ The table below gives the meaning of each symbol in the formula. Always put a
 character after you close the math in a cell - export stops when a cell ends
 with `$`. Escape a `|` inside a cell as `\|`.
 
-| Symbol | Unit | Meaning |
-|---|---|---|
-| $S_{need}$ bytes | bytes | Free space the conversion needs |
-| $S_{out}$ bytes | bytes | Size of the output file |
-| $S_{tmp}$ bytes | bytes | Size of the temporary file. It equals $S_{out}$ bytes |
-| Path | - | The three stages `input \| convert \| output` |
+| Symbol           | Unit  | Meaning                                               |
+| ---------------- | ----- | ----------------------------------------------------- |
+| $S_{need}$ bytes | bytes | Free space the conversion needs                       |
+| $S_{out}$ bytes  | bytes | Size of the output file                               |
+| $S_{tmp}$ bytes  | bytes | Size of the temporary file. It equals $S_{out}$ bytes |
+| Path             | -     | The three stages `input \| convert \| output`         |
 
 Only one way of writing satisfies SW-004. You create the temporary file in the
 same directory, and you rename it once you finish the write. A rename inside one

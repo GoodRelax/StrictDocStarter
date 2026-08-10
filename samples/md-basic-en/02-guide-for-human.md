@@ -23,13 +23,13 @@ and `01-ai-queries.md`. The one thing that set carries and this one cannot is
 `05-markdown.sdoc`, the document that declares `MARKUP: Markdown`, and the single
 requirement `SW-005` inside it. Choose between them like this.
 
-| | `.md` | `.sdoc` |
-| --- | --- | --- |
-| GitHub and other sites render it as is | ○ | ✗ |
-| You write a table without aligning the columns | ○ | only a document that declares `MARKUP: Markdown` |
-| Several documents pull in one figure fragment | ✗ | ○ |
-| RST math and image directives | ✗ | ○ |
-| Traceability, JSON, every screen | ○ | ○ (exactly the same) |
+|                                                | `.md` | `.sdoc`                                          |
+| ---------------------------------------------- | ----- | ------------------------------------------------ |
+| GitHub and other sites render it as is         | ○     | ✗                                                |
+| You write a table without aligning the columns | ○     | only a document that declares `MARKUP: Markdown` |
+| Several documents pull in one figure fragment  | ✗     | ○                                                |
+| RST math and image directives                  | ✗     | ○                                                |
+| Traceability, JSON, every screen               | ○     | ○ (exactly the same)                             |
 
 `.md` support first appeared in 0.19.0 (2026-03-15), and the official
 documentation still marks it experimental. For a document you maintain for a
@@ -149,12 +149,12 @@ and no one could tell where anything is. When you need a new field, add it to
 
 **The `.md` format has four traps of its own. Each one stops the whole export.**
 
-| Trap | What happens |
-| --- | --- |
-| The file has no H1 / starts with `##` / is empty | `the document must start with an H1 heading` |
-| Two or more empty lines follow a heading | `two or more consecutive empty lines are not allowed` |
-| A custom field spells its name differently from the grammar | `Invalid requirement field` |
-| You write a `TYPE` field as `**Type**:` | StrictDoc reads it as the node type. Write `**TYPE**:` in capitals instead |
+| Trap                                                        | What happens                                                               |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------- |
+| The file has no H1 / starts with `##` / is empty            | `the document must start with an H1 heading`                               |
+| Two or more empty lines follow a heading                    | `two or more consecutive empty lines are not allowed`                      |
+| A custom field spells its name differently from the grammar | `Invalid requirement field`                                                |
+| You write a `TYPE` field as `**Type**:`                     | StrictDoc reads it as the node type. Write `**TYPE**:` in capitals instead |
 
 The third trap hides an asymmetry. Only the eight words `Statement` `Title` `Status`
 `Rationale` `Comment` `Level` `Tags` `Prefix` ignore case. You spell everything else
@@ -300,17 +300,17 @@ The guideline is only this - once 5 or more things sit side by side in a figure,
 put that figure in `_assets/fig-*.md` as its own document and link to it from the
 body with `[LINK:]`.
 
-| Kind of figure | Guideline for moving it out |
-| --- | --- |
-| Sequence diagram | 5 lifelines or more |
-| Class diagram | 5 classes or more |
-| Flowchart | no guideline |
+| Kind of figure   | Guideline for moving it out |
+| ---------------- | --------------------------- |
+| Sequence diagram | 5 lifelines or more         |
+| Class diagram    | 5 classes or more           |
+| Flowchart        | no guideline                |
 
 This is a guideline, not a gate. The writer makes the final call.
 
 The flowchart above is a flowchart, so it carries no guideline, and the writer chose
 to keep it in the body. The state machine that also draws the interruption and the
-cleanup went into its own document →  [LINK: DOC-FIG-STATE]
+cleanup went into its own document → [LINK: DOC-FIG-STATE]
 
 We decide by how many things sit side by side because that is what sets the width of
 a figure. Line count does not set it - inside this very sample, an 8-line flowchart
@@ -348,11 +348,11 @@ the figures line up in the list.
 
 **In `.md` you get pipe tables only. And a table passes even when you do not align the columns.**
 
-| Table format | `.md` | When the columns get out of line |
-| --- | --- | --- |
-| Pipe | ○ | It holds |
-| RST grid format | ✗ | — |
-| RST simple format | ✗ | — |
+| Table format      | `.md` | When the columns get out of line |
+| ----------------- | ----- | -------------------------------- |
+| Pipe              | ○     | It holds                         |
+| RST grid format   | ✗     | —                                |
+| RST simple format | ✗     | —                                |
 
 The table above does not align its column widths, and it still passes. This is the
 biggest advantage of `.md`. The grid format of `.sdoc` stops the whole export when
@@ -372,11 +372,11 @@ A `.md` file gives you only two ways to write math: `$` and `$$`. StrictDoc bund
 MathJax and loads it from `_static/mathjax/` in the output folder. **The page never
 contacts an outside server**, so it still works on an internal company network.
 
-| Notation | What you get | Where to use it |
-| --- | --- | --- |
-| `$ ... $` | It sits inside the sentence | One symbol, a short expression |
-| `$$ ... $$` | It takes its own line and centers | An expression you want to show |
-| RST's `.. math::` | You cannot use it | — |
+| Notation          | What you get                      | Where to use it                |
+| ----------------- | --------------------------------- | ------------------------------ |
+| `$ ... $`         | It sits inside the sentence       | One symbol, a short expression |
+| `$$ ... $$`       | It takes its own line and centers | An expression you want to show |
+| RST's `.. math::` | You cannot use it                 | —                              |
 
 RST notation does nothing in a `.md` file. If you write it, StrictDoc prints the
 characters `.. math::` as a plain paragraph. The export does not stop, so **you cannot
@@ -403,15 +403,15 @@ error: string index out of range
 
 Notation that stops the export, and notation that does not:
 
-| Notation | Result |
-| --- | --- |
-| `The time is $T$` (a paragraph ends with math) | Stops |
-| `The time is $T$ here.` (a character follows it) | Passes |
-| `\| symbol \| $T$ \|` (a cell ends with math) | Stops |
-| `\| symbol \| $T$ s \|` (a character follows it) | Passes |
-| `\| symbol \| $$T$$ \|` (the cell uses `$$`) | Passes |
-| `The cost is 100 $` (it ends with a bare `$`) | Stops |
-| `The cost is 100 \$` (you escape it) | Passes |
+| Notation                                               | Result |
+| ------------------------------------------------------ | ------ |
+| `The time is $T$` (a paragraph ends with math)         | Stops  |
+| `The time is $T$ here.` (a character follows it)       | Passes |
+| `\| symbol \| $T$ \|` (a cell ends with math)          | Stops  |
+| `\| symbol \| $T$ s \|` (a character follows it)       | Passes |
+| `\| symbol \| $$T$$ \|` (the cell uses `$$`)           | Passes |
+| `The cost is 100 $` (it ends with a bare `$`)          | Stops  |
+| `The cost is 100 \$` (you escape it)                   | Passes |
 | `` The cost is `100 $` `` (it sits inside a code span) | Passes |
 
 You only need to remember one workaround — always put some character after the closing `$`.
@@ -422,11 +422,11 @@ When you use math inside a table, use `$$` or add a unit or a word after it.
 One more thing. When a line holds two `$` characters, MathJax turns everything between
 them into math. This trap is not limited to amounts of money.
 
-| What you write | What you get |
-| --- | --- |
-| `The cost is $100 to $200` | MathJax turns "100 to " into math |
-| `$HOME and $PATH` | MathJax turns "HOME and " into math |
-| `The cost is $100 only` (one `$`) | It comes out as written |
+| What you write                    | What you get                        |
+| --------------------------------- | ----------------------------------- |
+| `The cost is $100 to $200`        | MathJax turns "100 to " into math   |
+| `$HOME and $PATH`                 | MathJax turns "HOME and " into math |
+| `The cost is $100 only` (one `$`) | It comes out as written             |
 
 You cannot prevent this by putting a space after the `$` (`$ 100 to $ 200` turns
 into math too). Escape it as `\$100`, or put it in a code span as `` `$100` ``.
@@ -502,11 +502,11 @@ you need for switching notation.
 `strictdoc_config.py` is the one exception. Restart the server after you edit
 it. StrictDoc reads this file only once, at startup.
 
-| What you changed | Restart the server |
-| --- | --- |
-| A `.md` document | No. The screen changes in about 0.6 seconds |
-| The `basic.sgra` grammar | No |
-| `strictdoc_config.py` | Yes |
+| What you changed         | Restart the server                          |
+| ------------------------ | ------------------------------------------- |
+| A `.md` document         | No. The screen changes in about 0.6 seconds |
+| The `basic.sgra` grammar | No                                          |
+| `strictdoc_config.py`    | Yes                                         |
 
 This produces a symptom you barely notice. You fixed the configuration, yet
 the screen still shows the old state, so you conclude that you wrote the
@@ -633,11 +633,11 @@ jq . out/json/index.json > readable.json
 `.` narrows nothing, so not one character of the content changes. Only the
 notation changes, and the file gets smaller.
 
-| File | vs the `.md` set |
-|---|---:|
-| `index.json` (as written) | about 1.8 times |
-| after `jq .` | about 1.5 times |
-| after `jq -c .` | about 1.2 times |
+| File                      | vs the `.md` set |
+| ------------------------- | ---------------: |
+| `index.json` (as written) |  about 1.8 times |
+| after `jq .`              |  about 1.5 times |
+| after `jq -c .`           |  about 1.2 times |
 
 We give ratios because a byte count moves with the line ending, CRLF or LF, so a
 reader cannot reproduce it. A ratio barely feels that difference.

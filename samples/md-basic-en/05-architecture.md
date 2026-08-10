@@ -59,12 +59,12 @@ body ("Figures - a large figure goes into its own document").
 
 **Type**: SECTION
 
-| Part | What it takes on | System requirement it satisfies |
-|---|---|---|
-| Intake | Takes the input file and the requested output format | SYS-001 |
-| Format check | Confirms the input really is the format the user named | SYS-002 |
-| Conversion | Converts into the output format the user named | SYS-001 |
-| Writer | Writes to the output location. Breaks nothing that is already there | SYS-001 / SYS-003 |
+| Part         | What it takes on                                                    | System requirement it satisfies |
+| ------------ | ------------------------------------------------------------------- | ------------------------------- |
+| Intake       | Takes the input file and the requested output format                | SYS-001                         |
+| Format check | Confirms the input really is the format the user named              | SYS-002                         |
+| Conversion   | Converts into the output format the user named                      | SYS-001                         |
+| Writer       | Writes to the output location. Breaks nothing that is already there | SYS-001 / SYS-003               |
 
 One part does not map onto one requirement. Intake, Conversion and Writer share
 SYS-001 between the three of them, and Writer takes on SYS-003 as well. Format
