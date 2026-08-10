@@ -76,9 +76,9 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 {
   "DOCUMENT": 13,
   "REQUIREMENT": 7,
-  "SECTION": 143,
+  "SECTION": 146,
   "TEST_CASE": 4,
-  "TEXT": 144,
+  "TEXT": 147,
   "USE_CASE": 1
 }
 ```
@@ -544,7 +544,7 @@ DOC-FIG-STATE  1  figure
 DOC-NOTE  1  table
 ```
 
-(15 representative rows out of 126. Six explanatory documents take up 113 of them -
+(15 representative rows out of 127. Six explanatory documents take up 114 of them -
 this document, `00-ai-guide.md`, `02-guide-for-human.md`, `08-review.md`,
 `09-browser-guide.md` and `10-cowork-with-claude.md`. A document that explains the
 notation carries that notation in bulk, so pass `--arg skip` as example 13 does when you

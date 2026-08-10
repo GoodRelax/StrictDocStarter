@@ -252,6 +252,9 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 | 文法を自分で起こすなら `SECTION` を宣言する                      | `Semantic error: Invalid node type: SECTION.`                                                                                                             |
 | `SECTION` には `PROPERTIES: IS_COMPOSITE: True` を付ける         | `The SECTION grammar element must be declared as composite.` (Hint に修正例が出る)                                                                        |
 | `**Relations**` は本文欄の後ろに置き、 直後に空行を 1 つ置く     | `duplicate field names in a valid requirement node are not allowed` —— ただし整形器が 1 度走った後にしか出ない。export が通ったことは何の証拠にもならない |
+| すべてのファイルを UTF-8 で保存する。 BOM は付いていてよい       | `'utf-8' codec can't decode byte 0x82 in position 2: invalid start byte` —— **しかもファイル名を出さない**                                                |
+| 水平線 (`---`) を文書のどこにも書かない                          | `duplicate field names in a valid requirement node are not allowed`                                                                                       |
+| 親として書く UID は、 プロジェクトのどこかに実在させる           | `Requirement SW-001 references parent requirement which doesn't exist: SYS-999.`                                                                          |
 
 `TEXT` は宣言しなくてよい。組み込みである (実測)。`SECTION` と `REQUIREMENT` だけを
 宣言した文法で export したところ、 地の文はちゃんと `TEXT` ノードになった。
@@ -287,8 +290,53 @@ Location: C:\...\00-ai-guide.md:54:1
 失敗している)。`--debug` は stack trace を出すだけで場所は出さない。
 `--no-parallelization` のほうが速い。
 
-**これと「`$` の罠」の `string index out of range` の 2 つだけが「そのままでは場所を教えないエラー」である。**
-ほかは 1 行目を読めば場所が分かる。
+**「そのままでは場所を教えないエラー」は 3 つある** —— これと、 「`$` の罠」の
+`string index out of range` と、 下の文字コードのエラーである。 ほかは 1 行目を読めば場所が分かる。
+
+### 出たメッセージと、その原因
+
+**Type**: SECTION
+
+上の表は「書くときに従う一覧」である。 こちらは**止まった後**のためのもので、
+**破った規則の名前ではなく、 手元にあるメッセージから引く**。 その瞬間に持っているのは
+メッセージのほうだからである。
+
+とりわけ 1 つが重要である。 `duplicate field names in a valid requirement node are not allowed`
+には**無関係な原因が 3 つ**あり、 しかも表示される行番号は**そのどれでもなくノードの先頭**を指す。
+
+| メッセージ                                                                    | 実際の原因                                                                                                                                                                                                                                                                                               |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `duplicate field names in a valid requirement node are not allowed`           | (a) `**Relations**` がメタデータの塊に密着していて、 その後で整形器が欄名と箇条書きを切り離した。 (b) 水平線 (`---`) が文書のどこかにある —— **置ける 2 箇所 (ノードの中／章見出しの直後) の両方で実測し、 どちらも同じこのメッセージだった。** (c) 本文欄がメタデータの塊と自分を隔てていた空行を失った |
+| `'utf-8' codec can't decode byte 0x.. in position ..: invalid start byte`     | UTF-8 でないファイルがある。 **メッセージはファイル名を出さない。** 日本語 Windows では、 ANSI 既定のエディタで新規保存した `.md` がたいていの原因である。 `launch-strictdoc` はサーバ起動前にこれを検査してファイル名を出す                                                                             |
+| `Requirement <UID> references parent requirement which doesn't exist: <UID>.` | `**Relations**` が、 どのノードも宣言していない UID を指している。 親は別ファイルにいてよいが、 どこかに実在しなければならない                                                                                                                                                                           |
+| `Relations list must not be empty.`                                           | `**Relations**:` はあるのに中身が無い。 整形器が欄名と箇条書きの間に空行を入れた場合がほとんどである                                                                                                                                                                                                     |
+| `Relations must directly follow requirement metadata without an empty line.`  | 本文欄を持たないノードで、 `**Relations**` がメタデータの塊の後ろに空行を挟んで置かれている。 **最後の 1 行欄の前に空行を 1 つ入れて本文欄を作れば置き場ができる**                                                                                                                                       |
+| `Node is missing a field that is required by grammar: <NAME>.`                | 文法が要求する欄をノードが持っていない。 `Hint` に文法の全欄が並ぶので 1 回の編集で収束する                                                                                                                                                                                                              |
+| `Wrong field order for requirement`                                           | 欄の並びが文法の宣言順と違う。 1 行に収まる欄は見出し直下の塊に、 段落になる欄はその後ろに置き、 どちらも宣言順に従う                                                                                                                                                                                    |
+| `A process in the process pool was terminated abruptly...`                    | 本当のエラーではない。 `--no-parallelization` を付けて export し直すと本物が出る                                                                                                                                                                                                                         |
+
+### ファイルそのものの保存のしかた
+
+**Type**: SECTION
+
+中身ではなく、 ファイルの性質の話が 2 つある。
+
+**UTF-8 以外は受け付けない。** StrictDoc はすべての原稿を `utf-8-sig` で開くので BOM は
+読み飛ばされるが、 **ほかの文字コードへの退避は無い。** 1 枚でも違えばプロジェクト全体の
+export が止まり、 しかもメッセージはファイル名を出さない。
+
+**`.md` は LF で保存する。** これは export を止めない —— **だからこそ見落としやすい。**
+StrictDoc は `.md` を改行変換せずに読むため、 CRLF のファイルは**その中身から読み取る
+すべての欄の値に復帰文字を持ち込み**、 それが JSON export にまで残る。 以後どのクエリも
+それを剥がす羽目になる。 0.27.1 で実測: 同じ 13 ファイルが CRLF なら `STATEMENT` 152 欄に
+復帰文字 4265 個、 LF なら 0 個。 **後半のクエリに `rtrimstr("\r")` が並んでいるのはこれが理由である。**
+
+**`.sdoc` と `.sgra` にこの問題は無い** (実測)。 改行を変換して読むリーダを通るため、
+全部を CRLF にしても復帰文字は 1 つも通らなかった。 **この規則は `.md` だけの話である。**
+
+`launch-strictdoc` はサーバ起動前に両方を検査する。 UTF-8 でないファイルは名指しし、
+文字コードが確実なものだけ変換を申し出る。 CRLF の Markdown には LF への統一を申し出る。
+**必ず先に尋ね、 書き換えるファイルは必ず退避し、 文字コードを推測しない。**
 
 ### 実例を見ても分からない規則
 

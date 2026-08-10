@@ -97,6 +97,46 @@ in StrictDocStarter does exactly that.
 | **Declare `SECTION` when you write your own grammar** | `Semantic error: Invalid node type: SECTION.` |
 | **Give `SECTION` a `PROPERTIES: IS_COMPOSITE: True`** | `The SECTION grammar element must be declared as composite.` (the Hint shows you the fix) |
 | **Put `**Relations**` behind the body fields, one blank line after it** | `duplicate field names in a valid requirement node are not allowed` - but only once a formatter has run, so an export that passes proves nothing here |
+| **Save every file as UTF-8. A byte order mark is allowed** | `'utf-8' codec can't decode byte 0x82 in position 2: invalid start byte` - and it names no file |
+| **Never write a horizontal rule (`---`) anywhere in a document** | `duplicate field names in a valid requirement node are not allowed` |
+| **Name a parent that exists somewhere in the project** | `Requirement SW-001 references parent requirement which doesn't exist: SYS-999.` |
+
+### The message you got, and what causes it
+
+The table above is the list to follow while writing. This one is for afterwards, when the
+export has already stopped: **it is keyed by the message rather than by the rule**, because the
+message is what you are holding at that moment.
+
+`duplicate field names in a valid requirement node are not allowed` has **three unrelated
+causes**, and the line number it prints points at the head of the node rather than at any of
+them.
+
+| The message | What actually caused it |
+|---|---|
+| `duplicate field names in a valid requirement node are not allowed` | (a) `**Relations**` glued to the metadata block, with a formatter since separating the field name from its list. (b) A horizontal rule (`---`) anywhere in the document - measured in both places it can go, inside a node and straight after a chapter heading, and both give this message. (c) A body field that lost the blank line separating it from the metadata block |
+| `'utf-8' codec can't decode byte 0x.. in position ..: invalid start byte` | A file is not UTF-8, and **the message names no file**. Find it by decoding each source as UTF-8 yourself |
+| `Requirement <UID> references parent requirement which doesn't exist: <UID>.` | A relation names a `**UID**` no node declares. A parent may live in another file, but it has to exist somewhere |
+| `Relations list must not be empty.` | `**Relations**:` with nothing under it, usually because a formatter pushed a blank line between the field name and its list |
+| `Relations must directly follow requirement metadata without an empty line.` | `**Relations**` after the metadata block in a node with no body field behind which to sit. Give the node one: put a blank line before its last one-line field |
+| `Node is missing a field that is required by grammar: <NAME>.` | The grammar declares a field the node lacks. The `Hint` lists every declared field, so one edit converges |
+| `Wrong field order for requirement` | The fields are not in the grammar's declared order. One-line fields go under the heading, paragraph fields after, both in declared order |
+| `A process in the process pool was terminated abruptly...` | Not the real error. Re-run with `--no-parallelization` |
+
+### How the file itself has to be saved
+
+**UTF-8, and nothing else.** StrictDoc opens every source with `utf-8-sig`, so a byte order
+mark is read and discarded, but there is no fallback. One file in another encoding stops the
+export for the whole project, and the message names no file.
+
+**Save `.md` with LF.** This does not stop an export, which is exactly why it is easy to miss.
+StrictDoc reads `.md` without translating newlines, so a CRLF file carries a carriage return
+into every field value read out of it, and on into the JSON export where every query has to
+strip it again. Measured on 0.27.1: the same 13 files put 4265 carriage returns into 152
+`STATEMENT` fields as CRLF and none as LF. That is why the queries in `queries.md` are full of
+`rtrimstr("\r")`.
+
+**`.sdoc` and `.sgra` do not have this problem** (measured). They go through a reader that
+translates newlines and carried no carriage return through even when every one was CRLF.
 
 **You do not have to declare `TEXT`. It is built in** (measured). We exported with a grammar
 that declares only `SECTION` and `REQUIREMENT`, and the free text still became a `TEXT` node.

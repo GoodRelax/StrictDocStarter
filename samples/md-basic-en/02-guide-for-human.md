@@ -77,6 +77,30 @@ here and the two under `_assets/` - thirteen in all - become StrictDoc documents
 
 **Type**: SECTION
 
+### When the export stops
+
+**Type**: SECTION
+
+Copy a file that already works and edit it. That is the whole method, and it is why this set
+ships as documents you can copy rather than as blank forms.
+
+When it does stop, **one page holds every reason it can**: the two tables near the top of
+`00-ai-guide.md`. The first lists the rules while you write; the second is keyed by the error
+message, for afterwards, and that is the one you want when something has already broken.
+It is written for an AI, but the rules are the same ones you follow.
+
+Read the first line of the error before anything else - it names the file and the line. If the
+message is `A process in the process pool was terminated abruptly`, that is not the real error;
+run the export again with `--no-parallelization` and StrictDoc prints the one that matters.
+
+Two things about the file itself, neither of them about what you write in it. **Save every file
+as UTF-8** - StrictDoc reads nothing else, and a file in another encoding stops the export for
+the whole project with a message that does not say which file. **Save `.md` with LF line
+endings** - that one does not stop the export, so nothing forces it on you; it only means a
+carriage return ends up inside every field value and then inside the JSON export, where every
+query has to strip it again. `launch-strictdoc` checks both before it starts the server, names
+what it finds, and offers to fix it.
+
 ### Headings and fields
 
 **Type**: SECTION

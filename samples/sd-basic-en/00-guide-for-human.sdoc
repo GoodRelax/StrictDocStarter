@@ -47,6 +47,31 @@ The files line up like this.
 TITLE: The basics
 
 [[SECTION]]
+TITLE: Save every file as UTF-8
+
+[TEXT]
+STATEMENT: >>>
+**StrictDoc reads no other encoding.** Every source is opened as UTF-8, a byte order mark is
+read and discarded, and there is no fallback. One file in another encoding stops the export
+for the whole project, and the message does not say which file:
+
+```text
+error: 'utf-8' codec can't decode byte 0x82 in position 2: invalid start byte
+```
+
+On Japanese Windows the usual cause is a new file saved by an editor whose default is the
+ANSI code page. `launch-strictdoc` checks for this before it starts the server and names the
+file it found.
+
+**Line endings do not matter here.** `.sdoc` and `.sgra` are read through a reader that
+translates newlines, and carry no carriage return into the export even when every one of them
+is CRLF (measured on 0.27.1). That is not true of `.md`, so a project that mixes the two
+should keep its `.md` in LF - `samples/md-basic-en/00-ai-guide.md` explains why.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
 TITLE: Blocks and fields
 
 [TEXT]

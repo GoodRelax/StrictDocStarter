@@ -72,9 +72,9 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 {
   "DOCUMENT": 13,
   "REQUIREMENT": 7,
-  "SECTION": 147,
+  "SECTION": 150,
   "TEST_CASE": 4,
-  "TEXT": 148,
+  "TEXT": 151,
   "USE_CASE": 1
 }
 ```
@@ -546,7 +546,7 @@ DOC-FIG-STATE  1  図
 DOC-NOTE  1  表
 ```
 
-(全 128 行のうち代表を 16 行抜いた。115 行を 6 つの解説文書が占める — 本書・
+(全 129 行のうち代表を 16 行抜いた。116 行を 6 つの解説文書が占める — 本書・
 `00-ai-guide.md`・`02-guide-for-human.md`・`08-review.md`・`09-browser-guide.md`・
 `10-cowork-with-claude.md`。記法を説明する文書は記法を大量に抱えるためである。
 仕様書本体は 13 行しか出さない — `DOC-USECASES` 3 行、 `DOC-UPPER` 2 行、 `DOC-ARCH` 3 行、

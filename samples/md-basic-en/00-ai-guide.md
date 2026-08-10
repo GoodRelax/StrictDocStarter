@@ -268,6 +268,9 @@ not allowed` - pointing at the head of the node, never mentioning the blank line
 | Declare `SECTION` when you write your own grammar                   | `Semantic error: Invalid node type: SECTION.`                                                                                                         |
 | Give `SECTION` a `PROPERTIES: IS_COMPOSITE: True`                   | `The SECTION grammar element must be declared as composite.` (the Hint shows you the fix)                                                             |
 | Put `**Relations**` behind the body fields, one blank line after it | `duplicate field names in a valid requirement node are not allowed` - but only once a formatter has run, so an export that passes proves nothing here |
+| Save every file as UTF-8. A byte order mark is allowed              | `'utf-8' codec can't decode byte 0x82 in position 2: invalid start byte` - and it names no file                                                       |
+| Never write a horizontal rule (`---`) anywhere in a document        | `duplicate field names in a valid requirement node are not allowed`                                                                                   |
+| Name a parent that exists somewhere in the project                  | `Requirement SW-001 references parent requirement which doesn't exist: SYS-999.`                                                                      |
 
 You do not have to declare `TEXT`. It is built in (measured). We exported with a grammar
 that declares only `SECTION` and `REQUIREMENT`, and the free text still became a `TEXT` node.
@@ -304,8 +307,57 @@ fail to carry the real error out of the child process and swallow it (a defect i
 0.27.1: it fails to construct the exception class). `--debug` only prints a stack trace and
 never prints the location. `--no-parallelization` gets you there faster.
 
-**Only two errors hide their location from you: this one and the `string index out of range` in "The `$` trap".**
-For every other error, the first line tells you where it is.
+**Three errors hide their location from you: this one, the `string index out of range` in
+"The `$` trap", and the encoding error below.** For every other error, the first line tells you
+where it is.
+
+### The message you got, and what causes it
+
+**Type**: SECTION
+
+The table above is the list to follow while you write. This one is for afterwards, when the
+export has already stopped: **it is keyed by the message you are holding, because that is what
+you have in your hand at that moment, not the name of the rule you broke.**
+
+One message matters more than the rest. `duplicate field names in a valid requirement node
+are not allowed` has **three unrelated causes**, and the line number it prints points at the
+head of the node rather than at any of them.
+
+| The message                                                                   | What actually caused it                                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `duplicate field names in a valid requirement node are not allowed`           | (a) `**Relations**` is glued to the metadata block, and a formatter has since separated the field name from its list. (b) A horizontal rule (`---`) sits somewhere in the document - measured in both places it can go, inside a node and straight after a chapter heading, and both give this same message. (c) A body field lost the blank line that separated it from the metadata block |
+| `'utf-8' codec can't decode byte 0x.. in position ..: invalid start byte`     | A file is not UTF-8. **The message names no file** - on Japanese Windows this is usually a new `.md` saved by an editor whose default is the ANSI code page. `launch-strictdoc` checks for this before the server starts and names the file                                                                                                                                                 |
+| `Requirement <UID> references parent requirement which doesn't exist: <UID>.` | A `**Relations**` entry names a `**UID**` that no node in the project declares. A parent may live in another file, but it has to exist somewhere                                                                                                                                                                                                                                            |
+| `Relations list must not be empty.`                                           | `**Relations**:` is there with nothing under it - usually because a formatter pushed a blank line between the field name and its list                                                                                                                                                                                                                                                       |
+| `Relations must directly follow requirement metadata without an empty line.`  | `**Relations**` sits after the metadata block with a blank line before it, in a node that has no body field for it to sit behind. Give the node a body field: put a blank line before its last one-line field                                                                                                                                                                               |
+| `Node is missing a field that is required by grammar: <NAME>.`                | The grammar declares a field the node does not carry. The `Hint` lists every field the grammar declares, so one edit is enough                                                                                                                                                                                                                                                              |
+| `Wrong field order for requirement`                                           | The fields are not in the order the grammar declares them. One-line fields go in the block under the heading and paragraph fields go after it, and both follow the declared order                                                                                                                                                                                                           |
+| `A process in the process pool was terminated abruptly...`                    | Not the real error. Run the export again with `--no-parallelization` and StrictDoc prints the one that matters                                                                                                                                                                                                                                                                              |
+
+### How the file itself has to be saved
+
+**Type**: SECTION
+
+Two properties of the file, not of what you write in it.
+
+**UTF-8, and nothing else.** StrictDoc opens every source with `utf-8-sig`, so a byte order
+mark is read and discarded, but there is no fallback to any other encoding. One file in
+another encoding stops the export for the whole project, and the message names no file.
+
+**Save `.md` with LF line endings.** This does not stop an export, so nothing forces it on you,
+and that is exactly why it is easy to miss. StrictDoc reads `.md` without translating newlines,
+so a CRLF file carries a carriage return into every field value it reads out of that file, and
+those travel on into the JSON export - where every query has to strip them again. Measured on
+0.27.1: the same 13 files put 4265 carriage returns into 152 `STATEMENT` fields as CRLF, and
+none as LF. That is the reason the queries further down are full of `rtrimstr("\r")`.
+
+**`.sdoc` and `.sgra` do not have this problem** (measured). They go through a reader that
+translates newlines, and carried no carriage return through even when every one of them was
+CRLF. The rule is about `.md` alone.
+
+`launch-strictdoc` checks both before it starts the server: it names any file that is not UTF-8
+and offers to convert the ones whose encoding is certain, and it offers to change CRLF Markdown
+to LF. It asks first, backs up every file it rewrites, and never guesses an encoding.
 
 ### Rules that a worked example does not show you
 
