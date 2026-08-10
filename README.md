@@ -44,14 +44,14 @@ anything — including a full 122-requirement automotive specification.
 
 ## Next steps
 
-| Where | What is in it |
-|---|---|
-| [`docs/04-starter-guide.md`](docs/04-starter-guide.md) | **Everything else about StrictDocStarter**: what setup installs, running several documents at once, where the generated pages go, light and dark, the bundled samples, and pinning a StrictDoc version. English |
-| [`docs/01-environment.md`](docs/01-environment.md) | A step-by-step walkthrough of setup, with a troubleshooting table. Japanese |
-| [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) | **How to write** `.sdoc` and `.md` for StrictDoc — the minimum an author needs. Japanese |
-| [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) | Five copy-and-run `jq` queries over the JSON export. Japanese |
-| [`claude-skills/strictdoc-md/`](claude-skills/strictdoc-md) | A **Claude Code skill** that reads, writes and audits these specifications for you |
-| `try-json-query-en.bat` | A guided 7-step trial: export a specification to JSON, then pull answers out of it with `jq`. Double-click it. `-ja` is the same in Japanese |
+| Where                                                          | What is in it                                                                                                                                                                                                   |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`docs/04-starter-guide.md`](docs/04-starter-guide.md)         | **Everything else about StrictDocStarter**: what setup installs, running several documents at once, where the generated pages go, light and dark, the bundled samples, and pinning a StrictDoc version. English |
+| [`docs/01-environment.md`](docs/01-environment.md)             | A step-by-step walkthrough of setup, with a troubleshooting table. Japanese                                                                                                                                     |
+| [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md)       | **How to write** `.sdoc` and `.md` for StrictDoc — the minimum an author needs. Japanese                                                                                                                        |
+| [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) | Five copy-and-run `jq` queries over the JSON export. Japanese                                                                                                                                                   |
+| [`claude-skills/strictdoc-md/`](claude-skills/strictdoc-md)    | A **Claude Code skill** that reads, writes and audits these specifications for you                                                                                                                              |
+| `try-json-query-en.bat`                                        | A guided 7-step trial: export a specification to JSON, then pull answers out of it with `jq`. Double-click it. `-ja` is the same in Japanese                                                                    |
 
 If something goes wrong, run `gather-logs.bat`. It gathers the logs and a diagnostics
 report into a ZIP. Extract it, then ask Claude Code to read the contents and work out

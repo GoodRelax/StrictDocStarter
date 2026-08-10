@@ -86,20 +86,20 @@ in StrictDocStarter does exactly that.
 
 ### Rules that stop the whole export when you break them
 
-| Rule | Error message you get |
-|---|---|
-| Start the file with an H1. Put exactly one of them in a file | `the document must start with an H1 heading` |
-| **Do not skip a heading level.** Never put `###` right after `#` | `heading level forward jumps are not allowed: L1 -> L3` |
-| Do not put two or more empty lines right after a heading | `two or more consecutive empty lines are not allowed` |
-| Spell a field name exactly as the grammar declares it | `Invalid requirement field` |
-| Write a field named `TYPE` as `**TYPE**:`, in capitals | `**Type**:` is taken as the node-type selector before anything else |
-| Do not write a `Role` that the grammar does not declare | `Semantic error: Requirement relation type/role is not registered: Parent / Verifies` |
-| **Declare `SECTION` when you write your own grammar** | `Semantic error: Invalid node type: SECTION.` |
-| **Give `SECTION` a `PROPERTIES: IS_COMPOSITE: True`** | `The SECTION grammar element must be declared as composite.` (the Hint shows you the fix) |
+| Rule                                                                    | Error message you get                                                                                                                                 |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Start the file with an H1. Put exactly one of them in a file            | `the document must start with an H1 heading`                                                                                                          |
+| **Do not skip a heading level.** Never put `###` right after `#`        | `heading level forward jumps are not allowed: L1 -> L3`                                                                                               |
+| Do not put two or more empty lines right after a heading                | `two or more consecutive empty lines are not allowed`                                                                                                 |
+| Spell a field name exactly as the grammar declares it                   | `Invalid requirement field`                                                                                                                           |
+| Write a field named `TYPE` as `**TYPE**:`, in capitals                  | `**Type**:` is taken as the node-type selector before anything else                                                                                   |
+| Do not write a `Role` that the grammar does not declare                 | `Semantic error: Requirement relation type/role is not registered: Parent / Verifies`                                                                 |
+| **Declare `SECTION` when you write your own grammar**                   | `Semantic error: Invalid node type: SECTION.`                                                                                                         |
+| **Give `SECTION` a `PROPERTIES: IS_COMPOSITE: True`**                   | `The SECTION grammar element must be declared as composite.` (the Hint shows you the fix)                                                             |
 | **Put `**Relations**` behind the body fields, one blank line after it** | `duplicate field names in a valid requirement node are not allowed` - but only once a formatter has run, so an export that passes proves nothing here |
-| **Save every file as UTF-8. A byte order mark is allowed** | `'utf-8' codec can't decode byte 0x82 in position 2: invalid start byte` - and it names no file |
-| **Never write a horizontal rule (`---`) anywhere in a document** | `duplicate field names in a valid requirement node are not allowed` |
-| **Name a parent that exists somewhere in the project** | `Requirement SW-001 references parent requirement which doesn't exist: SYS-999.` |
+| **Save every file as UTF-8. A byte order mark is allowed**              | `'utf-8' codec can't decode byte 0x82 in position 2: invalid start byte` - and it names no file                                                       |
+| **Never write a horizontal rule (`---`) anywhere in a document**        | `duplicate field names in a valid requirement node are not allowed`                                                                                   |
+| **Name a parent that exists somewhere in the project**                  | `Requirement SW-001 references parent requirement which doesn't exist: SYS-999.`                                                                      |
 
 ### The message you got, and what causes it
 
@@ -111,16 +111,16 @@ message is what you are holding at that moment.
 causes**, and the line number it prints points at the head of the node rather than at any of
 them.
 
-| The message | What actually caused it |
-|---|---|
-| `duplicate field names in a valid requirement node are not allowed` | (a) `**Relations**` glued to the metadata block, with a formatter since separating the field name from its list. (b) A horizontal rule (`---`) anywhere in the document - measured in both places it can go, inside a node and straight after a chapter heading, and both give this message. (c) A body field that lost the blank line separating it from the metadata block |
-| `'utf-8' codec can't decode byte 0x.. in position ..: invalid start byte` | A file is not UTF-8, and **the message names no file**. Find it by decoding each source as UTF-8 yourself |
-| `Requirement <UID> references parent requirement which doesn't exist: <UID>.` | A relation names a `**UID**` no node declares. A parent may live in another file, but it has to exist somewhere |
-| `Relations list must not be empty.` | `**Relations**:` with nothing under it, usually because a formatter pushed a blank line between the field name and its list |
-| `Relations must directly follow requirement metadata without an empty line.` | `**Relations**` after the metadata block in a node with no body field behind which to sit. Give the node one: put a blank line before its last one-line field |
-| `Node is missing a field that is required by grammar: <NAME>.` | The grammar declares a field the node lacks. The `Hint` lists every declared field, so one edit converges |
-| `Wrong field order for requirement` | The fields are not in the grammar's declared order. One-line fields go under the heading, paragraph fields after, both in declared order |
-| `A process in the process pool was terminated abruptly...` | Not the real error. Re-run with `--no-parallelization` |
+| The message                                                                   | What actually caused it                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `duplicate field names in a valid requirement node are not allowed`           | (a) `**Relations**` glued to the metadata block, with a formatter since separating the field name from its list. (b) A horizontal rule (`---`) anywhere in the document - measured in both places it can go, inside a node and straight after a chapter heading, and both give this message. (c) A body field that lost the blank line separating it from the metadata block |
+| `'utf-8' codec can't decode byte 0x.. in position ..: invalid start byte`     | A file is not UTF-8, and **the message names no file**. Find it by decoding each source as UTF-8 yourself                                                                                                                                                                                                                                                                    |
+| `Requirement <UID> references parent requirement which doesn't exist: <UID>.` | A relation names a `**UID**` no node declares. A parent may live in another file, but it has to exist somewhere                                                                                                                                                                                                                                                              |
+| `Relations list must not be empty.`                                           | `**Relations**:` with nothing under it, usually because a formatter pushed a blank line between the field name and its list                                                                                                                                                                                                                                                  |
+| `Relations must directly follow requirement metadata without an empty line.`  | `**Relations**` after the metadata block in a node with no body field behind which to sit. Give the node one: put a blank line before its last one-line field                                                                                                                                                                                                                |
+| `Node is missing a field that is required by grammar: <NAME>.`                | The grammar declares a field the node lacks. The `Hint` lists every declared field, so one edit converges                                                                                                                                                                                                                                                                    |
+| `Wrong field order for requirement`                                           | The fields are not in the grammar's declared order. One-line fields go under the heading, paragraph fields after, both in declared order                                                                                                                                                                                                                                     |
+| `A process in the process pool was terminated abruptly...`                    | Not the real error. Re-run with `--no-parallelization`                                                                                                                                                                                                                                                                                                                       |
 
 ### How the file itself has to be saved
 
@@ -206,8 +206,8 @@ For every other error, the first line tells you where it is.
   **declare it after `TITLE`**
 - **Declare `FIELDS` in `.sgra` in this order** (it is not the order you write them in `.md`).
   `MID / UID / LEVEL / STATUS / TAGS (the built-in meta fields) → TITLE →
-  your own single-line fields → STATEMENT →
-  multi-line fields such as RATIONALE`. **Break the order and json, html and sdoc all stop on the
+your own single-line fields → STATEMENT →
+multi-line fields such as RATIONALE`. **Break the order and json, html and sdoc all stop on the
   spot** (measured): `Semantic error: Wrong field order for requirement: [...]`, and the `Hint:`
   line names the offending field and prints the order the grammar declares
 - **Only five fields written directly under the document's H1 survive into the JSON:
@@ -351,16 +351,16 @@ ELEMENTS:
 
 How to read it:
 
-| What you write | What it means |
-|---|---|
-| `- TAG: <name>` | Declares one node type. `**Type**: <name>` on the `.md` side points at it |
-| `PROPERTIES: IS_COMPOSITE: True` | The node can hold other nodes inside it. **`SECTION` requires this** |
-| `- TITLE: <name>` | Declares one field. `**<name>**:` on the `.md` side points at it |
-| `TYPE: String` | Any string |
-| `TYPE: SingleChoice(A, B, C)` | An enumeration. A value that this list omits stops the export |
-| `REQUIRED: True` | Omitting the field stops the export |
-| `RELATIONS: - TYPE: Parent` | You can now draw a `Parent` link in `**Relations**:` |
-| `ROLE: <name>` | You can now write `**Role**:` on that relation. **Without it you cannot use `Role`** |
+| What you write                   | What it means                                                                        |
+| -------------------------------- | ------------------------------------------------------------------------------------ |
+| `- TAG: <name>`                  | Declares one node type. `**Type**: <name>` on the `.md` side points at it            |
+| `PROPERTIES: IS_COMPOSITE: True` | The node can hold other nodes inside it. **`SECTION` requires this**                 |
+| `- TITLE: <name>`                | Declares one field. `**<name>**:` on the `.md` side points at it                     |
+| `TYPE: String`                   | Any string                                                                           |
+| `TYPE: SingleChoice(A, B, C)`    | An enumeration. A value that this list omits stops the export                        |
+| `REQUIRED: True`                 | Omitting the field stops the export                                                  |
+| `RELATIONS: - TYPE: Parent`      | You can now draw a `Parent` link in `**Relations**:`                                 |
+| `ROLE: <name>`                   | You can now write `**Role**:` on that relation. **Without it you cannot use `Role`** |
 
 **Rules:**
 
@@ -371,8 +371,8 @@ How to read it:
   Write it as `**TYPE**:` in the `.md`, and declare it after `TITLE`
 - **The order in which you declare the fields constrains the `.md` side.** Declare them in the order
   `MID / UID / LEVEL / STATUS / TAGS (the built-in meta fields) → TITLE →
-  your own single-line fields → STATEMENT →
-  multi-line fields such as RATIONALE`. **In any other order json, html and sdoc all stop on the
+your own single-line fields → STATEMENT →
+multi-line fields such as RATIONALE`. **In any other order json, html and sdoc all stop on the
   spot** (measured): `Semantic error: Wrong field order for requirement: [...]`, and the `Hint:`
   line names the offending field and prints the order the grammar declares
 - **`--formats=json` already tells you whether the order is right.** "json passes but sdoc fails"
@@ -394,11 +394,11 @@ you need `exclude_doc_paths` or a screen setting (do not put it in the parent fo
 **StrictDoc reads this file exactly once, at startup.** When you edit a document's `.md`, the
 server picks the change up in under a second, but **it never picks up the project settings again.**
 
-| What you edited | Restart the server |
-|---|---|
-| A `.md` document | Not needed. The server applies it automatically |
-| A `.sgra` grammar | Not needed |
-| **`strictdoc_config.py`** | **Needed** |
+| What you edited           | Restart the server                              |
+| ------------------------- | ----------------------------------------------- |
+| A `.md` document          | Not needed. The server applies it automatically |
+| A `.sgra` grammar         | Not needed                                      |
+| **`strictdoc_config.py`** | **Needed**                                      |
 
 **This symptom hides itself well.** You fixed the setting, the screen still shows the old state,
 so you conclude that you got the setting wrong. **The server also keeps writing HTML from the old

@@ -31,10 +31,10 @@ traps in section 4.**
 **Export to JSON once, then query it.** Measured on the bundled `md-basic` samples,
 against the cost of reading every `.md` in the folder:
 
-| What you read | Cost against reading every `.md` |
-|---|---:|
-| The requirement list through jq | **under 0.2 %** |
-| `index.json` whole | **more than every `.md` put together** |
+| What you read                   |       Cost against reading every `.md` |
+| ------------------------------- | -------------------------------------: |
+| The requirement list through jq |                        **under 0.2 %** |
+| `index.json` whole              | **more than every `.md` put together** |
 
 Reading the JSON whole costs you more than the `.md` files it came from. It exists
 for `jq` to read, not for you.
@@ -95,13 +95,13 @@ The built-in grammar already gives you `**UID**:`, `**Statement**:`,
 `Parent`. **You must write a `.sgra` grammar the moment you need any of these**
 (all measured):
 
-| What you want | Built-in grammar |
-|---|---|
-| `**Role**: ` on a relation | **Stops** - `relation type/role is not registered` |
-| `**Type**: TEST_CASE` or any custom node type | **Stops** - `Invalid node type` |
-| A custom field such as `PRIORITY` | **Stops** |
+| What you want                                 | Built-in grammar                                   |
+| --------------------------------------------- | -------------------------------------------------- |
+| `**Role**: ` on a relation                    | **Stops** - `relation type/role is not registered` |
+| `**Type**: TEST_CASE` or any custom node type | **Stops** - `Invalid node type`                    |
+| A custom field such as `PRIORITY`             | **Stops**                                          |
 
-**★ A node with no `**Type**:` line is a `REQUIREMENT`.** That is the default,
+**★ A node with no `**Type**:`line is a`REQUIREMENT`.** That is the default,
 and it is the mistake you will actually make: you declare `TEST_CASE` in the
 grammar, write the nodes, forget the `**Type**:` line, and StrictDoc reads them
 as requirements and rejects the fields they carry.
@@ -122,12 +122,12 @@ export, and a `.sgra` template you can paste.
 **These four break silently or stop the export with no location.** Read
 `references/traps.md` before you write figures, math or tables.
 
-| Trap | What happens |
-|---|---|
-| A paragraph or table cell **ends with `$`** | HTML export stops with `error: string index out of range`. **JSON export succeeds**, so a JSON-only workflow never sees it |
-| **Two `$` on one line** | MathJax eats the text between them. `The cost is $100 to $200` renders "100 to " as math. The export succeeds |
-| A pipe **not escaped** inside a table cell | The row splits. A backtick code span does **not** protect a pipe, though it does protect a `$` |
-| An attachment **outside `_assets/`**, or a path that does not exist | The export succeeds and the browser gets a 404 |
+| Trap                                                                | What happens                                                                                                               |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| A paragraph or table cell **ends with `$`**                         | HTML export stops with `error: string index out of range`. **JSON export succeeds**, so a JSON-only workflow never sees it |
+| **Two `$` on one line**                                             | MathJax eats the text between them. `The cost is $100 to $200` renders "100 to " as math. The export succeeds              |
+| A pipe **not escaped** inside a table cell                          | The row splits. A backtick code span does **not** protect a pipe, though it does protect a `$`                             |
+| An attachment **outside `_assets/`**, or a path that does not exist | The export succeeds and the browser gets a 404                                                                             |
 
 **When the export dies with no file name:**
 
@@ -176,13 +176,13 @@ requirement in an English project got flagged (measured) - and since this script
 exits with the number of failing checks, gating a build on it would then fail
 forever.
 
-| Verdict | Japanese | English |
-|---|---|---|
-| `ears-shape` | the sentence does not end in 「こと。」 | the sentence carries no `shall` |
+| Verdict      | Japanese                                  | English                                                                                                       |
+| ------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `ears-shape` | the sentence does not end in 「こと。」   | the sentence carries no `shall`                                                                               |
 | `ears-order` | a condition marker sits after the subject | the sentence opens with something other than `WHEN` / `WHILE` / `IF` / `WHERE`, yet one of them appears later |
-| `passive` | される / された / られる | a form of "be" plus a past participle |
-| `no-subject` | no は before the first comma | - (an English sentence states its subject) |
-| `negative` | ない / ません | `shall not` / `must not` / `never` |
+| `passive`    | される / された / られる                  | a form of "be" plus a past participle                                                                         |
+| `no-subject` | no は before the first comma              | - (an English sentence states its subject)                                                                    |
+| `negative`   | ない / ません                             | `shall not` / `must not` / `never`                                                                            |
 
 **`wording candidates` reports candidates, not violations.** A shell script can
 decide which strings are present. It cannot decide intent, so an intended
@@ -248,10 +248,10 @@ a document.
 **Two settings are project agreements, not StrictDoc behaviour.** Pass them to
 the queries as arguments; never edit a query body.
 
-| Agreement | Default here | How to override |
-|---|---|---|
-| UID prefix that marks a figure document | `DOC-FIG-` | `--arg figprefix` |
-| Which documents only explain notation | none | `--arg skip 'UID,UID'` |
+| Agreement                               | Default here | How to override        |
+| --------------------------------------- | ------------ | ---------------------- |
+| UID prefix that marks a figure document | `DOC-FIG-`   | `--arg figprefix`      |
+| Which documents only explain notation   | none         | `--arg skip 'UID,UID'` |
 
 A document that explains notation carries figures, math and tables in bulk, so
 it drowns any count you take. List the requirement-free documents with the first
@@ -259,10 +259,10 @@ query in section 2 and pass them to `--arg skip`.
 
 ## Reference files
 
-| File | Read it when |
-|---|---|
-| `references/authoring.md` | You write or change a `.md` document, or need a `.sgra` |
-| `references/notation.md` | You add a figure, formula, code block, table or attachment |
-| `references/traps.md` | The export fails, or before you ship anything with math or tables |
-| `references/queries.md` | The three queries in section 2 do not answer the question |
-| `scripts/audit.sh` | Always, after writing |
+| File                      | Read it when                                                      |
+| ------------------------- | ----------------------------------------------------------------- |
+| `references/authoring.md` | You write or change a `.md` document, or need a `.sgra`           |
+| `references/notation.md`  | You add a figure, formula, code block, table or attachment        |
+| `references/traps.md`     | The export fails, or before you ship anything with math or tables |
+| `references/queries.md`   | The three queries in section 2 do not answer the question         |
+| `scripts/audit.sh`        | Always, after writing                                             |

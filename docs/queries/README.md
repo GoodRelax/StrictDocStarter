@@ -13,13 +13,13 @@ jq -r -f docs/queries/q5-children.jq out/json/index.json
 `"` inside a quoted argument, so `jq '...' file` breaks there; `jq -f file.jq`
 works the same in PowerShell, cmd and Git Bash.
 
-| File | Answers |
-|---|---|
-| `q1-section-requirements.jq` | which requirements are in a section (`--arg sec <title>`) |
-| `q2-one-requirement.jq` | every field of one requirement |
-| `q3-keyword.jq` | which requirements mention a keyword (`--arg kw <keyword>`) |
-| `q4-parents.jq` | what this requirement derives from (transitively) |
-| `q5-children.jq` | what derives from this requirement |
+| File                         | Answers                                                     |
+| ---------------------------- | ----------------------------------------------------------- |
+| `q1-section-requirements.jq` | which requirements are in a section (`--arg sec <title>`)   |
+| `q2-one-requirement.jq`      | every field of one requirement                              |
+| `q3-keyword.jq`              | which requirements mention a keyword (`--arg kw <keyword>`) |
+| `q4-parents.jq`              | what this requirement derives from (transitively)           |
+| `q5-children.jq`             | what derives from this requirement                          |
 
 All five work against any StrictDoc project.
 

@@ -19,13 +19,13 @@ warns about it — it does **not** configure one for you.
 
 ## What's inside
 
-| Tool | Role | How to run |
-|---|---|---|
-| `setup-strictdoc.bat` | One-time setup (admin): installs the StrictDoc toolchain + developer tools, and can optionally clone a repo. Shows a plan, then asks once. Fully configurable via `setup.config.json` — see [What setup installs](#what-setup-installs). | Double-click → UAC → type `yes` |
-| `launch-strictdoc.bat` | Daily use: **drag a folder (or a `.sdoc` file) onto it** to open it in your browser — or double-click to be prompted. One window per document. | Drag-and-drop or double-click |
-| `change-color-mode.bat` | Switches the generated pages between **auto / light / dark**. Default is `auto`, which follows the Windows light/dark setting. | Double-click |
-| `try-json-query-en.bat`, `try-json-query-ja.bat` | A guided 7-step trial of querying a specification as JSON with `jq`: each step explains itself, waits for Enter, then runs the command it just showed. Drop a project folder on it, or double-click to use the bundled `md-basic-en` / `md-basic-ja`. | Drag-and-drop or double-click |
-| `gather-logs.bat` | Collects logs + a diagnostics report into a ZIP for troubleshooting | Double-click |
+| Tool                                             | Role                                                                                                                                                                                                                                                  | How to run                      |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `setup-strictdoc.bat`                            | One-time setup (admin): installs the StrictDoc toolchain + developer tools, and can optionally clone a repo. Shows a plan, then asks once. Fully configurable via `setup.config.json` — see [What setup installs](#what-setup-installs).              | Double-click → UAC → type `yes` |
+| `launch-strictdoc.bat`                           | Daily use: **drag a folder (or a `.sdoc` file) onto it** to open it in your browser — or double-click to be prompted. One window per document.                                                                                                        | Drag-and-drop or double-click   |
+| `change-color-mode.bat`                          | Switches the generated pages between **auto / light / dark**. Default is `auto`, which follows the Windows light/dark setting.                                                                                                                        | Double-click                    |
+| `try-json-query-en.bat`, `try-json-query-ja.bat` | A guided 7-step trial of querying a specification as JSON with `jq`: each step explains itself, waits for Enter, then runs the command it just showed. Drop a project folder on it, or double-click to use the bundled `md-basic-en` / `md-basic-ja`. | Drag-and-drop or double-click   |
+| `gather-logs.bat`                                | Collects logs + a diagnostics report into a ZIP for troubleshooting                                                                                                                                                                                   | Double-click                    |
 
 ## What setup installs
 
@@ -47,7 +47,7 @@ and asks once for `yes`. Already-installed tools are skipped, so re-running is s
 
 **Optional (off by default — opt in via `setup.config.json`):**
 
-- Claude Code **CLI** (via winget *or* npm; the npm path installs Node.js LTS first)
+- Claude Code **CLI** (via winget _or_ npm; the npm path installs Node.js LTS first)
 - **Clone a Git repository** and link it into an Obsidian vault (a junction): set
   `repository.url` (with `paths.clone_target` / `vault`); skipped while the URL is empty.
   Private repos trigger a `gh auth login` browser flow.
@@ -125,13 +125,13 @@ requirement sentences — so you can put the folders side by side and compare th
 **The `sd-` set is deliberately the smaller of the two** (6 documents against 11): it is
 there to show the notation, not to carry a second copy of every guide.
 
-| Path | What |
-|---|---|
-| `samples/md-basic-en/` | **Default.** **The basics in `.md` — copy this folder to start your own spec.** The smallest thing that still works as a requirements spec: three upper requirements, four lower ones that point at them, four test cases that point at those, and review status carried on the requirements themselves — each group in its own file, so the traceability actually crosses file boundaries. One shared grammar file (`basic.sgra`) adds the `TEST_CASE` node type, the `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` fields and the `Verifies` relation role. Also covers prose that is deliberately *not* a requirement, linking to another `.md` file, an externalised Mermaid diagram, an SVG image, what an AI needs in order to read the set, and how to edit it from the browser and alongside Claude. English. |
-| `samples/md-basic-ja/` | The same spec in Japanese. |
-| `samples/sd-basic-en/`, `samples/sd-basic-ja/` | **The same spec written in `.sdoc`.** Adds what is specific to `.sdoc`: both RST table forms (`+---+` grid and `===` simple), `[DOCUMENT_FROM_FILE]` to pull a diagram fragment into the body (Markdown has no equivalent), and one document that declares `MARKUP: Markdown` to get pipe tables. |
-| `samples/md-sovd-automotive-ja/` | A full Japanese SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) requirements spec — overview, stakeholder requirements, use cases, authentication, data access, DTC diagnostics, OTA software update, architecture, HTTP API, and test spec & results — with ASIL (ISO 26262) and A-SPICE layer custom fields, Mermaid diagrams, math, and traceability. Requirements are written in EARS and tests in Gherkin. Written entirely in `.md`. |
-| `samples/md-sovd-automotive-en/` | The English version of the above. |
+| Path                                           | What                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `samples/md-basic-en/`                         | **Default.** **The basics in `.md` — copy this folder to start your own spec.** The smallest thing that still works as a requirements spec: three upper requirements, four lower ones that point at them, four test cases that point at those, and review status carried on the requirements themselves — each group in its own file, so the traceability actually crosses file boundaries. One shared grammar file (`basic.sgra`) adds the `TEST_CASE` node type, the `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` fields and the `Verifies` relation role. Also covers prose that is deliberately _not_ a requirement, linking to another `.md` file, an externalised Mermaid diagram, an SVG image, what an AI needs in order to read the set, and how to edit it from the browser and alongside Claude. English. |
+| `samples/md-basic-ja/`                         | The same spec in Japanese.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `samples/sd-basic-en/`, `samples/sd-basic-ja/` | **The same spec written in `.sdoc`.** Adds what is specific to `.sdoc`: both RST table forms (`+---+` grid and `===` simple), `[DOCUMENT_FROM_FILE]` to pull a diagram fragment into the body (Markdown has no equivalent), and one document that declares `MARKUP: Markdown` to get pipe tables.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `samples/md-sovd-automotive-ja/`               | A full Japanese SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) requirements spec — overview, stakeholder requirements, use cases, authentication, data access, DTC diagnostics, OTA software update, architecture, HTTP API, and test spec & results — with ASIL (ISO 26262) and A-SPICE layer custom fields, Mermaid diagrams, math, and traceability. Requirements are written in EARS and tests in Gherkin. Written entirely in `.md`.                                                                                                                                                                                                                                                                                                                                                                |
+| `samples/md-sovd-automotive-en/`               | The English version of the above.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 `md-basic-en` is what `launch-strictdoc.bat` opens when you double-click it with nothing
 dropped. It is deliberately small — the point is that you can read all of it and then copy it.
@@ -165,17 +165,17 @@ published copy is kept in step with the one Claude Code actually reads.
 part of the Windows quickstart — reach for them only if you are changing a sample or the
 documentation. Each one takes the JSON that `strictdoc export --formats=json` writes.
 
-| Tool | What it checks |
-|---|---|
-| [`tools/ascii-audit.py`](../tools/ascii-audit.py) | code and configuration files hold no non-ASCII characters (NFR-010) |
-| [`tools/verify-jq.py`](../tools/verify-jq.py) | every `jq` example embedded in a document still runs |
-| [`tools/check-jq-output.py`](../tools/check-jq-output.py) | the output pasted under a query still matches what the query prints |
-| [`tools/run-query-fixture.py`](../tools/run-query-fixture.py) | every query returns at least one row against a fixture built to hit them all |
-| [`tools/check-references.py`](../tools/check-references.py) | quoted headings, `[LINK:]` targets and file names named in prose all resolve |
-| [`tools/check-symmetry.py`](../tools/check-symmetry.py) | the `ja` and `en` editions carry the same documents, nodes and relations |
-| [`tools/check-numbers.py`](../tools/check-numbers.py) | a count claimed in prose matches the output it sits beside |
-| [`tools/check-skill-sync.py`](../tools/check-skill-sync.py) | the packaged skill still says what the worked example says |
-| [`tools/check-grammar-copies.py`](../tools/check-grammar-copies.py) | every copy of a grammar file still holds the same grammar |
+| Tool                                                                  | What it checks                                                                                                              |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| [`tools/ascii-audit.py`](../tools/ascii-audit.py)                     | code and configuration files hold no non-ASCII characters (NFR-010)                                                         |
+| [`tools/verify-jq.py`](../tools/verify-jq.py)                         | every `jq` example embedded in a document still runs                                                                        |
+| [`tools/check-jq-output.py`](../tools/check-jq-output.py)             | the output pasted under a query still matches what the query prints                                                         |
+| [`tools/run-query-fixture.py`](../tools/run-query-fixture.py)         | every query returns at least one row against a fixture built to hit them all                                                |
+| [`tools/check-references.py`](../tools/check-references.py)           | quoted headings, `[LINK:]` targets and file names named in prose all resolve                                                |
+| [`tools/check-symmetry.py`](../tools/check-symmetry.py)               | the `ja` and `en` editions carry the same documents, nodes and relations                                                    |
+| [`tools/check-numbers.py`](../tools/check-numbers.py)                 | a count claimed in prose matches the output it sits beside                                                                  |
+| [`tools/check-skill-sync.py`](../tools/check-skill-sync.py)           | the packaged skill still says what the worked example says                                                                  |
+| [`tools/check-grammar-copies.py`](../tools/check-grammar-copies.py)   | every copy of a grammar file still holds the same grammar                                                                   |
 | [`tools/check-format-fixpoint.py`](../tools/check-format-fixpoint.py) | a sample still exports **after** a Markdown formatter has run over it, and is shipped in a shape the formatter leaves alone |
 
 **`check-format-fixpoint.py` is the one to run after editing a `.md` sample**, and it is the
@@ -249,12 +249,12 @@ round trip, which took about a minute on the machine this was measured on).
 
 Either way, the version comes from `strictdoc.version` in `setup.config.json`:
 
-| Value | Meaning |
-|---|---|
-| `latest` (default) | newest release on PyPI |
-| `==0.27.1` | exactly this version — use for reproducibility |
-| `~=0.27.0` | `>=0.27, <0.28` |
-| `0.27.1` | bare version, read as `==0.27.1` |
+| Value              | Meaning                                        |
+| ------------------ | ---------------------------------------------- |
+| `latest` (default) | newest release on PyPI                         |
+| `==0.27.1`         | exactly this version — use for reproducibility |
+| `~=0.27.0`         | `>=0.27, <0.28`                                |
+| `0.27.1`           | bare version, read as `==0.27.1`               |
 
 **Pin it if you do not want setup moving you.** With `==0.27.1` and 0.27.1 installed, Phase C
 reports `[SKIP] ... (matches strictdoc.version)` and never calls pip — the check is a string

@@ -8,12 +8,12 @@ strictdoc export samples\md-basic-en --formats=json --output-dir exported-json
 jq -r -f jq-samples\01-open-findings-en.jq exported-json\json\index.json
 ```
 
-| ファイル | 何を出すか | 書いてある言語 |
-|---|---|---|
-| `01-open-findings-en.jq` | 未対処のレビュー指摘を 1 行ずつ | 英語 |
-| `02-keyword-ja.jq` | 「変換」を含む要求 | 日本語 |
-| `03-findings-json.jq` | レビュー済みのノードを JSON の配列で | 英語 |
-| `04-keyword-en.jq` | `convert` を含む要求 | 英語 |
+| ファイル                 | 何を出すか                           | 書いてある言語 |
+| ------------------------ | ------------------------------------ | -------------- |
+| `01-open-findings-en.jq` | 未対処のレビュー指摘を 1 行ずつ      | 英語           |
+| `02-keyword-ja.jq`       | 「変換」を含む要求                   | 日本語         |
+| `03-findings-json.jq`    | レビュー済みのノードを JSON の配列で | 英語           |
+| `04-keyword-en.jq`       | `convert` を含む要求                 | 英語           |
 
 各手順の説明文は `lesson-en/` と `lesson-ja/` の `.txt` に置いてあります。
 `.bat` は `type` で表示するだけです。日本語版がそうせざるを得ないのは、cmd.exe が

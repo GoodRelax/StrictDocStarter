@@ -13,17 +13,17 @@ Everything here was measured on strictdoc 0.27.1.
 **We measured everything below on strictdoc 0.27.1.** "Passes" means the export
 succeeded and produced the HTML we intended.
 
-| Notation | Result | HTML it produces |
-|---|---|---|
-| a ` ```mermaid ` fence | **passes** | `<pre class="mermaid">` |
-| `$E = mc^2$` (inline) | **passes** | `<span class="math notranslate nohighlight">\( ... \)</span>` |
-| `$$ ... $$` (block) | **passes** | `<div class="math notranslate nohighlight">\[ ... \]</div>` |
-| a ` ```python ` fence | passes but **gets no color** | `<code class="language-python">` |
-| a pipe table | **passes** | `<table>` |
-| `![alt](_assets/x.svg)` | **passes** | `<img>` |
-| `[LINK: UID]` | **passes** | `<a href="....html#UID">🔗 title</a>` |
-| RST's `.. math::` | **does not pass** | `<p>.. math::</p>` - just a paragraph |
-| `[DOCUMENT_FROM_FILE]` | **does not pass** | see 2.6 below |
+| Notation                | Result                       | HTML it produces                                              |
+| ----------------------- | ---------------------------- | ------------------------------------------------------------- |
+| a ` ```mermaid ` fence  | **passes**                   | `<pre class="mermaid">`                                       |
+| `$E = mc^2$` (inline)   | **passes**                   | `<span class="math notranslate nohighlight">\( ... \)</span>` |
+| `$$ ... $$` (block)     | **passes**                   | `<div class="math notranslate nohighlight">\[ ... \]</div>`   |
+| a ` ```python ` fence   | passes but **gets no color** | `<code class="language-python">`                              |
+| a pipe table            | **passes**                   | `<table>`                                                     |
+| `![alt](_assets/x.svg)` | **passes**                   | `<img>`                                                       |
+| `[LINK: UID]`           | **passes**                   | `<a href="....html#UID">🔗 title</a>`                         |
+| RST's `.. math::`       | **does not pass**            | `<p>.. math::</p>` - just a paragraph                         |
+| `[DOCUMENT_FROM_FILE]`  | **does not pass**            | see 2.6 below                                                 |
 
 **StrictDoc bundles MathJax and Mermaid into the output folder** (`_static/mathjax/tex-mml-chtml.js` /
 `_static/mermaid/mermaid.min.js`). StrictDoc makes no outside connection. You add nothing to the configuration.
@@ -32,11 +32,11 @@ succeeded and produced the HTML we intended.
 
 **There is one purpose - to stop a large figure from cutting the body in half.**
 
-| Kind of figure | Guideline for moving it out |
-|---|---|
-| **Sequence diagram** | 5 lifelines or more |
-| **Class diagram** | 5 classes or more |
-| **Flowchart** | no guideline |
+| Kind of figure       | Guideline for moving it out |
+| -------------------- | --------------------------- |
+| **Sequence diagram** | 5 lifelines or more         |
+| **Class diagram**    | 5 classes or more           |
+| **Flowchart**        | no guideline                |
 
 **This is a guideline, not a gate.** The writer makes the final call, and `audit.sh`
 deliberately does not enforce it.
@@ -53,11 +53,11 @@ the numbers and passes no judgement.
 **Line count does not predict how large a figure draws.** Measured on
 `samples/md-basic-en`, in a 520 px body column:
 
-| Figure | Lines | Natural width | Size in the column |
-|---|---:|---:|---:|
-| The flowchart in `06-lower.md` | 8 | 1608 px | 32 % |
-| The interaction figure in `05-architecture.md` | 8 | 868 px | 60 % |
-| The state machine in `_assets/fig-state.md` | 19 | 1118 px | 47 % |
+| Figure                                         | Lines | Natural width | Size in the column |
+| ---------------------------------------------- | ----: | ------------: | -----------------: |
+| The flowchart in `06-lower.md`                 |     8 |       1608 px |               32 % |
+| The interaction figure in `05-architecture.md` |     8 |        868 px |               60 % |
+| The state machine in `_assets/fig-state.md`    |    19 |       1118 px |               47 % |
 
 **Two figures of the same 8 lines split into 32 % and 60 %, and the 19-line figure landed
 between them.** What counts is how many things sit side by side: every lifeline, and every
@@ -75,20 +75,20 @@ is unreadable, the only cure is to make the figure narrower.
 
 **Line count does not predict what a figure costs to read either.** The two bands overlap.
 
-| Content | tokens |
-|---|---:|
-| One paragraph of free text | 15-50 |
-| A 6-15 line Mermaid figure | 124-179 |
+| Content                     |  tokens |
+| --------------------------- | ------: |
+| One paragraph of free text  |   15-50 |
+| A 6-15 line Mermaid figure  | 124-179 |
 | A 16-24 line Mermaid figure | 110-228 |
 
 We measured what you gain by moving a figure out as well. Against the cost of reading
 every `.md` in the set:
 
-| What you pull | Share of reading everything |
-|---|---:|
-| The requirement list alone | **under 0.2 %** |
-| The large figure alone, named by UID | **about 0.5 %** |
-| Every `TEXT` node (figures and math included) | **over 90 %** |
+| What you pull                                 | Share of reading everything |
+| --------------------------------------------- | --------------------------: |
+| The requirement list alone                    |             **under 0.2 %** |
+| The large figure alone, named by UID          |             **about 0.5 %** |
+| Every `TEXT` node (figures and math included) |               **over 90 %** |
 
 **As long as you pull requirements, the reader pays not one token for a figure you moved into its own document.**
 You name it by UID only when you need it.
@@ -124,10 +124,10 @@ of `[LINK:]` from the title of the target, so **you cannot choose that text.**
 **★ Rule: give a figure document one shared prefix, in its file name and in its UID.**
 StrictDoc does not fix the prefix itself; **each project agrees on its own.**
 
-| | Rule | What this worked example agrees on |
-|---|---|---|
-| File name | Start it with a prefix that marks it as a figure | **`fig-`** - `_assets/fig-state.md` |
-| `**UID**:` | Start it with a prefix that marks it as a figure | **`DOC-FIG-`** - `DOC-FIG-STATE` |
+|            | Rule                                             | What this worked example agrees on  |
+| ---------- | ------------------------------------------------ | ----------------------------------- |
+| File name  | Start it with a prefix that marks it as a figure | **`fig-`** - `_assets/fig-state.md` |
+| `**UID**:` | Start it with a prefix that marks it as a figure | **`DOC-FIG-`** - `DOC-FIG-STATE`    |
 
 **Only the UID works for a machine.** The audit query (example 14b) decides which figures you
 already moved out from the prefix you pass with `--arg figprefix`.
@@ -160,10 +160,10 @@ you cannot use this method.
 
 ### 2.2 Math - only `$` and `$$`
 
-| How you write it | What comes out |
-|---|---|
-| `$ ... $` | It sits inside the sentence |
-| `$$ ... $$` | It becomes a line of its own |
+| How you write it | What comes out               |
+| ---------------- | ---------------------------- |
+| `$ ... $`        | It sits inside the sentence  |
+| `$$ ... $$`      | It becomes a line of its own |
 
 **You cannot use RST's `.. math::`.** Write it and the characters `.. math::` come out as a paragraph.
 **The export does not stop, so you notice nothing until you look at the HTML.**
@@ -219,11 +219,11 @@ Three backticks close the fence partway through. StrictDoc reads a four-backtick
 This is the include notation of `.sdoc`. **It not only fails to work in `.md`, it also breaks
 silently depending on how you write it** (measured).
 
-| How you write it | What happens |
-|---|---|
-| `[DOCUMENT_FROM_FILE]: path` | Markdown reads it as a link reference definition and **drops the whole line** |
-| `[DOCUMENT_FROM_FILE]` after you wrote the line above | It resolves to that definition and **becomes a broken link** |
-| `[DOCUMENT_FROM_FILE]` on its own | It comes out as plain text |
+| How you write it                                      | What happens                                                                  |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `[DOCUMENT_FROM_FILE]: path`                          | Markdown reads it as a link reference definition and **drops the whole line** |
+| `[DOCUMENT_FROM_FILE]` after you wrote the line above | It resolves to that definition and **becomes a broken link**                  |
+| `[DOCUMENT_FROM_FILE]` on its own                     | It comes out as plain text                                                    |
 
 **The export succeeds in every case.** When you want to split content into its own document, use the `[LINK:]` from 2.1.
 
@@ -233,15 +233,15 @@ silently depending on how you write it** (measured).
 
 ```markdown
 | symbol | meaning |
-|---|---|
-| a | alpha |
+| ------ | ------- |
+| a      | alpha   |
 ```
 
 **A table passes even when you drop the pipes at both ends** (measured), but **always write them.**
 Drop them and the table-checking query in `queries.md` cannot find the row.
 
 **Alignment markers (`:---` / `:---:` / `---:`) and empty cells pass.**
-**You can use `` `code` ``, `**bold**` and `[link](path)` inside a cell** (measured).
+**You can use `` `code` ``, `**bold**`and`[link](path)` inside a cell** (measured).
 
 **You can put a table in the `STATEMENT` of a requirement.** The JSON holds it exactly as you wrote it,
 so you can pull the table out on its own, rewrite it and write it back (example 19).
@@ -250,19 +250,19 @@ so you can pull the table out on its own, rewrite it and write it back (example 
 
 **The export succeeds in every case. Only the HTML comes out broken.**
 
-| How you write it | What happens |
-|---|---|
+| How you write it                             | What happens                                                                                 |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | **The row holds more cells than the header** | **Markdown throws the extras away.** In `\| this \| row \| is \| long \|`, "long" disappears |
-| The row holds fewer cells than the header | Markdown pads with empty cells. The harm is small |
-| **An unescaped `\|` inside a cell** | The column splits right there |
+| The row holds fewer cells than the header    | Markdown pads with empty cells. The harm is small                                            |
+| **An unescaped `\|` inside a cell**          | The column splits right there                                                                |
 
 **★ A code span does not protect `|`.** It differs from `$` here.
 
-| How you write it | Result |
-|---|---|
-| `a \| b` (escaped) | **Passes.** The cell shows `a \| b` |
+| How you write it                                    | Result                                          |
+| --------------------------------------------------- | ----------------------------------------------- |
+| `a \| b` (escaped)                                  | **Passes.** The cell shows `a \| b`             |
 | `` `a \| b` `` (escaped inside a code span as well) | **Passes.** This is the correct way to write it |
-| `` `a \| b` `` with the `\` removed | **Splits.** A code span does not protect `\|` |
+| `` `a \| b` `` with the `\` removed                 | **Splits.** A code span does not protect `\|`   |
 
 **A code span protects `$`, yet it does not protect `|`.** Do not confuse the two.
 
@@ -276,9 +276,9 @@ example 20 before you look at the HTML. Zero hits is normal.**
 **StrictDoc copies whatever you put in `_assets/` to the output, whatever its type** (measured).
 This mechanism does not serve images alone.
 
-| What you do | How you write it |
-|---|---|
-| Place an image | `![description](_assets/x.svg)` |
+| What you do                              | How you write it                                              |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| Place an image                           | `![description](_assets/x.svg)`                               |
 | **Attach something other than an image** | `[description](_assets/x.csv)` - write it as an ordinary link |
 
 We put `.csv`, `.pdf` and `.zip` files in `_assets/` and ran the export: **all four reached the
@@ -286,10 +286,10 @@ output, and every link resolved** (measured). **An SVG stays sharp when you zoom
 
 **★ An attachment breaks silently in two ways. The export reports success.**
 
-| How it breaks | What happens |
-|---|---|
-| **The file you reference does not exist** | The `<img>` or the `<a>` still comes out. Open it and you get a 404 |
-| **You put the file outside `_assets/`** | The file exists, yet StrictDoc **does not copy it**. Open it and you get a 404 |
+| How it breaks                             | What happens                                                                   |
+| ----------------------------------------- | ------------------------------------------------------------------------------ |
+| **The file you reference does not exist** | The `<img>` or the `<a>` still comes out. Open it and you get a 404            |
+| **You put the file outside `_assets/`**   | The file exists, yet StrictDoc **does not copy it**. Open it and you get a 404 |
 
 **The asset folder always carries the name `_assets`.** Create a folder under another name, such as
 `attachments/`, and StrictDoc does not scan it (measured; the source writes the name directly as
@@ -298,8 +298,8 @@ output, and every link resolved** (measured). **An SVG stays sharp when you zoom
 **Neither one prints anything in the export log.** So run **example 18** of `queries.md` every time.
 **Zero hits is normal.**
 
-- **Never hand `exclude_doc_paths` a folder such as `_assets/**`.**
-  StrictDoc passes the same setting to **both** "find the documents" and "find the asset folder",
+- **Never hand `exclude_doc_paths` a folder such as `\_assets/**`.**
+  StrictDoc passes the same setting to **both\*\* "find the documents" and "find the asset folder",
   so it stops copying the images too. The export reports success, yet the images in the HTML come back as 404
 
 ---

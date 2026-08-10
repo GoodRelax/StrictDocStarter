@@ -23,8 +23,8 @@ it by name, and the description makes it trigger on its own when the work fits.
 
 ## What is here
 
-| Skill | What it does |
-|---|---|
+| Skill          | What it does                                                                                                                                                                                                                  |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `strictdoc-md` | Read, write, modify and audit Markdown StrictDoc specifications. Covers requirements, traceability, figures, math, code, tables and attachments, and carries an audit script for the four failures StrictDoc does not report. |
 
 ## Keeping the two copies together

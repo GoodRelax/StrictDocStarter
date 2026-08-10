@@ -32,14 +32,14 @@ separated, 6 columns, one line per entry. **Only append. Never rewrite or delete
 line that is already there.** StrictDoc does not parse `.tsv`, so the file has no
 effect at all on your documents (measured).
 
-| Column | Contents |
-|---|---|
-| `date` | `YYYY-MM-DD` |
-| `sd_version` | The output of `strictdoc --version` |
-| `step` | What you were doing. `export-html` / `export-json` / `jq` / `server` / `edit` |
-| `symptom` | **The first line of the error, as it stands.** Cut it if it runs long |
-| `workaround` | How you worked around it. **In one line** |
-| `where` | Which file, and where in it |
+| Column       | Contents                                                                      |
+| ------------ | ----------------------------------------------------------------------------- |
+| `date`       | `YYYY-MM-DD`                                                                  |
+| `sd_version` | The output of `strictdoc --version`                                           |
+| `step`       | What you were doing. `export-html` / `export-json` / `jq` / `server` / `edit` |
+| `symptom`    | **The first line of the error, as it stands.** Cut it if it runs long         |
+| `workaround` | How you worked around it. **In one line**                                     |
+| `where`      | Which file, and where in it                                                   |
 
 If the file does not exist yet, create it together with its header line.
 
@@ -58,11 +58,11 @@ because the error that lands in `symptom` is English.
 
 ### 0.2 What to log and what not to log
 
-| Log it | Do not log it |
-|---|---|
-| An error **that this guide does not list** | A trap that this guide lists (a trailing `$`, for one) |
-| Behavior that **differs** from what this guide describes | Your own typo |
-| A step that failed because the version differs | Something that never comes back once you fix it |
+| Log it                                                   | Do not log it                                          |
+| -------------------------------------------------------- | ------------------------------------------------------ |
+| An error **that this guide does not list**               | A trap that this guide lists (a trailing `$`, for one) |
+| Behavior that **differs** from what this guide describes | Your own typo                                          |
+| A step that failed because the version differs           | Something that never comes back once you fix it        |
 
 **When you cannot decide, write it down.** One line costs little, and the knowledge
 you lose never comes back.
@@ -98,28 +98,28 @@ error: string index out of range
 **It prints neither a file name nor a line number.** This is a defect on the strictdoc 0.27.1 side
 (`_math_inline_rule` in `markdown_to_html_fragment_writer.py` reads past the end of the string).
 
-| How you write it | Result |
-|---|---|
+| How you write it                                 | Result    |
+| ------------------------------------------------ | --------- |
 | `The time is $T$` (the paragraph ends with math) | **stops** |
-| `The time is $T$ here.` | passes |
-| `\| symbol \| $T$ \|` (the cell ends with math) | **stops** |
-| `\| symbol \| $T$ s \|` | passes |
-| `\| symbol \| $$T$$ \|` (the cell uses `$$`) | passes |
-| `The cost is 100 $` (it ends with a bare `$`) | **stops** |
-| `The cost is 100 \$` | passes |
-| `` The cost is `100 $` `` (inside a code span) | passes |
-| a `$$ ... $$` block at the end of a section | passes |
+| `The time is $T$ here.`                          | passes    |
+| `\| symbol \| $T$ \|` (the cell ends with math)  | **stops** |
+| `\| symbol \| $T$ s \|`                          | passes    |
+| `\| symbol \| $$T$$ \|` (the cell uses `$$`)     | passes    |
+| `The cost is 100 $` (it ends with a bare `$`)    | **stops** |
+| `The cost is 100 \$`                             | passes    |
+| `` The cost is `100 $` `` (inside a code span)   | passes    |
+| a `$$ ... $$` block at the end of a section      | passes    |
 
 **Remember one thing - always put a character after the closing `$`.**
 A sentence ends with a period, so you keep this rule naturally in prose. **The table cell is where you cannot.**
 
 **One more. When one line carries two `$` characters, MathJax turns what sits between them into math.** Money is not the only case.
 
-| What you write | What comes out |
-|---|---|
-| `The cost is $100 to $200` | MathJax turns "100 to " into math |
-| `$HOME and $PATH` | MathJax turns "HOME and " into math |
-| `The cost is $100 only` (one `$`) | It comes out as written |
+| What you write                    | What comes out                      |
+| --------------------------------- | ----------------------------------- |
+| `The cost is $100 to $200`        | MathJax turns "100 to " into math   |
+| `$HOME and $PATH`                 | MathJax turns "HOME and " into math |
+| `The cost is $100 only` (one `$`) | It comes out as written             |
 
 **A space after the `$` does not stop it** (`$ 100 to $ 200` turns into math as well).
 Escape it as `\$100`, or put it in a code span as `` `$100` ``. **The export does not stop.**
@@ -139,7 +139,7 @@ Once the JSON exists, you can hunt the dangerous lines by machine before you bui
 
 **Do not close a table cell with a lone `$`.** You have two ways out, and **you take the first one.**
 
-| How you write it | HTML it produces | How it looks |
-|---|---|---|
-| `\| $T$ s \|` (add a unit or a word) | `<span class="math ...">` | **It fits inside the text. Use this one** |
-| `\| $$T$$ \|` (make it a block) | `<div class="math ...">` | It becomes a line of its own inside the cell and centers itself |
+| How you write it                     | HTML it produces          | How it looks                                                    |
+| ------------------------------------ | ------------------------- | --------------------------------------------------------------- |
+| `\| $T$ s \|` (add a unit or a word) | `<span class="math ...">` | **It fits inside the text. Use this one**                       |
+| `\| $$T$$ \|` (make it a block)      | `<div class="math ...">`  | It becomes a line of its own inside the cell and centers itself |

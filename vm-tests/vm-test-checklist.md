@@ -84,23 +84,24 @@ Compress-Archive -Path $stage -DestinationPath temp\StrictDocStarter.zip -Force
 
 ## 11 シナリオ一覧 (run-tests.bat で自動)
 
-| # | シナリオ | 内容 | uninstall 対象 | 所要 (目安) |
-|---|---|---|---|---|
-| 1 | Idempotency | 何も変えず再実行、 全 SKIP | (なし) | ~30 秒 |
-| 2 | PartialOptional | 3 件 uninstall → 再 install。 **jq / ripgrep は user scope のため昇格下では消せず SKIP になる** | jq, ripgrep, gitlens 拡張 | ~3〜5 分 |
-| 3 | RequiredOnly | gh uninstall → 再 install | GitHub CLI | ~2 分 |
-| 4 | ExtensionsOnly | 拡張 2 件 uninstall → 再 install | bierner.markdown-mermaid, ms-python.python | ~30 秒 |
-| 5 | Mixed | optional + 拡張 1 件 uninstall (他シナリオと完全独立)。 **Obsidian は user scope のため SKIP になる** | Obsidian, MS-CEINTL.vscode-language-pack-ja | ~3〜5 分 |
-| 6 | ClaudeExtension | Phase A coverage、 Claude 拡張 uninstall → 再 install | anthropic.claude-code | ~30 秒 |
-| 7 | StrictDocPip | Phase C coverage、 pip uninstall → 再 install → **元の版へ復元** | strictdoc (pip) | ~3〜5 分 |
-| 8 | **StrictDocUpgrade** | FR-334〜338: `strictdoc.version` を別版にピン → **`auto` がそのピンを適用すること**を確認 → 満たされたピンでの再実行が **no-op** であることを確認 → `upgrade` でも版が動くことを確認 → config と版を復元 | (なし、 strictdoc の版を一時変更) | ~3〜5 分 |
-| 9 | NegativeAbort | **常に SKIP** (手動 SC-015 に委ね)。 従来は PASS と表示されていた | (なし) | ~1 秒 |
-| 10 | NegativeClaudeBoth | FR-305 排他: config 改変 → 期待動作確認 → 復元 | (なし、 config 一時改変) | ~1〜2 分 |
-| 11 | DryrunAssert | dryrun 出力の [REQUIRED]/[OPTIONAL]/[SKIP] タグ + Phase E sort assert | (なし、 dryrun のみ) | ~10 秒 |
+| #   | シナリオ             | 内容                                                                                                                                                                                                     | uninstall 対象                              | 所要 (目安) |
+| --- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----------- |
+| 1   | Idempotency          | 何も変えず再実行、 全 SKIP                                                                                                                                                                               | (なし)                                      | ~30 秒      |
+| 2   | PartialOptional      | 3 件 uninstall → 再 install。 **jq / ripgrep は user scope のため昇格下では消せず SKIP になる**                                                                                                          | jq, ripgrep, gitlens 拡張                   | ~3〜5 分    |
+| 3   | RequiredOnly         | gh uninstall → 再 install                                                                                                                                                                                | GitHub CLI                                  | ~2 分       |
+| 4   | ExtensionsOnly       | 拡張 2 件 uninstall → 再 install                                                                                                                                                                         | bierner.markdown-mermaid, ms-python.python  | ~30 秒      |
+| 5   | Mixed                | optional + 拡張 1 件 uninstall (他シナリオと完全独立)。 **Obsidian は user scope のため SKIP になる**                                                                                                    | Obsidian, MS-CEINTL.vscode-language-pack-ja | ~3〜5 分    |
+| 6   | ClaudeExtension      | Phase A coverage、 Claude 拡張 uninstall → 再 install                                                                                                                                                    | anthropic.claude-code                       | ~30 秒      |
+| 7   | StrictDocPip         | Phase C coverage、 pip uninstall → 再 install → **元の版へ復元**                                                                                                                                         | strictdoc (pip)                             | ~3〜5 分    |
+| 8   | **StrictDocUpgrade** | FR-334〜338: `strictdoc.version` を別版にピン → **`auto` がそのピンを適用すること**を確認 → 満たされたピンでの再実行が **no-op** であることを確認 → `upgrade` でも版が動くことを確認 → config と版を復元 | (なし、 strictdoc の版を一時変更)           | ~3〜5 分    |
+| 9   | NegativeAbort        | **常に SKIP** (手動 SC-015 に委ね)。 従来は PASS と表示されていた                                                                                                                                        | (なし)                                      | ~1 秒       |
+| 10  | NegativeClaudeBoth   | FR-305 排他: config 改変 → 期待動作確認 → 復元                                                                                                                                                           | (なし、 config 一時改変)                    | ~1〜2 分    |
+| 11  | DryrunAssert         | dryrun 出力の [REQUIRED]/[OPTIONAL]/[SKIP] タグ + Phase E sort assert                                                                                                                                    | (なし、 dryrun のみ)                        | ~10 秒      |
 
 シナリオ独立性は **setup-spec.md §5.3 uninstall マトリクス** で保証。 各ツールは 1 シナリオでのみ touch される。
 
 実行モード:
+
 - `run-tests.bat` または `run-tests.bat real` — 本番モード (uninstall + reinstall)
 - `run-tests.bat dryrun` — dryrun モード (uninstall せず planner だけ走らせる、 host でも実行可)
 - `run-tests.bat foo` (typo) → ValidateSet で **fatal stop** (FR-1003)
@@ -184,17 +185,17 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 > 「変化なし」 になり、 何も確かめられない。 最新なら先に `pip install "strictdoc==0.23.1"`
 > で下げてから始める。
 
-| # | 操作 | 期待 |
-|:-:|---|---|
-| **A** | `setup-strictdoc.bat check` | 画面末尾に `strictdoc: <版>`。 `env-report.json` に `strictdoc` ブロック (`installed` / `verified_version` / `matches_verified`) と `existing_tools.strictdoc` |
-| **B** | `setup-strictdoc.bat dryrun` | Phase C 行が **`[INSTALL] strictdoc  installed: 0.23.1 - strictdoc.version='latest', will upgrade if a newer release exists`**。 **`[SKIP]` ではない** (FR-335 の reconcile) |
-| **C** | `setup-strictdoc.bat upgrade` → プロンプトに **`no`** | `Installed now` / `Configured spec` / `Will run` / `To go back afterwards` の 4 行が**先に**出る。 `no` で `[WARN] Aborted - strictdoc left at <版>.`。 **`strictdoc --version` が変わらないこと** |
-| **D** | `strictdoc.version` を `"newest please"` にして `dryrun` | Phase C 行が `INVALID strictdoc.version 'newest please' ... - Phase C will stop` |
-| **E** | 続けて `setup-strictdoc.bat upgrade` | `[ERROR] Invalid strictdoc.version ...` + 受理される形式の案内。 **`latest` にフォールバックしない**。 版は変わらない |
-| **F** | `strictdoc.version` を **`"==0.23.1"`** にして `dryrun` | Phase C 行が **`[SKIP] strictdoc  already installed: 0.23.1 (matches strictdoc.version='==0.23.1')`**。 **ピンが一致していれば pip を呼ばない** — 画面が即座に出ること (待ちが入ったら実装が間違い) |
-| **G** | **`H` の主役。** `strictdoc.version` を `"latest"` に戻して **`setup-strictdoc.bat`** → プランで Phase C が `[INSTALL]` であることを確認 → **`no`** | **中止され、 版が変わらないこと。** 確認なしに変わらないことの担保 |
-| **H** | 同じく `setup-strictdoc.bat` → 今度は **`yes`** | **`[OK] strictdoc: 0.23.1 -> <最新版>`** が出て、 続けて `docs/02-sdoc-authoring.md` への誘導と `pip install "strictdoc==0.23.1"` (戻し方) が表示される。 **`strictdoc --version` が最新版になること (FR-335)** |
-| **I** | もう一度 `setup-strictdoc.bat` → `yes` | **`[OK] strictdoc <最新版> (already up to date)`**。 2 回目は変化しないこと |
+|   #   | 操作                                                                                                                                                | 期待                                                                                                                                                                                                            |
+| :---: | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | `setup-strictdoc.bat check`                                                                                                                         | 画面末尾に `strictdoc: <版>`。 `env-report.json` に `strictdoc` ブロック (`installed` / `verified_version` / `matches_verified`) と `existing_tools.strictdoc`                                                  |
+| **B** | `setup-strictdoc.bat dryrun`                                                                                                                        | Phase C 行が **`[INSTALL] strictdoc  installed: 0.23.1 - strictdoc.version='latest', will upgrade if a newer release exists`**。 **`[SKIP]` ではない** (FR-335 の reconcile)                                    |
+| **C** | `setup-strictdoc.bat upgrade` → プロンプトに **`no`**                                                                                               | `Installed now` / `Configured spec` / `Will run` / `To go back afterwards` の 4 行が**先に**出る。 `no` で `[WARN] Aborted - strictdoc left at <版>.`。 **`strictdoc --version` が変わらないこと**              |
+| **D** | `strictdoc.version` を `"newest please"` にして `dryrun`                                                                                            | Phase C 行が `INVALID strictdoc.version 'newest please' ... - Phase C will stop`                                                                                                                                |
+| **E** | 続けて `setup-strictdoc.bat upgrade`                                                                                                                | `[ERROR] Invalid strictdoc.version ...` + 受理される形式の案内。 **`latest` にフォールバックしない**。 版は変わらない                                                                                           |
+| **F** | `strictdoc.version` を **`"==0.23.1"`** にして `dryrun`                                                                                             | Phase C 行が **`[SKIP] strictdoc  already installed: 0.23.1 (matches strictdoc.version='==0.23.1')`**。 **ピンが一致していれば pip を呼ばない** — 画面が即座に出ること (待ちが入ったら実装が間違い)             |
+| **G** | **`H` の主役。** `strictdoc.version` を `"latest"` に戻して **`setup-strictdoc.bat`** → プランで Phase C が `[INSTALL]` であることを確認 → **`no`** | **中止され、 版が変わらないこと。** 確認なしに変わらないことの担保                                                                                                                                              |
+| **H** | 同じく `setup-strictdoc.bat` → 今度は **`yes`**                                                                                                     | **`[OK] strictdoc: 0.23.1 -> <最新版>`** が出て、 続けて `docs/02-sdoc-authoring.md` への誘導と `pip install "strictdoc==0.23.1"` (戻し方) が表示される。 **`strictdoc --version` が最新版になること (FR-335)** |
+| **I** | もう一度 `setup-strictdoc.bat` → `yes`                                                                                                              | **`[OK] strictdoc <最新版> (already up to date)`**。 2 回目は変化しないこと                                                                                                                                     |
 
 > **D / E で編集した `setup.config.json` は F 以降の前に必ず戻す。** 戻し忘れると以降が全て停止する。
 
@@ -208,13 +209,13 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 **0.27 以降を前提**にしてあり、 前提が満たされる版で描画されることを見る。
 古い版で何が変わるかは `docs/02-sdoc-authoring.md` §9。 ランチャ経由で実際に開く。
 
-| # | 操作 | 期待 |
-|:-:|---|---|
+|   #   | 操作                                                  | 期待                                                                                                                                                                                                                                                                                   |
+| :---: | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **A** | `samples\md-basic-en` をドラッグ (**既定のサンプル**) | ブラウザに **13 文書** — 番号付きの 11 個 + `_assets/fig-state.md` の大きい図 + `_assets/note.md` の覚書。 **DEPRECATION 警告が出ないこと**。 `09-browser-guide` の写真 27 枚がすべて表示されること (枠だけ・壊れ画像アイコンなら NG)。 `06-lower` の Mermaid が図として描画されること |
-| **B** | `samples\md-basic-ja` をドラッグ | A の日本語版。 期待は A と同じである (**13 文書**、 写真 27 枚) |
-| **C** | `samples\sd-basic-ja` をドラッグ | **B と同じ要求文 (`SYS-001` 〜 `SW-004` / `TC-001` 〜 `TC-004`) が、 `.sdoc` (RST) の記法で描画されること。** 記法の対照はこの一式で行う |
-| **D** | `samples\md-sovd-automotive-ja` をドラッグ | **DEPRECATION 警告が出ないこと**。 **21 文書** (本体 12 + `_assets/` の図 8 + 覚書 1) が描画され、 Mermaid 図と数式も出ること。 図の文書へは本文の `[LINK:]` からクリックで飛べること |
-| **E** | `samples\md-sovd-automotive-en` をドラッグ | D と同じである (英語版) |
+| **B** | `samples\md-basic-ja` をドラッグ                      | A の日本語版。 期待は A と同じである (**13 文書**、 写真 27 枚)                                                                                                                                                                                                                        |
+| **C** | `samples\sd-basic-ja` をドラッグ                      | **B と同じ要求文 (`SYS-001` 〜 `SW-004` / `TC-001` 〜 `TC-004`) が、 `.sdoc` (RST) の記法で描画されること。** 記法の対照はこの一式で行う                                                                                                                                               |
+| **D** | `samples\md-sovd-automotive-ja` をドラッグ            | **DEPRECATION 警告が出ないこと**。 **21 文書** (本体 12 + `_assets/` の図 8 + 覚書 1) が描画され、 Mermaid 図と数式も出ること。 図の文書へは本文の `[LINK:]` からクリックで飛べること                                                                                                  |
+| **E** | `samples\md-sovd-automotive-en` をドラッグ            | D と同じである (英語版)                                                                                                                                                                                                                                                                |
 
 > **どのサンプルでも警告が出ないのが正しい状態になった。** `MATHJAX` / `MERMAID` の列挙を
 > 全サンプルの `strictdoc_config.py` から外したためである (0.27 では既定で有効)。
@@ -238,14 +239,14 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 > `[WinError 32]` で失敗。 **旧パッケージを消し終えた後に失敗したため、
 > `strictdoc.exe` だけが残り `ModuleNotFoundError` になった。**
 
-| # | 操作 | 期待 |
-|:-:|---|---|
-| **A** | `samples\md-basic-ja` を `launch-strictdoc.bat` にドラッグしてサーバを立てる。 **窓は開いたまま**にする | ブラウザが開く |
-| **B** | その状態で `setup-strictdoc.bat dryrun` | Phase C 行が **`[BLOCKED] strictdoc  <n> strictdoc process(es) running (PID ...) - close the StrictDoc server window(s) first; ...`**。 **PID が実際の値であること** |
-| **C** | 続けて `setup-strictdoc.bat` | **`yes` プロンプトの前に** `[WARN] 1 step(s) above are [BLOCKED] and will NOT run: strictdoc` が出ること (FR-345a) |
-| **C2** | そのまま **`yes`** | Phase C が **pip を呼ばずに** 中止。 `[ERROR] <n> strictdoc process(es) are running.` + PID 一覧 + `Nothing has been changed.`。 **サマリが `Phase C  : BLOCKED (nothing was changed)`** であり **`FAILED` ではないこと**。 結びが `Stopped early: Phase C blocked.`。 **`strictdoc --version` が変わらないこと** |
-| **D** | `setup-strictdoc.bat upgrade` | 同様に **`yes` プロンプトへ進む前に**中止すること |
-| **E** | サーバ窓を閉じて `setup-strictdoc.bat dryrun` | Phase C が通常の `[INSTALL]` / `[SKIP]` に戻ること |
+|   #    | 操作                                                                                                    | 期待                                                                                                                                                                                                                                                                                                              |
+| :----: | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A**  | `samples\md-basic-ja` を `launch-strictdoc.bat` にドラッグしてサーバを立てる。 **窓は開いたまま**にする | ブラウザが開く                                                                                                                                                                                                                                                                                                    |
+| **B**  | その状態で `setup-strictdoc.bat dryrun`                                                                 | Phase C 行が **`[BLOCKED] strictdoc  <n> strictdoc process(es) running (PID ...) - close the StrictDoc server window(s) first; ...`**。 **PID が実際の値であること**                                                                                                                                              |
+| **C**  | 続けて `setup-strictdoc.bat`                                                                            | **`yes` プロンプトの前に** `[WARN] 1 step(s) above are [BLOCKED] and will NOT run: strictdoc` が出ること (FR-345a)                                                                                                                                                                                                |
+| **C2** | そのまま **`yes`**                                                                                      | Phase C が **pip を呼ばずに** 中止。 `[ERROR] <n> strictdoc process(es) are running.` + PID 一覧 + `Nothing has been changed.`。 **サマリが `Phase C  : BLOCKED (nothing was changed)`** であり **`FAILED` ではないこと**。 結びが `Stopped early: Phase C blocked.`。 **`strictdoc --version` が変わらないこと** |
+| **D**  | `setup-strictdoc.bat upgrade`                                                                           | 同様に **`yes` プロンプトへ進む前に**中止すること                                                                                                                                                                                                                                                                 |
+| **E**  | サーバ窓を閉じて `setup-strictdoc.bat dryrun`                                                           | Phase C が通常の `[INSTALL]` / `[SKIP]` に戻ること                                                                                                                                                                                                                                                                |
 
 > **C で pip が走ってしまったら FR-343a 違反。** ログに `pip install` の行が出ていないことを確認する。
 
@@ -260,6 +261,7 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 `vm-tests\gather-test-logs.bat` ダブルクリック → `%TEMP%\StrictDocStarter-test-result-*.zip` 生成 → エクスプローラで select 状態 → Ctrl+C → ホストへ Ctrl+V
 
 含まれるファイル (期待):
+
 - `T_*.log` × 11 (各シナリオの setup-strictdoc.ps1 transcript)
 - `T_*.runner-capture.log` × 11 (runner 側の生 stdout/stderr capture、 FR-1004)
 - 最新 `setup.log` (T1 ベースラインの transcript)
@@ -270,6 +272,7 @@ run-tests.bat の T_negative_abort は **自動化不能** (PowerShell の Read-
 ## 報告いただきたい内容
 
 各テスト (T1 / 11 シナリオ / SC-015 / SC-016 / SC-017 / SC-018) について:
+
 - [ ] 期待通り動作したか (OK / NG)
 - [ ] NG なら: 実際の出力と推定原因
 - [ ] 所要時間 (NFR-008 で REAL モード合計 60 分以内が目標)

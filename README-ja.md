@@ -43,14 +43,14 @@ Python もコマンドラインも手動設定も要りません。
 
 ## 次に読むもの
 
-| 場所 | 内容 |
-|---|---|
-| [`docs/04-starter-guide-ja.md`](docs/04-starter-guide-ja.md) | **StrictDocStarter のそれ以外すべて**。setup が導入するもの、複数文書の同時起動、生成物の出力先、ライトとダーク、同梱サンプル、StrictDoc のバージョン固定 |
-| [`docs/01-environment.md`](docs/01-environment.md) | セットアップの手順詳細とトラブルシュート表 |
-| [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md) | **`.sdoc` と `.md` の書き方。** 書き手が要求 1 件ごとに公式ガイドを読み直さずに済む最小限 |
-| [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) | JSON 出力に対する、コピーして実行できる `jq` クエリ 5 種 |
-| [`claude-skills/strictdoc-md/`](claude-skills/strictdoc-md) | 仕様書の読み書きと監査を Claude に任せるための **Claude Code スキル** |
-| `try-json-query-ja.bat` | 仕様書を JSON に出し、`jq` で答えを引く手順を 7 段でなぞる練習用。ダブルクリックで動きます。`-en` は同じ内容の英語版 |
+| 場所                                                           | 内容                                                                                                                                                      |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`docs/04-starter-guide-ja.md`](docs/04-starter-guide-ja.md)   | **StrictDocStarter のそれ以外すべて**。setup が導入するもの、複数文書の同時起動、生成物の出力先、ライトとダーク、同梱サンプル、StrictDoc のバージョン固定 |
+| [`docs/01-environment.md`](docs/01-environment.md)             | セットアップの手順詳細とトラブルシュート表                                                                                                                |
+| [`docs/02-sdoc-authoring.md`](docs/02-sdoc-authoring.md)       | **`.sdoc` と `.md` の書き方。** 書き手が要求 1 件ごとに公式ガイドを読み直さずに済む最小限                                                                 |
+| [`docs/03-sdoc-json-queries.md`](docs/03-sdoc-json-queries.md) | JSON 出力に対する、コピーして実行できる `jq` クエリ 5 種                                                                                                  |
+| [`claude-skills/strictdoc-md/`](claude-skills/strictdoc-md)    | 仕様書の読み書きと監査を Claude に任せるための **Claude Code スキル**                                                                                     |
+| `try-json-query-ja.bat`                                        | 仕様書を JSON に出し、`jq` で答えを引く手順を 7 段でなぞる練習用。ダブルクリックで動きます。`-en` は同じ内容の英語版                                      |
 
 うまく動かないときは `gather-logs.bat` を実行してください。ログと診断レポートが
 ZIP にまとまります。展開して Claude Code に読ませ、原因を調べさせてください。

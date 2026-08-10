@@ -22,10 +22,10 @@ open the target `.md` and edit it (3.1 collects the steps).
 **You cannot mechanically write back from JSON to `.md`** -
 the JSON holds no file paths.
 
-| What you do | Do you open the `.md`? |
-|---|---|
-| Learn, count or search the content | **No.** Export JSON and query it with `jq` |
-| Rewrite the content | **Yes.** Locate the place with example 16 first, then open it |
+| What you do                        | Do you open the `.md`?                                        |
+| ---------------------------------- | ------------------------------------------------------------- |
+| Learn, count or search the content | **No.** Export JSON and query it with `jq`                    |
+| Rewrite the content                | **Yes.** Locate the place with example 16 first, then open it |
 
 ### Step 1 - Convert to JSON
 
@@ -67,13 +67,36 @@ The file exists only for `jq` to read.
 The structure of the JSON:
 
 ```json
-{"DOCUMENTS": [
-  {"_NODE_TYPE": "DOCUMENT", "UID": "...", "TITLE": "...", "GRAMMAR": {},
-   "NODES": [
-     {"_NODE_TYPE": "SECTION", "TITLE": "...", "NODES": [
-       {"_NODE_TYPE": "TEXT", "_TOC": "2.1.1", "STATEMENT": "Free text. It has no UID"}]},
-     {"_NODE_TYPE": "REQUIREMENT", "UID": "...", "TITLE": "...", "STATEMENT": "...",
-      "RELATIONS": [{"TYPE": "Parent", "VALUE": "...", "ROLE": "..."}]}]}]}
+{
+  "DOCUMENTS": [
+    {
+      "_NODE_TYPE": "DOCUMENT",
+      "UID": "...",
+      "TITLE": "...",
+      "GRAMMAR": {},
+      "NODES": [
+        {
+          "_NODE_TYPE": "SECTION",
+          "TITLE": "...",
+          "NODES": [
+            {
+              "_NODE_TYPE": "TEXT",
+              "_TOC": "2.1.1",
+              "STATEMENT": "Free text. It has no UID"
+            }
+          ]
+        },
+        {
+          "_NODE_TYPE": "REQUIREMENT",
+          "UID": "...",
+          "TITLE": "...",
+          "STATEMENT": "...",
+          "RELATIONS": [{ "TYPE": "Parent", "VALUE": "...", "ROLE": "..." }]
+        }
+      ]
+    }
+  ]
+}
 ```
 
 **★ Figures, math and code land almost entirely in free-text nodes with `_NODE_TYPE == "TEXT"`.**
@@ -346,7 +369,7 @@ this document.
 **17. Lines that hold the `$` trap (`traps.md`). 0 rows is the normal result.** Run this
 every time you add a figure or a formula.
 
-````bash
+```bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, out: []};
@@ -358,7 +381,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | .out[]
 | select(test("[^$][$] *$") or test("[^$][$] *[|]"))
 | $doc + "  " + .' <json>
-````
+```
 
 **The `reduce` part throws away the content of every code fence.** A `$` does no harm
 inside a fence, so without that the query fills up with false positives. **It
@@ -444,7 +467,7 @@ both ends** (2.7).
 **20. Find the tables that break (2.7.1). 0 rows is the normal result.** Run this
 every time you add a table.
 
-````bash
+```bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as $n
 | ($n.UID // $n._TOC // "-") as $at
 | $n.STATEMENT | split("\n")
@@ -459,7 +482,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | select(.STATEMENT?) as
       else .want = 0
       end)
 | .bad[] | $doc + "  " + $at + "  " + .' <json>
-````
+```
 
 Point it at a deliberately broken document and it prints this:
 
@@ -619,7 +642,14 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | ._NODE_TYPE] | group_by(.) | map({(.
 ```
 
 ```json
-{"DOCUMENT":13,"REQUIREMENT":7,"SECTION":143,"TEST_CASE":4,"TEXT":144,"USE_CASE":1}
+{
+  "DOCUMENT": 13,
+  "REQUIREMENT": 7,
+  "SECTION": 143,
+  "TEST_CASE": 4,
+  "TEXT": 144,
+  "USE_CASE": 1
+}
 ```
 
 ### A3. The table of contents
@@ -641,15 +671,55 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | select(._NODE_TYPE) | {t:._NODE_TYPE
 ```
 
 ```json
-{"DOCUMENT":["GRAMMAR","NODES","TITLE","UID","VERSION","_NODE_TYPE","_OPTIONS"],
- "REQUIREMENT":["RATIONALE","RELATIONS","REVIEW_ACTION","REVIEW_COMMENT","REVIEW_STATUS",
-                "STATEMENT","STATUS","TITLE","UID","_NODE_TYPE","_TOC"],
- "SECTION":["NODES","TITLE","_NODE_TYPE","_TOC"],
- "TEST_CASE":["GIVEN","ISSUE_KEY","RELATIONS","TEST_REMARK","TEST_RESULT","THEN",
-              "TITLE","UID","WHEN","_NODE_TYPE","_TOC"],
- "TEXT":["STATEMENT","_NODE_TYPE","_TOC"],
- "USE_CASE":["REVIEW_COMMENT","REVIEW_STATUS","STATEMENT","TITLE","UC_LEVEL","UID",
-             "_NODE_TYPE","_TOC"]}
+{
+  "DOCUMENT": [
+    "GRAMMAR",
+    "NODES",
+    "TITLE",
+    "UID",
+    "VERSION",
+    "_NODE_TYPE",
+    "_OPTIONS"
+  ],
+  "REQUIREMENT": [
+    "RATIONALE",
+    "RELATIONS",
+    "REVIEW_ACTION",
+    "REVIEW_COMMENT",
+    "REVIEW_STATUS",
+    "STATEMENT",
+    "STATUS",
+    "TITLE",
+    "UID",
+    "_NODE_TYPE",
+    "_TOC"
+  ],
+  "SECTION": ["NODES", "TITLE", "_NODE_TYPE", "_TOC"],
+  "TEST_CASE": [
+    "GIVEN",
+    "ISSUE_KEY",
+    "RELATIONS",
+    "TEST_REMARK",
+    "TEST_RESULT",
+    "THEN",
+    "TITLE",
+    "UID",
+    "WHEN",
+    "_NODE_TYPE",
+    "_TOC"
+  ],
+  "TEXT": ["STATEMENT", "_NODE_TYPE", "_TOC"],
+  "USE_CASE": [
+    "REVIEW_COMMENT",
+    "REVIEW_STATUS",
+    "STATEMENT",
+    "TITLE",
+    "UC_LEVEL",
+    "UID",
+    "_NODE_TYPE",
+    "_TOC"
+  ]
+}
 ```
 
 `-c` makes jq print one line; the block above wraps it for reading. All five node types
@@ -931,11 +1001,11 @@ out, and you can count what sits inside them. The queries in this chapter build 
 **When you hand a query to Git Bash as `bash -c "..."`, Git Bash cuts every double
 backslash in half.** We measured this on strictdoc 0.27.1 / jq 1.8.1 / Windows 11.
 
-| How you pass it | Result of `scan("!\\[...")` |
-|---|---|
-| `jq -f query.jq` | passes |
-| You put it in a shell script and run `bash script.sh` | passes |
-| **`bash -c 'jq -r ...'`** | **fails with `Invalid escape`** |
+| How you pass it                                       | Result of `scan("!\\[...")`     |
+| ----------------------------------------------------- | ------------------------------- |
+| `jq -f query.jq`                                      | passes                          |
+| You put it in a shell script and run `bash script.sh` | passes                          |
+| **`bash -c 'jq -r ...'`**                             | **fails with `Invalid escape`** |
 
 An AI usually runs its commands in the `bash -c` form. **So do not write a query that
 contains a double backslash.** String operations give you the same result.
@@ -1122,7 +1192,7 @@ jq -c '[.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | scan("(?m)^```
 ````
 
 ```json
-{"bash":56,"json":5,"markdown":3,"mermaid":6,"python":4,"text":76}
+{ "bash": 56, "json": 5, "markdown": 3, "mermaid": 6, "python": 4, "text": 76 }
 ```
 
 **`mermaid` shows up here too.** A figure is a code fence as well.
@@ -1179,7 +1249,7 @@ file name and no line number.
 **The JSON export, however, succeeds** (measured). So **export the JSON first and run this
 query, and you find the place before you build the HTML.**
 
-````bash
+```bash
 jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("\n") | map(rtrimstr("\r"))
 | reduce .[] as $line ({open: 0, out: []};
@@ -1191,7 +1261,7 @@ jq -r '.DOCUMENTS[] | .UID as $doc | recurse(.NODES[]?) | (.STATEMENT? // "")
 | .out[]
 | select(test("[^$][$] *$") or test("[^$][$] *[|]"))
 | $doc + "  " + .' <json>
-````
+```
 
 This sample returns 0 entries. **0 entries is the normal result.** Run it on a document we
 broke on purpose and it prints this:

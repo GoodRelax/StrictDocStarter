@@ -19,13 +19,13 @@ README は「ブラウザに要求ツリーが出る」ところまでを担当�
 
 ## 同梱物
 
-| ツール | 役割 | 起動 |
-|---|---|---|
-| `setup-strictdoc.bat` | 初回セットアップ (管理者): StrictDoc ツールチェイン + 開発ツールを導入し、任意でリポジトリを clone。プランを表示し一度だけ確認。`setup.config.json` で全設定可 (下記「setup が導入するもの」参照)。 | ダブルクリック → UAC → `yes` |
-| `launch-strictdoc.bat` | 日常利用: **フォルダ (または `.sdoc` ファイル) をドラッグ&ドロップ**して開く — もしくはダブルクリックで入力を促す。1 文書 = 1 ウィンドウ。 | D&D / ダブルクリック |
-| `change-color-mode.bat` | 生成ページの見た目を **auto / light / dark** で切り替え。既定は `auto` (Windows の設定に追従)。 | ダブルクリック |
-| `try-json-query-en.bat` / `try-json-query-ja.bat` | 仕様書を JSON にして `jq` で引く手順を 7 段でなぞる練習用。各手順が自分で説明し、Enter を待ってから、いま表示したコマンドを実行します。プロジェクトフォルダをドロップするか、ダブルクリックで同梱の `md-basic-en` / `md-basic-ja` を使います。 | D&D / ダブルクリック |
-| `gather-logs.bat` | 障害時のログ + 診断レポートを ZIP に回収 | ダブルクリック |
+| ツール                                            | 役割                                                                                                                                                                                                                                           | 起動                         |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `setup-strictdoc.bat`                             | 初回セットアップ (管理者): StrictDoc ツールチェイン + 開発ツールを導入し、任意でリポジトリを clone。プランを表示し一度だけ確認。`setup.config.json` で全設定可 (下記「setup が導入するもの」参照)。                                            | ダブルクリック → UAC → `yes` |
+| `launch-strictdoc.bat`                            | 日常利用: **フォルダ (または `.sdoc` ファイル) をドラッグ&ドロップ**して開く — もしくはダブルクリックで入力を促す。1 文書 = 1 ウィンドウ。                                                                                                     | D&D / ダブルクリック         |
+| `change-color-mode.bat`                           | 生成ページの見た目を **auto / light / dark** で切り替え。既定は `auto` (Windows の設定に追従)。                                                                                                                                                | ダブルクリック               |
+| `try-json-query-en.bat` / `try-json-query-ja.bat` | 仕様書を JSON にして `jq` で引く手順を 7 段でなぞる練習用。各手順が自分で説明し、Enter を待ってから、いま表示したコマンドを実行します。プロジェクトフォルダをドロップするか、ダブルクリックで同梱の `md-basic-en` / `md-basic-ja` を使います。 | D&D / ダブルクリック         |
+| `gather-logs.bat`                                 | 障害時のログ + 診断レポートを ZIP に回収                                                                                                                                                                                                       | ダブルクリック               |
 
 ## setup が導入するもの
 
@@ -109,18 +109,18 @@ StrictDoc 自身はダークモードを持たないため、これは**スタ�
 
 画面は英語表示です。訳は次のとおりです。
 
-| 英語表示 | 意味 |
-|---|---|
-| `What changes: 4 settings enabled -> 7 settings enabled` | 有効な設定が 4 個から 7 個に増えます |
-| `2 icons in the left toolbar -> 5 icons` | 左ツールバーのアイコンが 2 個から 5 個になります |
-| `Turned on: + Project statistics screen` | 統計画面が有効になります |
-| `+ Traceability matrix screen` | トレーサビリティマトリクス画面が有効になります |
-| `+ Tree map screen` | ツリーマップ画面が有効になります |
-| `Your documents are NOT touched.` | **文書ファイルには一切触れません** |
-| `A backup is written first` | 先にバックアップを取ります (`.bak-<日時>`) |
-| `Want to compare first?` | 変更後のファイルを事前に見たい場合の置き場所 |
-| `Update the settings file now? [Y/n]` | 更新しますか。**Enter で「はい」** |
-| `Nothing was changed.` | 何も変更していません (断った場合) |
+| 英語表示                                                 | 意味                                             |
+| -------------------------------------------------------- | ------------------------------------------------ |
+| `What changes: 4 settings enabled -> 7 settings enabled` | 有効な設定が 4 個から 7 個に増えます             |
+| `2 icons in the left toolbar -> 5 icons`                 | 左ツールバーのアイコンが 2 個から 5 個になります |
+| `Turned on: + Project statistics screen`                 | 統計画面が有効になります                         |
+| `+ Traceability matrix screen`                           | トレーサビリティマトリクス画面が有効になります   |
+| `+ Tree map screen`                                      | ツリーマップ画面が有効になります                 |
+| `Your documents are NOT touched.`                        | **文書ファイルには一切触れません**               |
+| `A backup is written first`                              | 先にバックアップを取ります (`.bak-<日時>`)       |
+| `Want to compare first?`                                 | 変更後のファイルを事前に見たい場合の置き場所     |
+| `Update the settings file now? [Y/n]`                    | 更新しますか。**Enter で「はい」**               |
+| `Nothing was changed.`                                   | 何も変更していません (断った場合)                |
 
 > 古い StrictDocStarter を使い続けている場合、ここまでの機能はいずれも届きません。
 > `launch-strictdoc.bat` と `lib\` フォルダを新しいものに差し替えてください。
@@ -137,13 +137,13 @@ StrictDoc 自身はダークモードを持たないため、これは**スタ�
 **`sd-` のほうは意図して小さくしてあります** (文書 6 件に対して 11 件)。記法を
 見せるためのものであり、`md-` が持つ手引きをもう一部持つためのものではありません。
 
-| パス | 内容 |
-|---|---|
-| `samples/md-basic-en/` | **既定。** **`.md` の基本 — 自分の仕様書はこのフォルダを丸ごと写して始める。** 要求仕様書として最低限成り立つ一式: 上位要求 3 件・それを指す下位要求 4 件・それを指すテストケース 4 件・要求そのものに載せたレビュー欄を**それぞれ別ファイル**に置き、トレーサビリティがファイルをまたぐようにしてある。共有の文法定義 (`basic.sgra`) が `TEST_CASE` のノード型と `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` のフィールド、`Verifies` の関係ロールを足す。ほかに、意図して要求にしない地の文・別の `.md` へのリンク・外出しした Mermaid 図・SVG 画像・AI に読ませるために要るもの・ブラウザでの編集と Claude との共同作業。英語。 |
-| `samples/md-basic-ja/` | 同じ仕様書の日本語版。 |
-| `samples/sd-basic-en/`、`samples/sd-basic-ja/` | **同じ仕様書を `.sdoc` で書いた版。** `.sdoc` 固有の内容を追加: RST の表 2 形式 (`+---+` grid と `===` simple)・図の断片を本文へ取り込む `[DOCUMENT_FROM_FILE]` (Markdown に相当物は無い)・パイプ表のために `MARKUP: Markdown` を宣言した文書 1 つ。 |
-| `samples/md-sovd-automotive-ja/` | 日本語のフル SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) 要求仕様書 — 全体概要・ステークホルダ要求・ユースケース・認証・データアクセス・DTC 診断・OTA ソフトウェア更新・アーキテクチャ・HTTP API・テスト仕様/結果。ASIL (ISO 26262) と A-SPICE レイヤの custom field、Mermaid 図、数式、トレーサビリティ付き。要求は EARS、テストは Gherkin で書いてあり、本文は全部 `.md`。 |
-| `samples/md-sovd-automotive-en/` | 上記の英語版。 |
+| パス                                           | 内容                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `samples/md-basic-en/`                         | **既定。** **`.md` の基本 — 自分の仕様書はこのフォルダを丸ごと写して始める。** 要求仕様書として最低限成り立つ一式: 上位要求 3 件・それを指す下位要求 4 件・それを指すテストケース 4 件・要求そのものに載せたレビュー欄を**それぞれ別ファイル**に置き、トレーサビリティがファイルをまたぐようにしてある。共有の文法定義 (`basic.sgra`) が `TEST_CASE` のノード型と `REVIEW_STATUS` / `REVIEW_COMMENT` / `REVIEW_ACTION` のフィールド、`Verifies` の関係ロールを足す。ほかに、意図して要求にしない地の文・別の `.md` へのリンク・外出しした Mermaid 図・SVG 画像・AI に読ませるために要るもの・ブラウザでの編集と Claude との共同作業。英語。 |
+| `samples/md-basic-ja/`                         | 同じ仕様書の日本語版。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `samples/sd-basic-en/`、`samples/sd-basic-ja/` | **同じ仕様書を `.sdoc` で書いた版。** `.sdoc` 固有の内容を追加: RST の表 2 形式 (`+---+` grid と `===` simple)・図の断片を本文へ取り込む `[DOCUMENT_FROM_FILE]` (Markdown に相当物は無い)・パイプ表のために `MARKUP: Markdown` を宣言した文書 1 つ。                                                                                                                                                                                                                                                                                                                                                                                        |
+| `samples/md-sovd-automotive-ja/`               | 日本語のフル SOVD (Service-Oriented Vehicle Diagnostics; ASAM SOVD / ISO 17978) 要求仕様書 — 全体概要・ステークホルダ要求・ユースケース・認証・データアクセス・DTC 診断・OTA ソフトウェア更新・アーキテクチャ・HTTP API・テスト仕様/結果。ASIL (ISO 26262) と A-SPICE レイヤの custom field、Mermaid 図、数式、トレーサビリティ付き。要求は EARS、テストは Gherkin で書いてあり、本文は全部 `.md`。                                                                                                                                                                                                                                         |
+| `samples/md-sovd-automotive-en/`               | 上記の英語版。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 `md-basic-en` は、`launch-strictdoc.bat` を何もドロップせずにダブルクリックしたときに開く
 サンプルです。意図して小さくしてあります — 全部読み切ってから丸ごと写せることが狙いです。
@@ -177,17 +177,17 @@ cp -r claude-skills/strictdoc-md ~/.claude/skills/
 変更するときにだけ使ってください。どれも `strictdoc export --formats=json` が書く JSON を
 入力に取ります。
 
-| 道具 | 何を見るか |
-|---|---|
-| [`tools/ascii-audit.py`](../tools/ascii-audit.py) | コードと設定ファイルが非 ASCII 文字を含まないこと (NFR-010) |
-| [`tools/verify-jq.py`](../tools/verify-jq.py) | 文書に埋め込んだ `jq` の例が今も走ること |
-| [`tools/check-jq-output.py`](../tools/check-jq-output.py) | クエリの下に貼った出力が、そのクエリが今出す内容と一致すること |
-| [`tools/run-query-fixture.py`](../tools/run-query-fixture.py) | 全クエリにヒットするよう組んだ投入用データに対して、どのクエリも 1 行以上返すこと |
-| [`tools/check-references.py`](../tools/check-references.py) | 引用した見出し・`[LINK:]` の宛先・地の文に書いたファイル名がすべて解決すること |
-| [`tools/check-symmetry.py`](../tools/check-symmetry.py) | `ja` と `en` の版が同じ文書・ノード・関係を持つこと |
-| [`tools/check-numbers.py`](../tools/check-numbers.py) | 地の文が主張する件数が、隣に貼ってある出力と合っていること |
-| [`tools/check-skill-sync.py`](../tools/check-skill-sync.py) | 同梱スキルが実例と同じことを言い続けていること |
-| [`tools/check-grammar-copies.py`](../tools/check-grammar-copies.py) | 同じ名前の文法ファイルの各コピーが、今も同じ文法を持っていること |
+| 道具                                                                  | 何を見るか                                                                                          |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [`tools/ascii-audit.py`](../tools/ascii-audit.py)                     | コードと設定ファイルが非 ASCII 文字を含まないこと (NFR-010)                                         |
+| [`tools/verify-jq.py`](../tools/verify-jq.py)                         | 文書に埋め込んだ `jq` の例が今も走ること                                                            |
+| [`tools/check-jq-output.py`](../tools/check-jq-output.py)             | クエリの下に貼った出力が、そのクエリが今出す内容と一致すること                                      |
+| [`tools/run-query-fixture.py`](../tools/run-query-fixture.py)         | 全クエリにヒットするよう組んだ投入用データに対して、どのクエリも 1 行以上返すこと                   |
+| [`tools/check-references.py`](../tools/check-references.py)           | 引用した見出し・`[LINK:]` の宛先・地の文に書いたファイル名がすべて解決すること                      |
+| [`tools/check-symmetry.py`](../tools/check-symmetry.py)               | `ja` と `en` の版が同じ文書・ノード・関係を持つこと                                                 |
+| [`tools/check-numbers.py`](../tools/check-numbers.py)                 | 地の文が主張する件数が、隣に貼ってある出力と合っていること                                          |
+| [`tools/check-skill-sync.py`](../tools/check-skill-sync.py)           | 同梱スキルが実例と同じことを言い続けていること                                                      |
+| [`tools/check-grammar-copies.py`](../tools/check-grammar-copies.py)   | 同じ名前の文法ファイルの各コピーが、今も同じ文法を持っていること                                    |
 | [`tools/check-format-fixpoint.py`](../tools/check-format-fixpoint.py) | Markdown 整形器を通した**後でも** export が通ること、および整形器が手を出さない形で配られていること |
 
 **`.md` のサンプルを編集したら走らせるのはこれです。** そしてこれだけが、export を読むだけでは
@@ -258,12 +258,12 @@ setup-strictdoc.bat upgrade
 
 どちらも、どのバージョンにするかは `setup.config.json` の `strictdoc.version` で決まります。
 
-| 値 | 意味 |
-|---|---|
-| `latest` (既定) | PyPI の最新版 |
-| `==0.27.1` | このバージョンちょうど。再現性を固定したいとき |
-| `~=0.27.0` | `>=0.27, <0.28` |
-| `0.27.1` | 演算子なし。`==0.27.1` として読まれます |
+| 値              | 意味                                           |
+| --------------- | ---------------------------------------------- |
+| `latest` (既定) | PyPI の最新版                                  |
+| `==0.27.1`      | このバージョンちょうど。再現性を固定したいとき |
+| `~=0.27.0`      | `>=0.27, <0.28`                                |
+| `0.27.1`        | 演算子なし。`==0.27.1` として読まれます        |
 
 **setup に動かされたくない場合はバージョンを固定してください。** `==0.27.1` で 0.27.1 が
 入っていれば、Phase C は `[SKIP] ... (matches strictdoc.version)` と表示して pip を
