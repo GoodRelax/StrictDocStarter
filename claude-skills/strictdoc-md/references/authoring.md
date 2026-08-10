@@ -15,8 +15,8 @@ five kinds of node: `DOCUMENT` / `TEXT` / `SECTION` / `REQUIREMENT` / a custom n
 ```markdown
 # Document title
 
-**Grammar**: basic.sgra \
-**UID**: DOC-UPPER \
+**Grammar**: basic.sgra
+**UID**: DOC-UPPER
 **Version**: 1.0
 
 Text directly under the H1 becomes free text. It has no UID, so it is not a requirement.
@@ -29,18 +29,23 @@ Free text inside the chapter. Without `Type`, StrictDoc reads this paragraph as 
 
 ## Requirement name
 
-**UID**: SW-001 \
-**STATUS**: Approved \
+**UID**: SW-001
+**STATUS**: Approved
 **REVIEW_STATUS**: NoFinding
 
 **Statement**: The system shall ...
 
 **Rationale**: The reason we decided that.
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SYS-001`
+
 ## Test case name
 
-**Type**: TEST_CASE \
-**UID**: TC-001 \
+**Type**: TEST_CASE
+**UID**: TC-001
 **TEST_RESULT**: NotRun
 
 **GIVEN**: ... is in the ... state.
@@ -50,13 +55,34 @@ Free text inside the chapter. Without `Type`, StrictDoc reads this paragraph as 
 **THEN**: ... has become ...
 
 **Relations**:
-- **Type**: `Parent` \
-  **ID**: `SW-001` \
+
+- **Type**: `Parent`
+  **ID**: `SW-001`
   **Role**: `Verifies`
 ```
 
-StrictDoc does not need the `\` at the end of a line. Other Markdown viewers join
-consecutive lines into a single line, and this character stops them.
+**Never end a line with `\`.** StrictDoc does not need it. It buys you nothing and
+it carries the only failure mode this notation has: left behind on the last line of
+a block, it stops the export, and every field you delete risks leaving one behind.
+
+**Two trailing spaces are not a substitute.** StrictDoc keeps trailing whitespace
+inside the value of a field (measured on 0.27.1). `**Grammar**: basic.sgra  ` dies
+with `imports a grammar from a file that does not exist`, and a choice field dies
+with `invalid SingleChoice value`. A field the grammar does not validate simply
+swallows the spaces, and nothing tells you.
+
+**Put `**Relations**` behind the body fields and leave one blank line after it.**
+A Markdown formatter inserts that blank line by itself, so a file written without
+it changes the first time anyone opens it and saves. Written with `**Relations**`
+glued to the metadata block, that same save separates the field name from its list
+and the export stops with `duplicate field names in a valid requirement node are
+not allowed` - pointing at the head of the node, never mentioning the blank line.
+
+**Check with a copy, never with the original.** `strictdoc export` passing says
+nothing about this: the shape that breaks exports cleanly as written and only dies
+after a formatter has run once. Copy the folder, format the copy, export it again,
+and compare the nodes and relations on both sides. `tools/check-format-fixpoint.py`
+in StrictDocStarter does exactly that.
 
 ### Rules that stop the whole export when you break them
 
@@ -70,6 +96,7 @@ consecutive lines into a single line, and this character stops them.
 | Do not write a `Role` that the grammar does not declare | `Semantic error: Requirement relation type/role is not registered: Parent / Verifies` |
 | **Declare `SECTION` when you write your own grammar** | `Semantic error: Invalid node type: SECTION.` |
 | **Give `SECTION` a `PROPERTIES: IS_COMPOSITE: True`** | `The SECTION grammar element must be declared as composite.` (the Hint shows you the fix) |
+| **Put `**Relations**` behind the body fields, one blank line after it** | `duplicate field names in a valid requirement node are not allowed` - but only once a formatter has run, so an export that passes proves nothing here |
 
 **You do not have to declare `TEXT`. It is built in** (measured). We exported with a grammar
 that declares only `SECTION` and `REQUIREMENT`, and the free text still became a `TEXT` node.

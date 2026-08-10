@@ -170,6 +170,7 @@ point it at the UID of the parent. You write nothing on the upper node.
 
 ```text
 **Relations**:
+
 - **Type**: `Parent`
   **ID**: `SYS-001`
 ```
@@ -201,6 +202,7 @@ A `Role` gives the relation a meaning. You can leave the type as `Parent`.
 
 ```text
 **Relations**:
+
 - **Type**: `Parent`
   **ID**: `SW-001`
   **Role**: `Verifies`

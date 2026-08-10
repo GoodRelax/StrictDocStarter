@@ -175,6 +175,30 @@ documentation. Each one takes the JSON that `strictdoc export --formats=json` wr
 | [`tools/check-symmetry.py`](../tools/check-symmetry.py) | the `ja` and `en` editions carry the same documents, nodes and relations |
 | [`tools/check-numbers.py`](../tools/check-numbers.py) | a count claimed in prose matches the output it sits beside |
 | [`tools/check-skill-sync.py`](../tools/check-skill-sync.py) | the packaged skill still says what the worked example says |
+| [`tools/check-format-fixpoint.py`](../tools/check-format-fixpoint.py) | a sample still exports **after** a Markdown formatter has run over it, and is shipped in a shape the formatter leaves alone |
+
+**`check-format-fixpoint.py` is the one to run after editing a `.md` sample**, and it is the
+only check here that does not simply read an export. A passing `strictdoc export` says nothing
+about whether a specification is safe to hand to someone else: the notation that breaks under
+a formatter exports cleanly as written and only dies after the formatter has run once. Measured
+on strictdoc 0.27.1 with prettier 3.5.3, `samples/md-sovd-automotive-en` exported 294 nodes and
+then failed with `duplicate field names in a valid requirement node are not allowed` after a
+single `prettier --write`, so anyone who opened a file and saved it destroyed the document.
+
+So the check copies the folder, formats the copy, exports it again, and compares the nodes and
+relations on both sides. Run `--self-test` first if you have changed the script: it breaks a
+project of its own once per check and requires that exactly the expected check fires, because
+"zero failures" means nothing until each check has been seen to fire.
+
+```bash
+python tools/check-format-fixpoint.py
+```
+
+The answer is **not** to switch the formatter off for the specification folder. A `.prettierignore`
+or an `editor.formatOnSave: false` protects the specification by sacrificing every ordinary
+Markdown edit in the same folder, it depends on a setting that travels with nobody, and it breaks
+the moment someone removes it. The samples here are shipped in a shape a formatter has nothing
+to say about instead, which asks nothing of your environment.
 
 [`tools/capture-manual-ja.py`](../tools/capture-manual-ja.py) and
 [`tools/capture-manual-en.py`](../tools/capture-manual-en.py) re-take every screenshot in

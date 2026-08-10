@@ -1,15 +1,15 @@
 # 欠陥の見本
 
-**Grammar**: basic.sgra \
-**UID**: DOC-DEFECTS \
+**Grammar**: basic.sgra
+**UID**: DOC-DEFECTS
 **Version**: 1.0
 
 この文書は、 検出系のクエリを発火させるために置いた見本である。
 
 ## 親を持たない下位要求
 
-**UID**: SW-009 \
-**STATUS**: Draft \
+**UID**: SW-009
+**STATUS**: Draft
 **REVIEW_STATUS**: NotReviewed
 
 **Statement**: もし親を持たないならば、 本ツールは、 D17 と D18 に出ること。

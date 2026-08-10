@@ -197,7 +197,9 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 **Rationale**: そう決めた理由。
 
 **Relations**:
-- **Type**: `Parent` \n  **ID**: `SYS-001`
+
+- **Type**: `Parent`
+  **ID**: `SYS-001`
 
 ## テストケースの名前
 
@@ -212,13 +214,27 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 **THEN**: 〜になっている。
 
 **Relations**:
+
 - **Type**: `Parent`
   **ID**: `SW-001`
   **Role**: `Verifies`
 ```
 
-行末の `\` は StrictDoc の解析には不要である。StrictDoc 以外の Markdown ビューアが
-連続する行を 1 行に繋げて表示してしまうので、 それをこの記号が防ぐ。
+**行末に `\` を書いてはならない。** StrictDoc には不要である。得るものが無い一方で、
+**この記法が持つ唯一の失敗形がこれに由来する** —— 塊の最終行に残すと export が止まる。
+欄を 1 つ削るたびに、 前の行の `\` を落とし忘れる危険が生じる。
+
+**行末 2 スペースは代わりにならない。** StrictDoc は欄の値から行末の空白を落とさない
+（0.27.1 で実測）。 `**Grammar**: basic.sgra  ` は
+`imports a grammar from a file that does not exist` で止まり、 選択肢の欄は
+`invalid SingleChoice value` で止まる。 文法が検証しない欄では空白がそのまま値に
+入るだけで、 **何も教えてくれない。**
+
+**`**Relations**` は本文欄の後ろに置き、 直後に空行を 1 つ置く。** その空行は整形器が
+勝手に入れる。 置かずに配ると、 利用者が開いて保存した瞬間に差分が立つ。
+メタデータの塊に密着させて書いた場合は、 その保存が欄名と箇条書きを切り離し、
+`duplicate field names in a valid requirement node are not allowed` で export が
+止まる —— **行番号はノードの先頭を指し、 空行のことは一言も出ない。**
 
 ### 違反すると export 全体が停止する規則
 
@@ -235,6 +251,7 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 | 宣言されていない `Role` を書かない | `Semantic error: Requirement relation type/role is not registered: Parent / Verifies` |
 | 文法を自分で起こすなら `SECTION` を宣言する | `Semantic error: Invalid node type: SECTION.` |
 | `SECTION` には `PROPERTIES: IS_COMPOSITE: True` を付ける | `The SECTION grammar element must be declared as composite.` (Hint に修正例が出る) |
+| `**Relations**` は本文欄の後ろに置き、 直後に空行を 1 つ置く | `duplicate field names in a valid requirement node are not allowed` —— ただし整形器が 1 度走った後にしか出ない。export が通ったことは何の証拠にもならない |
 
 `TEXT` は宣言しなくてよい。組み込みである (実測)。`SECTION` と `REQUIREMENT` だけを
 宣言した文法で export したところ、 地の文はちゃんと `TEXT` ノードになった。

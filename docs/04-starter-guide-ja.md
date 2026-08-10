@@ -187,6 +187,29 @@ cp -r claude-skills/strictdoc-md ~/.claude/skills/
 | [`tools/check-symmetry.py`](../tools/check-symmetry.py) | `ja` と `en` の版が同じ文書・ノード・関係を持つこと |
 | [`tools/check-numbers.py`](../tools/check-numbers.py) | 地の文が主張する件数が、隣に貼ってある出力と合っていること |
 | [`tools/check-skill-sync.py`](../tools/check-skill-sync.py) | 同梱スキルが実例と同じことを言い続けていること |
+| [`tools/check-format-fixpoint.py`](../tools/check-format-fixpoint.py) | Markdown 整形器を通した**後でも** export が通ること、および整形器が手を出さない形で配られていること |
+
+**`.md` のサンプルを編集したら走らせるのはこれです。** そしてこれだけが、export を読むだけでは
+済まない検査です。**`strictdoc export` が通ったことは、その仕様書を人に渡してよい証拠になりません。**
+整形器で壊れる記法は、書かれたままなら export が通り、整形が 1 度走って初めて落ちるからです。
+strictdoc 0.27.1 / prettier 3.5.3 で実測したところ、`samples/md-sovd-automotive-en` は 294 ノードを
+export した後、`prettier --write` を 1 回かけただけで
+`duplicate field names in a valid requirement node are not allowed` で停止しました。
+**利用者が開いて保存した瞬間に文書が壊れる状態で配られていた**ということです。
+
+そこでこの検査は、フォルダを複製し、複製に整形をかけ、もう一度 export して、
+両側のノードと関係を突き合わせます。スクリプト自体を変更したときは先に `--self-test` を
+走らせてください。**検査ごとに 1 つずつ壊した見本を作り、狙った検査が実際に鳴ることを要求します** ——
+「0 件」は、各検査が鳴るのを見るまでは何の意味も持たないからです。
+
+```bash
+python tools/check-format-fixpoint.py
+```
+
+**対処として整形器を止めてはいけません。** `.prettierignore` や `editor.formatOnSave: false` は、
+仕様書を守るために同じフォルダの普通の Markdown 編集をすべて犠牲にします。その設定は配布先には
+付いていきませんし、誰かが外した瞬間に壊れます。**同梱サンプルは代わりに「整形器が手を出さない形」で
+配ってあります** —— 利用者の環境には何も要求しません。
 
 [`tools/capture-manual-ja.py`](../tools/capture-manual-ja.py) と
 [`tools/capture-manual-en.py`](../tools/capture-manual-en.py) は、起動中のサーバに対して

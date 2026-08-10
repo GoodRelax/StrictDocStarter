@@ -183,19 +183,20 @@ Semantic error: Markdown parsing error: the document must start with an H1 headi
 ```markdown
 # 文書タイトル
 
-**Grammar**: basic.sgra \
-**UID**: DOC-1 \
+**Grammar**: basic.sgra
+**UID**: DOC-1
 **Version**: 1.0
 
 ## 要求のタイトル
 
-**UID**: MD-001 \
+**UID**: MD-001
 **STATUS**: Approved
 
 **Statement**: 本システムは、 何かをすること。
 
 **Relations**:
-- **Type**: `Parent` \
+
+- **Type**: `Parent`
   **ID**: `MD-000`
 ```
 
@@ -203,7 +204,8 @@ Semantic error: Markdown parsing error: the document must start with an H1 headi
 |---|---|
 | 要求になる条件 | `UID`（または `MID`）**と** `Statement` の**両方**があること。片方だけなら `SECTION` になる |
 | 暗黙の `STATEMENT` | 見出し直下の地の文は `Statement` として扱われる |
-| 行末の `\` | 他の Markdown ビューアでメタ行をひと塊に見せるためのもの。StrictDoc の解析には**不要** |
+| 行末の `\` | **書いてはならない。** StrictDoc には不要で、 塊の最終行に残すと export が止まる。 行末 2 スペースも代わりにならない —— StrictDoc は行末の空白を欄の値に取り込む (0.27.1 で実測) |
+| `**Relations**` の位置 | **本文欄の後ろに置き、 直後に空行を 1 つ。** 整形器がその空行を勝手に入れるので、 メタデータの塊に密着させて書くと保存した瞬間に `duplicate field names` で落ちる |
 | ノード型の指定 | `**Type**: FINDING`。`**Type**: SECTION` は強制的に節にする |
 | 文法 | `**Grammar**: basic.sgra` または `**Grammar**: basic.gra.md` |
 

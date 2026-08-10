@@ -201,6 +201,7 @@ StrictDoc が最初から持っているノード型は `SECTION` と `TEXT` と
 
 ```text
 **Relations**:
+
 - **Type**: `Parent`
   **ID**: `SYS-001`
 ```
@@ -236,6 +237,7 @@ StrictDoc が最初から持っているノード型は `SECTION` と `TEXT` と
 
 ```text
 **Relations**:
+
 - **Type**: `Parent`
   **ID**: `SW-001`
   **Role**: `Verifies`
