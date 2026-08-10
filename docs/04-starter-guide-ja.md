@@ -187,6 +187,7 @@ cp -r claude-skills/strictdoc-md ~/.claude/skills/
 | [`tools/check-symmetry.py`](../tools/check-symmetry.py) | `ja` と `en` の版が同じ文書・ノード・関係を持つこと |
 | [`tools/check-numbers.py`](../tools/check-numbers.py) | 地の文が主張する件数が、隣に貼ってある出力と合っていること |
 | [`tools/check-skill-sync.py`](../tools/check-skill-sync.py) | 同梱スキルが実例と同じことを言い続けていること |
+| [`tools/check-grammar-copies.py`](../tools/check-grammar-copies.py) | 同じ名前の文法ファイルの各コピーが、今も同じ文法を持っていること |
 | [`tools/check-format-fixpoint.py`](../tools/check-format-fixpoint.py) | Markdown 整形器を通した**後でも** export が通ること、および整形器が手を出さない形で配られていること |
 
 **`.md` のサンプルを編集したら走らせるのはこれです。** そしてこれだけが、export を読むだけでは

@@ -175,6 +175,7 @@ documentation. Each one takes the JSON that `strictdoc export --formats=json` wr
 | [`tools/check-symmetry.py`](../tools/check-symmetry.py) | the `ja` and `en` editions carry the same documents, nodes and relations |
 | [`tools/check-numbers.py`](../tools/check-numbers.py) | a count claimed in prose matches the output it sits beside |
 | [`tools/check-skill-sync.py`](../tools/check-skill-sync.py) | the packaged skill still says what the worked example says |
+| [`tools/check-grammar-copies.py`](../tools/check-grammar-copies.py) | every copy of a grammar file still holds the same grammar |
 | [`tools/check-format-fixpoint.py`](../tools/check-format-fixpoint.py) | a sample still exports **after** a Markdown formatter has run over it, and is shipped in a shape the formatter leaves alone |
 
 **`check-format-fixpoint.py` is the one to run after editing a `.md` sample**, and it is the
