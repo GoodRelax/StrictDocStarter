@@ -200,6 +200,13 @@ Markdown edit in the same folder, it depends on a setting that travels with nobo
 the moment someone removes it. The samples here are shipped in a shape a formatter has nothing
 to say about instead, which asks nothing of your environment.
 
+Each sample folder carries one small `.prettierrc.yaml` saying `endOfLine: auto`, and it travels
+with the folder when you copy it. That is the opposite of switching formatting off — every rule
+still applies. It only tells Prettier to keep whatever line endings each file already has, so a
+Markdown file **you** create on Windows (CRLF) is as acceptable as the ones shipped here (LF), and
+neither is rewritten on save. Prettier writes LF by default, so without it a file you added
+yourself would be reported as unformatted for no reason other than its line endings.
+
 [`tools/capture-manual-ja.py`](../tools/capture-manual-ja.py) and
 [`tools/capture-manual-en.py`](../tools/capture-manual-en.py) re-take every screenshot in
 `09-browser-guide.md` against a running server, so the pictures cannot drift from the UI.

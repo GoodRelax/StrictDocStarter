@@ -13,10 +13,31 @@ prompt.md
 in-private-work/
 
 # --- StrictDoc generated HTML / cache (strictdoc server / export) ---
-output/
+#
+# Only output/strictdoc/ is excluded, never output/ itself: that folder may well
+# hold something its author put there on purpose, and a rule that swallows it
+# deletes their work from Git's view without saying so. The launcher writes to
+# <project>/output/strictdoc/ (FR-1160) and the advice it prints names the same
+# path (FR-1161), so everything this repository generates is covered.
+#
+# ** rather than a leading slash because this file sits above the projects
+# rather than inside one: the samples are six project folders under samples/.
+#
+# Output that lands anywhere else is left visible on purpose. `strictdoc export`
+# without --output-dir scatters _cache/ and html/ directly into output/, and
+# `strictdoc server` writes output/server/. Seeing those in `git status` is the
+# signal that a command was run the wrong way; hiding them would only make the
+# mistake quieter.
+**/output/strictdoc/
 
 # --- JSON exported by try-json-query-{en,ja}.bat (regenerated on every run) ---
 exported-json/
+
+# --- Scratch export folder used by the walkthroughs in docs/ ---
+# docs/03-sdoc-json-queries.md and docs/queries/ tell the reader to export a
+# sample here before running a query. It is regenerated on demand and is no more
+# source than exported-json/ above.
+out/
 
 # --- GitHub Pages build (.github/workflows/publish-samples.yml, CI-only) ---
 site/

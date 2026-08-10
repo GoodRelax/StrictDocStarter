@@ -1,0 +1,25 @@
+# Keep each file's own line endings.
+#
+# Prettier writes LF by default, so a Markdown file you create yourself on
+# Windows - a new chapter, a note next to the specification - would fail
+# `prettier --check` for no reason other than being CRLF, and a formatter
+# running on save would rewrite every line of it. Measured on prettier 3.5.3:
+# the same 44 lines pass as LF and fail as CRLF.
+#
+# `auto` means the formatter follows whatever each file already uses. The files
+# shipped here are LF and stay LF; a file you add on Windows stays CRLF. Either
+# way the formatter has nothing to change, which is the whole point - these
+# documents are written in a shape a formatter leaves alone, so that opening one
+# and saving it produces no diff at all.
+#
+# This switches no formatting off. It is the opposite of a `.prettierignore`:
+# every rule still applies, including to the README and the design notes that
+# live beside a specification. Turning the formatter off to protect the
+# specification would sacrifice every ordinary Markdown edit in the same folder.
+#
+# One note if you query the JSON export: strictdoc reads `.md` without
+# translating newlines, so a CRLF file carries a carriage return into every
+# field value and on into the export, where each query has to strip it again.
+# LF is the tidier choice, and `launch-strictdoc` offers to convert when it
+# finds CRLF.
+endOfLine: auto

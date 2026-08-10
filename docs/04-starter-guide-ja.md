@@ -211,6 +211,13 @@ python tools/check-format-fixpoint.py
 付いていきませんし、誰かが外した瞬間に壊れます。**同梱サンプルは代わりに「整形器が手を出さない形」で
 配ってあります** —— 利用者の環境には何も要求しません。
 
+各サンプルフォルダには `endOfLine: auto` と書いた小さな `.prettierrc.yaml` が 1 つ入っており、
+**フォルダを複製すると一緒に付いていきます。** これは整形を止める設定の**逆**で、規則はすべて
+そのまま効きます。効果は「各ファイルが既に持っている改行をそのまま尊重せよ」と Prettier に
+伝えることだけです。おかげで、**あなたが** Windows で作った Markdown（CRLF）も、同梱ファイル（LF）も
+等しく受け入れられ、どちらも保存時に書き換えられません。Prettier の既定は LF なので、この 1 行が
+無いと、あなたが足したファイルは**改行が違うというだけの理由で**未整形と報告されます。
+
 [`tools/capture-manual-ja.py`](../tools/capture-manual-ja.py) と
 [`tools/capture-manual-en.py`](../tools/capture-manual-en.py) は、起動中のサーバに対して
 `09-browser-guide.md` の写真を撮り直します。画面と写真がずれないようにするためです。

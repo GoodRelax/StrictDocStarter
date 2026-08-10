@@ -174,15 +174,20 @@ STATEMENT: >>>
 #### 3. HTML を生成
 
 ```powershell
-strictdoc export .
+strictdoc export . --output-dir output/strictdoc
 ```
 
-`output/html/` 以下にファイル一式が生成される。
+`output/strictdoc/html/` 以下にファイル一式が生成される。
+
+**`--output-dir` を省いてはならない。** 省くと `output/` の直下に `_cache/` と `html/` が
+散らかる。`launch-strictdoc.bat` は既定で `output/strictdoc/` に出力し、同梱の `.gitignore` も
+[Git に無視させる 1 行](04-starter-guide-ja.md)もその 1 段だけを指しているので、**出力先を
+揃えておくと後から Git 管理下に置いても取りこぼしがない。**
 
 #### 4. ブラウザで確認
 
 ```powershell
-start output\html\index.html
+start output\strictdoc\html\index.html
 ```
 
 トップページから `hello.sdoc` に遷移し、`REQ-1` の本文が表示されることを確認。
@@ -208,7 +213,7 @@ strictdoc server .
 
 | 症状 | 原因 | 対処 |
 |---|---|---|
-| `strictdoc : The term 'strictdoc' is not recognized` | Phase C で pip install したが現セッションの PATH に反映されていない | 新しい PowerShell を開く、または `python -m strictdoc export .` で代替 |
+| `strictdoc : The term 'strictdoc' is not recognized` | Phase C で pip install したが現セッションの PATH に反映されていない | 新しい PowerShell を開く、または `python -m strictdoc export . --output-dir output/strictdoc` で代替 |
 | `[ERROR] ...` で export 失敗 | `.sdoc` の文法ミス (引用符、`>>>`/`<<<` のペア欠落、TITLE の改行など) | エラーメッセージの行番号を確認し修正。`.sdoc` は前後の空行とインデントに敏感 |
 | `strictdoc server` でポート競合 | 既に 5111 を使うプロセスあり | `strictdoc server . --port 5112` 等で別ポート指定 |
 | HTML の日本語が文字化け | ブラウザのエンコーディング自動判定失敗 | `.sdoc` を UTF-8 (BOM なし) で保存し直す。`Set-Content -Encoding UTF8` で保存 |
