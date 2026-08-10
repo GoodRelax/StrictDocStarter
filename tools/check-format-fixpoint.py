@@ -257,7 +257,17 @@ def describe_graph_drift(before, after):
 
 
 def export(project, output):
-    """Export to JSON outside the project, without parallelization.
+    """Export JSON and HTML outside the project, without parallelization.
+
+    Both formats, because they do not validate the same things. JSON stops at
+    parsing; HTML additionally renders every RST fragment, and only that pass
+    reports RST markup errors. A `.sdoc` written with Markdown emphasis exported
+    to JSON without complaint and failed the HTML export with "Inline strong
+    start-string without end-string" - measured, after CI caught it and this
+    check did not, because this check only asked for JSON.
+
+    HTML is also what actually gets published, so it is the format whose failure
+    the reader would see.
 
     Parallel export swallows the real error and reports a generic failure, so
     a check that ran in parallel cannot say what is wrong.
@@ -267,7 +277,7 @@ def export(project, output):
             tool("strictdoc"),
             "export",
             str(project),
-            "--formats=json",
+            "--formats=json,html",
             "--output-dir",
             str(output),
             "--no-parallelization",
@@ -445,6 +455,19 @@ seen to fire. It is not a sample and it is not shipped.
   **Role**: `ResultOf`
 """
 
+# A .sdoc alongside the Markdown, because the two are read by different backends
+# and only this one goes through RST. Emphasis here has to close against a space
+# or the end of the line; closing it against a word is what breaks the HTML pass.
+FIXTURE_SDOC = """[DOCUMENT]
+TITLE: A document in the other notation
+
+[TEXT]
+STATEMENT: >>>
+**This is RST, not Markdown.** Its emphasis closes against a space, so the HTML
+export renders it instead of refusing it.
+<<<
+"""
+
 FIXTURE_NOTE = """# A note that lives in \\_assets
 
 **UID**: DOC-NOTE
@@ -461,6 +484,7 @@ def build_fixture(destination):
     for name, text in (
         ("selftest.sgra", FIXTURE_GRAMMAR),
         ("00-spec.md", FIXTURE_DOCUMENT),
+        ("01-other.sdoc", FIXTURE_SDOC),
         ("_assets/note.md", FIXTURE_NOTE),
     ):
         (destination / name).write_text(text, encoding="utf-8", newline="\n")
@@ -555,7 +579,25 @@ def break_assets_only(project):
     path.write_text(raw + "\n", encoding="utf-8", newline="")
 
 
+def break_rst_emphasis(project):
+    """Close RST emphasis against a word, the way Markdown allows and RST does not.
+
+    This is the defect that reached CI: the JSON export parses the fragment and
+    says nothing, and only the HTML pass renders the RST and refuses it with
+    "Inline strong start-string without end-string". A check that exported JSON
+    alone reported the folder healthy.
+    """
+    path = project / "01-other.sdoc"
+    lines, ending = read_lines(path)
+    for index, line in enumerate(lines):
+        if line.startswith("**This is RST"):
+            lines[index] = "**This is RST, not Markdown.**Closed against a word."
+            break
+    write_lines(path, lines, ending)
+
+
 SABOTAGE = (
+    ("rst-emphasis", break_rst_emphasis, "export-before"),
     ("dangling-parent", break_dangling_parent, "export-before"),
     ("relations-glued", break_relations_glued, "export-after"),
     ("missing-blank-line", break_missing_blank_line, "fixpoint"),

@@ -55,9 +55,9 @@ STATEMENT: >>>
 read and discarded, and there is no fallback. One file in another encoding stops the export
 for the whole project, and the message does not say which file:
 
-```text
-error: 'utf-8' codec can't decode byte 0x82 in position 2: invalid start byte
-```
+::
+
+    error: 'utf-8' codec can't decode byte 0x82 in position 2: invalid start byte
 
 On Japanese Windows the usual cause is a new file saved by an editor whose default is the
 ANSI code page. `launch-strictdoc` checks for this before it starts the server and names the

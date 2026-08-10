@@ -52,17 +52,17 @@ TITLE: すべてのファイルを UTF-8 で保存する
 STATEMENT: >>>
 **StrictDoc はほかの文字コードを読まない。** すべての原稿を UTF-8 として開き、 BOM は
 読み飛ばすが、 **ほかへの退避は無い。** 1 枚でも違えばプロジェクト全体の export が止まり、
-しかもメッセージは**どのファイルか言わない**。
+しかも **メッセージはどのファイルか言わない。**
 
-```text
-error: 'utf-8' codec can't decode byte 0x82 in position 2: invalid start byte
-```
+::
+
+    error: 'utf-8' codec can't decode byte 0x82 in position 2: invalid start byte
 
 日本語 Windows では、 ANSI 既定のエディタで新規保存したファイルがたいていの原因である。
 `launch-strictdoc` はサーバ起動前にこれを検査し、 見つけたファイルを名指しする。
 
 **改行はここでは問題にならない。** `.sdoc` と `.sgra` は改行を変換して読むリーダを通るため、
-全部を CRLF にしても復帰文字は export に 1 つも入らない (0.27.1 で実測)。 **`.md` は違う**ので、
+全部を CRLF にしても復帰文字は export に 1 つも入らない (0.27.1 で実測)。 **`.md` は違う。**
 両方を混ぜたプロジェクトでは `.md` を LF で保つこと —— 理由は
 `samples/md-basic-ja/00-ai-guide.md` にある。
 <<<
