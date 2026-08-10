@@ -855,8 +855,8 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | ((.STATEMENT? // "") | gsub("\r"; "")
       end)
 | .out[] | gsub("`[^`]*`"; "")
 | split("](") | .[1:][] | split(")")[0]
-| select(startswith("http") or startswith("#") | not)' <json>
-  | tr -d '\r' | sort -u
+| select(startswith("http") or startswith("#") | not)' <json> \
+  | tr -d '\r' | sort -u \
   | while read -r p; do [ -f "<出力先>/html/<仕様書のフォルダ名>/$p" ] || echo "NOT PUBLISHED  $p"; done
 ```
 

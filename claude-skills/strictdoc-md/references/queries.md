@@ -403,7 +403,7 @@ It judges every reference that `jq` lists by whether the file exists **on the
 exported HTML side**. Run `--formats=html` first.
 
 ```bash
-jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW") | not)
+jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW", "DOC-BROWSER", "DOC-COWORK") | not)
 | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("](") | .[1:][] | split(")")[0]
 | select(startswith("http") or startswith("#") | not)' <json> \
@@ -549,7 +549,7 @@ Drop the UIDs you do not need from the result, then aggregate. **What you drop d
 goal** - keep the figure document when you want to count figures.
 
 ```bash
-jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW") | not) | .UID' <json>
+jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW", "DOC-BROWSER", "DOC-COWORK") | not) | .UID' <json>
 ```
 
 **Add this `select` to examples 13 through 15 as well when you aggregate with them.**

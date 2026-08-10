@@ -61,9 +61,12 @@ Free text inside the chapter. Without `Type`, StrictDoc reads this paragraph as 
   **Role**: `Verifies`
 ```
 
-**Never end a line with `\`.** StrictDoc does not need it. It buys you nothing and
-it carries the only failure mode this notation has: left behind on the last line of
-a block, it stops the export, and every field you delete risks leaving one behind.
+**Never end a field line with `\`.** StrictDoc does not need it. It buys you nothing
+and it carries the only failure mode this notation has: left behind on the last line
+of a block, it stops the export, and every field you delete risks leaving one behind.
+(This is about the fields of a node. A `\` at the end of a line inside a `bash` fence
+is a shell line continuation and has nothing to do with StrictDoc - the commands in
+`queries.md` use it, and removing one breaks the command.)
 
 **Two trailing spaces are not a substitute.** StrictDoc keeps trailing whitespace
 inside the value of a field (measured on 0.27.1). `**Grammar**: basic.sgra  ` dies

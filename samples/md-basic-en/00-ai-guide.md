@@ -236,9 +236,12 @@ Free text inside the chapter. Without `Type`, StrictDoc reads this paragraph as 
   **Role**: `Verifies`
 ```
 
-**Never end a line with `\`.** StrictDoc does not need it. It buys you nothing and
-it carries the only failure mode this notation has: left behind on the last line of
-a block, it stops the export, and every field you delete risks leaving one behind.
+**Never end a field line with `\`.** StrictDoc does not need it. It buys you nothing
+and it carries the only failure mode this notation has: left behind on the last line
+of a block, it stops the export, and every field you delete risks leaving one behind.
+(This is about the fields of a node. A `\` at the end of a line inside a `bash` fence
+is a shell line continuation and has nothing to do with StrictDoc - the commands
+further down this page use it, and removing one breaks the command.)
 
 **Two trailing spaces are not a substitute.** StrictDoc keeps trailing whitespace
 inside the value of a field (measured on 0.27.1). `**Grammar**: basic.sgra  ` dies
@@ -1380,11 +1383,11 @@ It judges every reference that `jq` lists by whether the file exists on the
 exported HTML side. Run `--formats=html` first.
 
 ```bash
-jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW") | not)
+jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW", "DOC-BROWSER", "DOC-COWORK") | not)
 | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("](") | .[1:][] | split(")")[0]
-| select(startswith("http") or startswith("#") | not)' <json>
-  | tr -d '\r' | sort -u
+| select(startswith("http") or startswith("#") | not)' <json> \
+  | tr -d '\r' | sort -u \
   | while read -r p; do [ -f "<output dir>/html/<specification folder name>/$p" ] || echo "NOT PUBLISHED  $p"; done
 ```
 
@@ -1414,7 +1417,7 @@ from anywhere counts as "used"). It does exclude `_assets/*.md` - those are
 documents, and `[LINK:]` points at them by UID, so they never show up as a path.
 
 ```bash
-comm -13 <(jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | split("](") | .[1:][] | split(")")[0]' <json> | tr -d '\r' | sort -u)
+comm -13 <(jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | split("](") | .[1:][] | split(")")[0]' <json> | tr -d '\r' | sort -u) \
          <(cd <specification folder> && find _assets -type f -not -name "*.md" | sort)
 ```
 
@@ -1533,7 +1536,7 @@ Drop the UIDs you do not need from the result, then aggregate. What you drop dep
 goal - keep the figure document when you want to count figures.
 
 ```bash
-jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW") | not) | .UID' <json>
+jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW", "DOC-BROWSER", "DOC-COWORK") | not) | .UID' <json>
 ```
 
 Add this `select` to examples 13 through 15 as well when you aggregate with them.
