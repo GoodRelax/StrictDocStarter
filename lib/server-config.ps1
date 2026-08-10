@@ -1053,6 +1053,338 @@ function Invoke-ScaffoldUpgradePrompt {
     }
 }
 
+function Get-ProjectSourceFile {
+    # Every file strictdoc will read under the project folder. output\ holds our
+    # own generated pages -- which include copies of the sources -- and offering
+    # to rewrite those would be offering to rewrite a build artifact.
+    param(
+        [Parameter(Mandatory)] [string]$ProjectPath,
+        [Parameter(Mandatory)] [string[]]$Extension
+    )
+    $found = @()
+    try {
+        $all = Get-ChildItem -LiteralPath $ProjectPath -Recurse -File -ErrorAction Stop
+    } catch {
+        return $found
+    }
+    foreach ($file in $all) {
+        if ($Extension -notcontains $file.Extension.ToLowerInvariant()) { continue }
+        $relative = $file.FullName.Substring($ProjectPath.Length).TrimStart('\', '/')
+        $parts = $relative -split '[\\/]'
+        $skip = $false
+        foreach ($part in $parts) {
+            if ($part -eq 'output' -or $part -eq '__pycache__') { $skip = $true; break }
+        }
+        if (-not $skip) { $found += $file }
+    }
+    return $found
+}
+
+function Test-BytesAreUtf8 {
+    # True when the bytes decode as UTF-8. A BOM is fine: strictdoc opens every
+    # source with utf-8-sig, which strips it (backend/markdown/reader.py:240,
+    # grammar_reader.py:219, helpers/file_system.py:87).
+    # AllowEmptyCollection because an empty file is a real thing and is valid
+    # UTF-8; without it the parameter binder rejects the call before we can say so.
+    param([Parameter(Mandatory)] [AllowEmptyCollection()] [byte[]]$Bytes)
+    if ($null -eq $Bytes -or $Bytes.Length -eq 0) { return $true }
+    try {
+        $strict = New-Object System.Text.UTF8Encoding($false, $true)
+        [void]$strict.GetString($Bytes)
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+function Get-RecoverableEncoding {
+    # Name the encoding of a file that is not UTF-8, or $null when we cannot be
+    # sure. FR-1169: "this is not UTF-8" is decidable, "this is cp932" is not, so
+    # only two candidates count -- a UTF-16 byte order mark, and the system ANSI
+    # code page when it decodes AND re-encodes to the very same bytes. Anything
+    # else is named on screen and left alone. A wrong guess destroys the author's
+    # text for good, while a failed export is something they can still recover.
+    param([Parameter(Mandatory)] [byte[]]$Bytes)
+
+    if ($Bytes.Length -ge 2) {
+        if ($Bytes[0] -eq 0xFF -and $Bytes[1] -eq 0xFE) { return [System.Text.Encoding]::Unicode }
+        if ($Bytes[0] -eq 0xFE -and $Bytes[1] -eq 0xFF) { return [System.Text.Encoding]::BigEndianUnicode }
+    }
+
+    try {
+        $ansi = [System.Text.Encoding]::GetEncoding(
+            [System.Globalization.CultureInfo]::CurrentCulture.TextInfo.ANSICodePage,
+            [System.Text.EncoderExceptionFallback]::new(),
+            [System.Text.DecoderExceptionFallback]::new())
+        $text = $ansi.GetString($Bytes)
+        $again = $ansi.GetBytes($text)
+        if ($again.Length -ne $Bytes.Length) { return $null }
+        for ($i = 0; $i -lt $again.Length; $i++) {
+            if ($again[$i] -ne $Bytes[$i]) { return $null }
+        }
+        # A round trip on its own is not proof. Code page 932 maps bytes that no
+        # editor ever wrote as text -- 0x80 becomes U+0080, a C1 control, and
+        # 0xA0 / 0xFD / 0xFE / 0xFF become U+F8F0..U+F8F3 in the private use area
+        # -- and every one of those re-encodes to the byte it came from, so the
+        # round trip passes on files that are not text at all (found by
+        # vm-tests\test-input-normalization.ps1, which fed it 80 A0 FD FE).
+        # Real prose carries no control character beyond tab, newline and form
+        # feed, and no private-use code point. Either one means the guess is
+        # wrong, and a wrong guess destroys the text for good.
+        foreach ($ch in $text.ToCharArray()) {
+            $code = [int]$ch
+            if ($code -lt 0x20 -and $code -ne 0x09 -and $code -ne 0x0A -and $code -ne 0x0C -and $code -ne 0x0D) { return $null }
+            if ($code -eq 0x7F) { return $null }
+            if ($code -ge 0x80 -and $code -le 0x9F) { return $null }
+            if ($code -ge 0xE000 -and $code -le 0xF8FF) { return $null }
+        }
+        return $ansi
+    } catch {
+        return $null
+    }
+}
+
+function Get-NonUtf8SourceFile {
+    # Split the sources into the ones we could convert and the ones we must not
+    # touch. Kept apart from the prompt so both halves can be tested without a
+    # console (vm-tests\test-input-normalization.ps1).
+    param([Parameter(Mandatory)] [string]$ProjectPath)
+
+    $convertible = @()
+    $unknown = @()
+    foreach ($file in (Get-ProjectSourceFile -ProjectPath $ProjectPath -Extension @('.md', '.sdoc', '.sgra'))) {
+        try {
+            $bytes = [System.IO.File]::ReadAllBytes($file.FullName)
+        } catch {
+            continue
+        }
+        if (Test-BytesAreUtf8 -Bytes $bytes) { continue }
+        $encoding = Get-RecoverableEncoding -Bytes $bytes
+        if ($null -eq $encoding) { $unknown += $file } else { $convertible += @{ File = $file; Encoding = $encoding } }
+    }
+    return @{ Convertible = $convertible; Unknown = $unknown }
+}
+
+function Convert-FileToUtf8 {
+    # Rewrite one file as UTF-8 without a BOM, after backing it up. Returns $true
+    # when the file was replaced.
+    param(
+        [Parameter(Mandatory)] [string]$Path,
+        [Parameter(Mandatory)] [System.Text.Encoding]$Encoding,
+        [Parameter(Mandatory)] [string]$Stamp
+    )
+    try {
+        $bytes = [System.IO.File]::ReadAllBytes($Path)
+        $text = $Encoding.GetString($bytes)
+        if ($text.Length -gt 0 -and $text[0] -eq [char]0xFEFF) { $text = $text.Substring(1) }
+        Copy-Item -LiteralPath $Path -Destination "$Path.bak-$Stamp" -ErrorAction Stop
+        [System.IO.File]::WriteAllText($Path, $text, (New-Object System.Text.UTF8Encoding($false)))
+        return $true
+    } catch {
+        Write-Host "[WARN]  Could not convert ${Path}: $($_.Exception.Message)" -ForegroundColor Yellow
+        return $false
+    }
+}
+
+function Convert-FileToLf {
+    # Replace CRLF with LF, after backing the file up. Returns $true on success.
+    param(
+        [Parameter(Mandatory)] [string]$Path,
+        [Parameter(Mandatory)] [string]$Stamp
+    )
+    try {
+        $bytes = [System.IO.File]::ReadAllBytes($Path)
+        $text = (New-Object System.Text.UTF8Encoding($false)).GetString($bytes)
+        Copy-Item -LiteralPath $Path -Destination "$Path.bak-$Stamp" -ErrorAction Stop
+        [System.IO.File]::WriteAllText($Path, ($text -replace "`r`n", "`n"), (New-Object System.Text.UTF8Encoding($false)))
+        return $true
+    } catch {
+        Write-Host "[WARN]  Could not convert ${Path}: $($_.Exception.Message)" -ForegroundColor Yellow
+        return $false
+    }
+}
+
+function Invoke-EncodingPrompt {
+    # FR-1169. strictdoc reads every source as UTF-8 and has no fallback, so one
+    # file in another encoding stops the whole export -- with a message that does
+    # not say which file:
+    #   error: 'utf-8' codec can't decode byte 0x82 in position 2: invalid start byte
+    # Naming the file is the point of this check. Converting it is a bonus, and
+    # only where the encoding is certain.
+    param([Parameter(Mandatory)] [string]$ProjectPath)
+
+    $found = Get-NonUtf8SourceFile -ProjectPath $ProjectPath
+    $convertible = $found.Convertible
+    $unknown = $found.Unknown
+
+    if ($convertible.Count -eq 0 -and $unknown.Count -eq 0) { return }
+
+    Write-Host ""
+    Write-Host "[WARN]  These files are not UTF-8. strictdoc reads every source as UTF-8," -ForegroundColor Yellow
+    Write-Host "        so the export stops on the first one -- and its message does not say"
+    Write-Host "        which file it was."
+    Write-Host ""
+    foreach ($item in $convertible) {
+        Write-Host ("          {0}   [{1}]" -f $item.File.FullName, $item.Encoding.WebName) -ForegroundColor Yellow
+    }
+    foreach ($file in $unknown) {
+        Write-Host ("          {0}   [encoding not identified]" -f $file.FullName) -ForegroundColor Yellow
+    }
+    Write-Host ""
+
+    if ($unknown.Count -gt 0) {
+        Write-Host "        The launcher will not touch the files it could not identify. Guessing"
+        Write-Host "        wrong would damage the text for good, and a failed export will not."
+        Write-Host "        Convert those yourself, or open them in an editor and save as UTF-8."
+        Write-Host ""
+    }
+    if ($convertible.Count -eq 0) { return }
+
+    Write-Host "        The rest can be converted to UTF-8 here. Each is backed up first, in"
+    Write-Host "        the same folder, as <name>.bak-<timestamp>."
+    Write-Host ""
+
+    if (-not [Environment]::UserInteractive) {
+        Write-Host "[INFO]  Not an interactive session; leaving every file as it is."
+        return
+    }
+
+    Write-Host "        Type  yes  and press Enter to convert the files listed above."
+    Write-Host "        Press Enter on its own to leave them alone and start anyway."
+    Write-Host ""
+    $reply = "$(Read-Host 'Convert them now?')".Trim().ToLowerInvariant()
+    if ($reply -ne 'yes' -and $reply -ne 'y') {
+        Write-Host "[INFO]  Nothing was changed. The export will stop on the first file above."
+        return
+    }
+
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    foreach ($item in $convertible) {
+        if (Convert-FileToUtf8 -Path $item.File.FullName -Encoding $item.Encoding -Stamp $stamp) {
+            Write-Host "[INFO]  Converted $($item.File.FullName)"
+        }
+    }
+}
+
+function Test-LineEndingsDeclined {
+    param(
+        [Parameter(Mandatory)] [string]$ConfigPath,
+        [Parameter(Mandatory)] [string]$ProjectPath
+    )
+    try {
+        if (-not (Test-Path -LiteralPath $ConfigPath)) { return $false }
+        $obj = (Read-FileNoBom -Path $ConfigPath) | ConvertFrom-Json -ErrorAction Stop
+        $map = $obj.PSObject.Properties['line_endings_declined']
+        if (-not $map -or $null -eq $map.Value) { return $false }
+        $key = Get-DeclineKey -ProjectPath $ProjectPath
+        return [bool]($map.Value.PSObject.Properties | Where-Object { $_.Name.ToLowerInvariant() -eq $key })
+    } catch {
+        return $false
+    }
+}
+
+function Save-LineEndingsDecline {
+    param(
+        [Parameter(Mandatory)] [string]$ConfigPath,
+        [Parameter(Mandatory)] [string]$ProjectPath
+    )
+    try {
+        $obj = (Read-FileNoBom -Path $ConfigPath) | ConvertFrom-Json -ErrorAction Stop
+        if (-not $obj.PSObject.Properties['line_endings_declined'] -or $null -eq $obj.line_endings_declined) {
+            $obj | Add-Member -NotePropertyName line_endings_declined -NotePropertyValue (New-Object PSObject) -Force
+        }
+        $obj.line_endings_declined | Add-Member -NotePropertyName (Get-DeclineKey -ProjectPath $ProjectPath) -NotePropertyValue $true -Force
+        $json = $obj | ConvertTo-Json -Depth 10
+        $json = $json -replace '\\u003e', '>' -replace '\\u003c', '<' -replace '\\u0027', "'" -replace '\\u0026', '&'
+        Write-FileUtf8NoBom -Path $ConfigPath -Content $json
+    } catch {
+        Write-Host "[WARN]  Could not remember your answer: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
+function Get-CrlfMarkdownFile {
+    # Markdown only, and only files that are already UTF-8 -- a file that is not
+    # UTF-8 belongs to FR-1169, and reading it as UTF-8 to count line endings
+    # would be reading it wrong.
+    param([Parameter(Mandatory)] [string]$ProjectPath)
+
+    $mixed = @()
+    foreach ($file in (Get-ProjectSourceFile -ProjectPath $ProjectPath -Extension @('.md'))) {
+        try {
+            $bytes = [System.IO.File]::ReadAllBytes($file.FullName)
+        } catch {
+            continue
+        }
+        if (-not (Test-BytesAreUtf8 -Bytes $bytes)) { continue }
+        for ($i = 0; $i -lt $bytes.Length - 1; $i++) {
+            if ($bytes[$i] -eq 0x0D -and $bytes[$i + 1] -eq 0x0A) { $mixed += $file; break }
+        }
+    }
+    return $mixed
+}
+
+function Invoke-LineEndingPrompt {
+    # FR-1170. Markdown only. strictdoc opens .md with newline="" and so keeps the
+    # CR inside the field value: the same 13 files carried 4265 carriage returns
+    # into 152 STATEMENT fields as CRLF and none as LF (measured on 0.27.1). They
+    # travel on into the JSON export, and every query then has to strip them --
+    # audit.sh already carries an rtrimstr("\r") that it calls load-bearing.
+    # .sdoc and .sgra go through a reader that translates newlines and carried
+    # zero, so they are left alone.
+    #
+    # CRLF never stops an export, so this must never stop a launch. And the answer
+    # is remembered when it is no: on Windows most .md are CRLF, and a question
+    # about rewriting dozens of files at every launch would teach the reader to
+    # press yes without reading. This and FR-1169 are the only places the launcher
+    # touches the author's manuscript, so the quality of that consent matters.
+    param(
+        [Parameter(Mandatory)] [string]$ProjectPath,
+        [Parameter(Mandatory)] [string]$ConfigPath
+    )
+
+    if (Test-LineEndingsDeclined -ConfigPath $ConfigPath -ProjectPath $ProjectPath) { return }
+
+    $mixed = Get-CrlfMarkdownFile -ProjectPath $ProjectPath
+    if ($mixed.Count -eq 0) { return }
+
+    Write-Host ""
+    Write-Host "[INFO]  $($mixed.Count) Markdown file(s) use Windows line endings (CRLF)."
+    Write-Host "        This does not stop the export. It does put a carriage return inside"
+    Write-Host "        every field value strictdoc reads out of them, and those travel on"
+    Write-Host "        into the JSON export, where each query has to strip them again."
+    Write-Host ""
+    foreach ($file in $mixed) { Write-Host "          $($file.FullName)" }
+    Write-Host ""
+    Write-Host "        They can be changed to LF here. Each is backed up first, in the same"
+    Write-Host "        folder, as <name>.bak-<timestamp>. Only .md is affected -- .sdoc and"
+    Write-Host "        .sgra are read differently and carry no carriage return through."
+    Write-Host ""
+
+    if (-not [Environment]::UserInteractive) {
+        Write-Host "[INFO]  Not an interactive session; leaving every file as it is."
+        return
+    }
+
+    Write-Host "        Type  yes  and press Enter to change them to LF."
+    Write-Host "        Press Enter on its own to leave them alone. You will not be asked again"
+    Write-Host "        for this project (clear line_endings_declined in server.config.json to"
+    Write-Host "        be asked once more)."
+    Write-Host ""
+    $reply = "$(Read-Host 'Change them to LF now?')".Trim().ToLowerInvariant()
+    if ($reply -ne 'yes' -and $reply -ne 'y') {
+        Write-Host "[INFO]  Nothing was changed."
+        Save-LineEndingsDecline -ConfigPath $ConfigPath -ProjectPath $ProjectPath
+        return
+    }
+
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    foreach ($file in $mixed) {
+        if (Convert-FileToLf -Path $file.FullName -Stamp $stamp) {
+            Write-Host "[INFO]  Converted $($file.FullName)"
+        }
+    }
+}
+
 function Show-GitignoreAdvice {
     # FR-1161: tell the user how to keep the generated output out of Git, but never
     # touch .gitignore. Detection is delegated to git so that nested .gitignore

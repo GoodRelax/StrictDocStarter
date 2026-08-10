@@ -122,6 +122,13 @@ if ($existingPort -gt 0) {
     Complete-AndExit -Code 0 -Pause $false
 }
 
+# ---- FR-1169 / FR-1170: the author's own files, before anything about settings.
+# ---- FR-1169 is the only fatal one -- strictdoc reads every source as UTF-8 and
+# ---- names no file when one is not -- so it runs first, and before the steps
+# ---- below write anything into the project ----
+Invoke-EncodingPrompt -ProjectPath $projectPath
+Invoke-LineEndingPrompt -ProjectPath $projectPath -ConfigPath $ConfigPath
+
 # ---- FR-1142..1145 / FR-1163: ensure the project has a strictdoc_config.py, and offer to
 # ---- refresh one this launcher wrote itself when an older generation is found ----
 Initialize-StrictDocProjectConfig -ProjectPath $projectPath -ServerConfigPath $ConfigPath
