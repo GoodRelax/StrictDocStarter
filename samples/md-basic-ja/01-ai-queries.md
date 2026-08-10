@@ -1,6 +1,6 @@
 # jq クエリ集 — AI 向け
 
-**UID**: DOC-AI-QUERIES \
+**UID**: DOC-AI-QUERIES
 **Version**: 1.0
 
 本書は、 `00-ai-guide.md` の「3. 仕様書から必要な部分だけを取り出す」の詳細版である。
@@ -808,8 +808,8 @@ jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | ((.STATEMENT? // "") | gsub("\r"; "")
       end)
 | .out[] | gsub("`[^`]*`"; "")
 | split("](") | .[1:][] | split(")")[0]
-| select(startswith("http") or startswith("#") | not)' <json> \
-  | tr -d '\r' | sort -u \
+| select(startswith("http") or startswith("#") | not)' <json>
+  | tr -d '\r' | sort -u
   | while read -r p; do [ -f "<出力先>/html/<仕様書のフォルダ名>/$p" ] || echo "NOT PUBLISHED  $p"; done
 ```
 

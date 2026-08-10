@@ -1,7 +1,7 @@
 # まずこれを読む
 
-**Grammar**: basic.sgra \
-**UID**: DOC-GUIDE \
+**Grammar**: basic.sgra
+**UID**: DOC-GUIDE
 **Version**: 1.0
 
 本書は、 初心者と AI に StrictDoc による仕様書の書き方を伝える。
@@ -110,8 +110,8 @@ StrictDoc の解析には不要である。 StrictDoc 以外の Markdown ビュ�
 ```text
 # まずこれを読む
 
-**Grammar**: basic.sgra \
-**UID**: DOC-GUIDE \
+**Grammar**: basic.sgra
+**UID**: DOC-GUIDE
 **Version**: 1.0
 ```
 
@@ -201,7 +201,7 @@ StrictDoc が最初から持っているノード型は `SECTION` と `TEXT` と
 
 ```text
 **Relations**:
-- **Type**: `Parent` \
+- **Type**: `Parent`
   **ID**: `SYS-001`
 ```
 
@@ -236,8 +236,8 @@ StrictDoc が最初から持っているノード型は `SECTION` と `TEXT` と
 
 ```text
 **Relations**:
-- **Type**: `Parent` \
-  **ID**: `SW-001` \
+- **Type**: `Parent`
+  **ID**: `SW-001`
   **Role**: `Verifies`
 ```
 

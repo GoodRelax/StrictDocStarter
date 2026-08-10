@@ -1,7 +1,7 @@
 # システム構成
 
-**Grammar**: basic.sgra \
-**UID**: DOC-ARCH \
+**Grammar**: basic.sgra
+**UID**: DOC-ARCH
 **Version**: 1.0
 
 本書は要求ではない。 本書は、 直前の `04-upper.md` が並べた上位要求 3 件を、

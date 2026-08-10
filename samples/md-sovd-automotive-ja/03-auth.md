@@ -1,7 +1,7 @@
 # SOVD 認証・認可 要求仕様 (Authentication & Authorization)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-AUTH \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-AUTH
 **Version**: 1.0
 
 本書は SOVD の **認証・認可** 要求を L1 (システム) → L3 (ユニット) で定義する。
@@ -39,15 +39,12 @@ sequenceDiagram
 
 ### OAuth 2.0 PKCE 認証フロー
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-001 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-001
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-001`
 
 **Statement**: クライアントが認証を要求したとき、 車両は OAuth 2.0 Authorization Code Flow with
 PKCE によるクライアント認証を実行すること。
@@ -55,114 +52,128 @@ PKCE によるクライアント認証を実行すること。
 **VERIFICATION**: PKCE 付き認可コードフローでアクセストークンが取得でき、 code_verifier 不一致時は
 認証が拒否されること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-001`
+
 ### アクセストークンの発行
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-002 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-002
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-001`
 
 **Statement**: 認証に成功したとき、 車両は JWT (RFC 7519) 形式のアクセストークンを発行すること。
 
 **VERIFICATION**: 認証成功応答に JWT 形式の access_token が含まれること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-001`
+
 ### アクセストークンの内容
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-003 \
-**TYPE**: Non-Functional \
-**ASIL**: QM \
-**CAL**: CAL2 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-003
+**TYPE**: Non-Functional
+**ASIL**: QM
+**CAL**: CAL2
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-002`
 
 **Statement**: 車両が発行するアクセストークンは、 有効期限 (exp) ・スコープ (scope) ・
 サブジェクト ID (sub) を含むこと。
 
 **Rationale**: 失効判断と認可判断に必要な最小クレームを保証する。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-002`
+
 ### ロールベースアクセス制御 (RBAC)
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-004 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-004
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-002`
 
 **Statement**: 車両は、 スコープ (read:did / read:dtc / write:dtc / write:swupdate 等) を
 役割 (Mechanic / OEMEngineer / FleetOperator) ごとに割り当て可能とすること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-002`
+
 ### 通信路の TLS 1.3 暗号化
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-005 \
-**TYPE**: Non-Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-005
+**TYPE**: Non-Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-003`
 
 **Statement**: 車両は、 SOVD クライアントとゲートウェイ間の全通信を TLS 1.3 以上で
 暗号化すること。
 
 **VERIFICATION**: ハンドシェイクが TLS 1.3 以上で確立し、 平文 HTTP 接続が拒否されること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-003`
+
 ### TLS ダウングレードの禁止
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-006 \
-**TYPE**: Restriction \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-006
+**TYPE**: Restriction
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-005`
 
 **Statement**: もしクライアントが TLS 1.2 以下へのダウングレードを要求した場合、 車両は
 接続を拒否すること。
 
 **Rationale**: ダウングレード攻撃による暗号強度の低下を防ぐ。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-005`
+
 ### 相互 TLS (mTLS) 認証
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-007 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-007
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-003`
 
 **Statement**: OEM 内部接続を行う構成では、 車両はクライアント証明書 (X.509) による
 相互 TLS 認証を追加でサポートすること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-003`
+
 ### アクセストークンの有効期限
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-008 \
-**TYPE**: Non-Functional \
-**ASIL**: QM \
-**CAL**: CAL2 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-008
+**TYPE**: Non-Functional
+**ASIL**: QM
+**CAL**: CAL2
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-002`
 
 **Statement**: 車両が発行するアクセストークンの有効期限は、 既定 30 分とし、 60 分を
 超えないこと。
@@ -170,50 +181,54 @@ PKCE によるクライアント認証を実行すること。
 **VERIFICATION**: 既定発行トークンの exp が発行から 30 分であり、 設定可能上限でも 60 分を
 超えないこと。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-002`
+
 ### トークン失効 API
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-009 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-009
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-001`
 
 **Statement**: 車両は、 発行済みアクセストークンを失効させる API を提供すること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-001`
+
 ### 失効済みトークンの拒否
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-010 \
-**TYPE**: Restriction \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-010
+**TYPE**: Restriction
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-009`
 
 **Statement**: もし失効済みのアクセストークンでアクセスした場合、 車両は当該要求を
 即座に拒否すること。
 
 **VERIFICATION**: 失効 API 実行後、 同一トークンでのアクセスが HTTP 401 となること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-009`
+
 ### スコープ検証前のデータ返却の禁止
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-011 \
-**TYPE**: Restriction \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-011
+**TYPE**: Restriction
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-004`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-002`
 
 **Statement**: 車両は、 要求されたスコープの検証が成功する前に、 車両データを返さないこと。
 
@@ -221,19 +236,28 @@ PKCE によるクライアント認証を実行すること。
 
 **VERIFICATION**: スコープ不足の要求が、 車両データを一切含まずに HTTP 403 を返すこと。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-004`
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-002`
+
 ### 監査ログの記録
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L1-012 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL2 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L1-012
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL2
 **LAYER**: L1_System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-006`
 
 **Statement**: 車両は、 認証・認可イベント (トークン発行・検証・失効・アクセス可否判定) を監査ログとして記録できること。
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-006`
 
 ## L2 — ECU ソフトウェア要求 (ECU Software Requirements)
 
@@ -256,95 +280,102 @@ $$
 
 ### 認証エンドポイント
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L2-001 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L2-001
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L2_ECU_SW
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-001`
 
 **Statement**: クライアントが OAuth 2.0 Token Request を送信したとき、 ゲートウェイ ECU は
 HTTPS POST /auth/token エンドポイントでこれを受け付けること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-001`
+
 ### JWT の検証
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L2-002 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L2-002
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L2_ECU_SW
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-002`
 
 **Statement**: アクセストークンを受信したとき、 ゲートウェイ ECU は RFC 7519 準拠の検証により
 署名・有効期限・スコープを検証すること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-002`
+
 ### スコープのチェックポイント
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L2-003 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L2-003
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L2_ECU_SW
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-004`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-011`
 
 **Statement**: もし要求が必要スコープを含まない場合、 ゲートウェイ ECU は診断 API ハンドラの
 処理前に HTTP 403 を返すこと。
 
 **VERIFICATION**: 必要スコープを欠く要求が、 対象 ECU へ到達せずに 403 となること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-004`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-011`
+
 ### TLS 終端と認証コンテキストの付与
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L2-004 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L2-004
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L2_ECU_SW
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-005`
 
 **Statement**: ゲートウェイ ECU は、 外部 IF で TLS 1.3 を終端すること。 内部車載ネットワークへ
 転送するとき、 ゲートウェイ ECU は、 認証コンテキストをそのメッセージに
 付与すること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-005`
+
 ### クライアント証明書ストアの整合性検証
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L2-005 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L2-005
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L2_ECU_SW
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-007`
 
 **Statement**: 起動したとき、 ゲートウェイ ECU は信頼するクライアント CA の証明書チェーンを
 保管する不揮発領域の整合性を検証すること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-007`
+
 ### 認証処理レイテンシ
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L2-006 \
-**TYPE**: Non-Functional \
-**ASIL**: QM \
-**CAL**: CAL2 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L2-006
+**TYPE**: Non-Functional
+**ASIL**: QM
+**CAL**: CAL2
 **LAYER**: L2_ECU_SW
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-002`
 
 **Statement**: ゲートウェイ ECU は、 トークン検証とスコープチェックの合計レイテンシを、
 上式 t_auth が示す 50 ms 以内に収めること。
@@ -352,37 +383,46 @@ HTTPS POST /auth/token エンドポイントでこれを受け付けること。
 **VERIFICATION**: 代表負荷下で、 トークン検証 + スコープ判定の 95 パーセンタイルが 50 ms 以内で
 あること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-002`
+
 ### 失効リストの同期
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L2-007 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L2-007
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L2_ECU_SW
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-009`
 
 **Statement**: 車両起動時および 1 時間ごとに、 ゲートウェイ ECU は OEM 認証サーバから
 失効トークンリストを取得し、 ローカルキャッシュを更新すること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-009`
+
 ### 認証ログの保管
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L2-008 \
-**TYPE**: Constraint \
-**ASIL**: QM \
-**CAL**: CAL2 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L2-008
+**TYPE**: Constraint
+**ASIL**: QM
+**CAL**: CAL2
 **LAYER**: L2_ECU_SW
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-012`
 
 **Statement**: ゲートウェイ ECU は、 全ての認証試行 (成功・失敗) を不揮発領域に
 最低 30 日間保管すること。
 
 **Rationale**: 不正アクセスの追跡 (フォレンジック) に必要。
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-012`
 
 ## L3 — ユニット要求 (Unit / Software Component Requirements)
 
@@ -390,15 +430,12 @@ HTTPS POST /auth/token エンドポイントでこれを受け付けること。
 
 ### TokenVerifier ユニット
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L3-001 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L3-001
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L3_Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-002`
 
 **Statement**: TokenVerifier ユニットは、 JWT 文字列を入力として受け取り、 署名検証・
 有効期限チェック・claim 解析の結果を返す純粋関数として実装すること。
@@ -406,36 +443,45 @@ HTTPS POST /auth/token エンドポイントでこれを受け付けること。
 **VERIFICATION**: 既知の有効/無効トークンのテストベクタに対し、 期待どおりの可否と理由コードを
 返すこと。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-002`
+
 ### TokenCache ユニットの容量
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L3-002 \
-**TYPE**: Non-Functional \
-**ASIL**: QM \
-**CAL**: CAL2 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L3-002
+**TYPE**: Non-Functional
+**ASIL**: QM
+**CAL**: CAL2
 **LAYER**: L3_Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-006`
 
 **Statement**: TokenCache ユニットは、 最大 1024 件の検証済みトークンを LRU で保持し、
 メモリ使用量を 256 KB 以内とすること。
 
 **Rationale**: 検証済みトークンの再利用で認証レイテンシ (AUTH-L2-006) を抑える。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-006`
+
 ### 実装言語・依存の制限
 
-**Type**: REQUIREMENT \
-**UID**: AUTH-L3-003 \
-**TYPE**: Constraint \
-**ASIL**: QM \
-**CAL**: CAL2 \
+**Type**: REQUIREMENT
+**UID**: AUTH-L3-003
+**TYPE**: Constraint
+**ASIL**: QM
+**CAL**: CAL2
 **LAYER**: L3_Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-002`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-006`
 
 **Statement**: 認証関連ユニットは、 MISRA C:2012 準拠の C 言語で実装し、 外部依存を
 OpenSSL / cJSON のみとすること。
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-002`
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-006`

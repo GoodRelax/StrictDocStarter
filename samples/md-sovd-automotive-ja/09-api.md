@@ -1,7 +1,7 @@
 # SOVD API 契約 仕様 (HTTP API Contract)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-API \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-API
 **Version**: 1.0
 
 本書は SOVD の **外部 HTTP API 契約** である。 SOVD クライアント (OEM クラウド・整備
@@ -19,14 +19,10 @@
 
 ### アクセストークン発行 (OAuth2 PKCE)
 
-**Type**: API \
-**UID**: API-001 \
-**METHOD**: POST \
+**Type**: API
+**UID**: API-001
+**METHOD**: POST
 **PATH**: /auth/token
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-001` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -38,16 +34,18 @@
 **RESPONSE**: 200 OK
 {"access_token": "<JWT>", "token_type": "Bearer", "expires_in": 1800, "scope": "read:did read:dtc"}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-001`
+  **Role**: `Satisfies`
+
 ### トークン失効
 
-**Type**: API \
-**UID**: API-002 \
-**METHOD**: POST \
+**Type**: API
+**UID**: API-002
+**METHOD**: POST
 **PATH**: /auth/revoke
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-009` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -57,21 +55,23 @@
 
 **RESPONSE**: 200 OK
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-009`
+  **Role**: `Satisfies`
+
 ## データアクセス (Data Access)
 
 **Type**: SECTION
 
 ### 単一 DID の読み出し
 
-**Type**: API \
-**UID**: API-003 \
-**METHOD**: GET \
-**PATH**: /components/{ecu}/data/{did} \
+**Type**: API
+**UID**: API-003
+**METHOD**: GET
+**PATH**: /components/{ecu}/data/{did}
 **SCOPE**: read:did
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-001` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -85,17 +85,19 @@
 **RESPONSE**: 200 OK
 {"did": "0xF40C", "name": "rpm", "value": 824, "unit": "1/min"}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L1-001`
+  **Role**: `Satisfies`
+
 ### 周期データストリーム (SSE)
 
-**Type**: API \
-**UID**: API-004 \
-**METHOD**: GET \
-**PATH**: /components/{ecu}/data/stream \
+**Type**: API
+**UID**: API-004
+**METHOD**: GET
+**PATH**: /components/{ecu}/data/stream
 **SCOPE**: read:did
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-002` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -106,21 +108,23 @@
 **RESPONSE**: 200 OK (text/event-stream)
 data: {"did":"0xF40C","value":824}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L1-002`
+  **Role**: `Satisfies`
+
 ## 故障診断 (DTC)
 
 **Type**: SECTION
 
 ### DTC リスト取得
 
-**Type**: API \
-**UID**: API-005 \
-**METHOD**: GET \
-**PATH**: /components/{ecu}/faults \
+**Type**: API
+**UID**: API-005
+**METHOD**: GET
+**PATH**: /components/{ecu}/faults
 **SCOPE**: read:dtc
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-001` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -131,17 +135,19 @@ data: {"did":"0xF40C","value":824}
 **RESPONSE**: 200 OK
 [{"code": "P0301", "status": "confirmed"}]
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L1-001`
+  **Role**: `Satisfies`
+
 ### フリーズフレーム取得
 
-**Type**: API \
-**UID**: API-006 \
-**METHOD**: GET \
-**PATH**: /components/{ecu}/faults/{code}/freeze-frame \
+**Type**: API
+**UID**: API-006
+**METHOD**: GET
+**PATH**: /components/{ecu}/faults/{code}/freeze-frame
 **SCOPE**: read:dtc
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-002` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -153,17 +159,19 @@ data: {"did":"0xF40C","value":824}
 **RESPONSE**: 200 OK
 {"code": "P0301", "frame": {"rpm": 3200, "coolant": 95}}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L1-002`
+  **Role**: `Satisfies`
+
 ### DTC クリア
 
-**Type**: API \
-**UID**: API-007 \
-**METHOD**: DELETE \
-**PATH**: /components/{ecu}/faults/{code} \
+**Type**: API
+**UID**: API-007
+**METHOD**: DELETE
+**PATH**: /components/{ecu}/faults/{code}
 **SCOPE**: write:dtc
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-003` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -175,21 +183,23 @@ data: {"did":"0xF40C","value":824}
 
 **RESPONSE**: 204 No Content  /  409 Conflict (vehicle moving)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L1-003`
+  **Role**: `Satisfies`
+
 ## ソフトウェア更新 (OTA)
 
 **Type**: SECTION
 
 ### 更新パッケージ投入
 
-**Type**: API \
-**UID**: API-008 \
-**METHOD**: POST \
-**PATH**: /updates \
+**Type**: API
+**UID**: API-008
+**METHOD**: POST
+**PATH**: /updates
 **SCOPE**: write:swupdate
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-001` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -203,16 +213,18 @@ data: {"did":"0xF40C","value":824}
 **RESPONSE**: 202 Accepted
 {"update_id": "u-123", "state": "Downloading"}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-001`
+  **Role**: `Satisfies`
+
 ### 更新進捗ストリーム (SSE)
 
-**Type**: API \
-**UID**: API-009 \
-**METHOD**: GET \
+**Type**: API
+**UID**: API-009
+**METHOD**: GET
 **PATH**: /updates/progress
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-006` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -222,17 +234,19 @@ data: {"did":"0xF40C","value":824}
 **RESPONSE**: 200 OK (text/event-stream)
 data: {"ecu":"engine","phase":"Verifying","percent":40}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-006`
+  **Role**: `Satisfies`
+
 ### ロールバック
 
-**Type**: API \
-**UID**: API-010 \
-**METHOD**: POST \
-**PATH**: /updates/rollback \
+**Type**: API
+**UID**: API-010
+**METHOD**: POST
+**PATH**: /updates/rollback
 **SCOPE**: write:swupdate
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-005` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -242,3 +256,9 @@ data: {"ecu":"engine","phase":"Verifying","percent":40}
 
 **RESPONSE**: 202 Accepted
 {"state": "RolledBack"}
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-005`
+  **Role**: `Satisfies`

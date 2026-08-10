@@ -1,7 +1,7 @@
 # SOVD テスト仕様 (Test Specification / Strategy)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-TESTSPEC \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-TESTSPEC
 **Version**: 1.0
 
 本書は SOVD の **テスト仕様** である。 V 字の右側として各レベル (単体 / 結合 / システム /
@@ -33,13 +33,9 @@ PASS、 1 つが FAIL」 を個別に記録できる (Cucumber/ISTQB の test ca
 
 ### TokenVerifier — 有効な JWT は受理される
 
-**Type**: TEST \
-**UID**: UT-001 \
+**Type**: TEST
+**UID**: UT-001
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -52,15 +48,17 @@ Feature: TokenVerifier の JWT 検証
     Then valid=true、 claims.scope に "read:did" を含む
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-005`
+  **Role**: `Verifies`
+
 ### TokenVerifier — 署名改ざんは拒否される
 
-**Type**: TEST \
-**UID**: UT-002 \
+**Type**: TEST
+**UID**: UT-002
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -72,15 +70,17 @@ Feature: TokenVerifier の JWT 検証
     Then valid=false、 reason="invalid_signature"
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-005`
+  **Role**: `Verifies`
+
 ### TokenVerifier — 期限切れは拒否される
 
-**Type**: TEST \
-**UID**: UT-003 \
+**Type**: TEST
+**UID**: UT-003
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -92,15 +92,17 @@ Feature: TokenVerifier の JWT 検証
     Then valid=false、 reason="expired"
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-005`
+  **Role**: `Verifies`
+
 ### TokenCache — 容量超過で最古を追い出す
 
-**Type**: TEST \
-**UID**: UT-004 \
+**Type**: TEST
+**UID**: UT-004
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -112,15 +114,17 @@ Feature: TokenCache の LRU
     Then 件数は 1024、 1 件目は get で miss、 メモリは 256 KB 以内
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-006`
+  **Role**: `Verifies`
+
 ### TokenCache — 保持中はヒットする
 
-**Type**: TEST \
-**UID**: UT-005 \
+**Type**: TEST
+**UID**: UT-005
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -132,15 +136,17 @@ Feature: TokenCache の参照
     Then 検証済み結果を hit で返す
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-006`
+  **Role**: `Verifies`
+
 ### ScopeAuthorizer — スコープ充足/不足の判定
 
-**Type**: TEST \
-**UID**: UT-006 \
+**Type**: TEST
+**UID**: UT-006
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -158,15 +164,17 @@ Feature: ScopeAuthorizer の認可判定
       | write:dtc | read:dtc          | deny     | insufficient_scope |
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-002`
+  **Role**: `Verifies`
+
 ### TlsTerminator — 起動時に信頼ストアをロードする
 
-**Type**: TEST \
-**UID**: UT-007 \
+**Type**: TEST
+**UID**: UT-007
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -178,15 +186,17 @@ Feature: TlsTerminator の信頼ストア
     Then ロード済み CA 数 = 1
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-001`
+  **Role**: `Verifies`
+
 ### TlsTerminator — 不正証明書で失敗イベントを通知する
 
-**Type**: TEST \
-**UID**: UT-008 \
+**Type**: TEST
+**UID**: UT-008
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -198,15 +208,17 @@ Feature: TlsTerminator のハンドシェイク
     Then 失敗し、 上位へ "handshake_failed" を通知する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-001`
+  **Role**: `Verifies`
+
 ### UdsClient — 正常応答を返す
 
-**Type**: TEST \
-**UID**: UT-009 \
+**Type**: TEST
+**UID**: UT-009
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -218,15 +230,17 @@ Feature: UdsClient の送受信
     Then 戻り値のバイト列は 0338 (=824)
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-003`
+  **Role**: `Verifies`
+
 ### UdsClient — 無応答はリトライ後タイムアウト
 
-**Type**: TEST \
-**UID**: UT-010 \
+**Type**: TEST
+**UID**: UT-010
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -238,15 +252,17 @@ Feature: UdsClient のタイムアウト
     Then 規定回数リトライ後に Timeout エラーを返す
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-003`
+  **Role**: `Verifies`
+
 ### UdsClient — NRC を伝播する
 
-**Type**: TEST \
-**UID**: UT-011 \
+**Type**: TEST
+**UID**: UT-011
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -258,15 +274,17 @@ Feature: UdsClient の NRC 処理
     Then NRC=0x31 を呼び出し元へ伝播する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-003`
+  **Role**: `Verifies`
+
 ### JsonSerializer — 各型を ASAM JSON へ変換する
 
-**Type**: TEST \
-**UID**: UT-012 \
+**Type**: TEST
+**UID**: UT-012
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -286,15 +304,17 @@ Feature: JsonSerializer の型変換
       | bytes  | 0x03 0x38 | "0338" |
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-004`
+  **Role**: `Verifies`
+
 ### DidResolver — 既知 DID を解決する
 
-**Type**: TEST \
-**UID**: UT-013 \
+**Type**: TEST
+**UID**: UT-013
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -306,15 +326,17 @@ Feature: DidResolver の解決
     Then addr 0x10 を返す (ハッシュ 1 回, O(1))
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-008`
+  **Role**: `Verifies`
+
 ### DidResolver — 未知 DID はエラー
 
-**Type**: TEST \
-**UID**: UT-014 \
+**Type**: TEST
+**UID**: UT-014
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -326,15 +348,17 @@ Feature: DidResolver の解決
     Then NotFound を返し、 クラッシュしない
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-008`
+  **Role**: `Verifies`
+
 ### DataCache — TTL 内はヒットする
 
-**Type**: TEST \
-**UID**: UT-015 \
+**Type**: TEST
+**UID**: UT-015
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-009` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -346,15 +370,17 @@ Feature: DataCache の TTL
     Then 824 を hit で返す (ECU 通信なし)
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-009`
+  **Role**: `Verifies`
+
 ### DataCache — TTL 経過でミスする
 
-**Type**: TEST \
-**UID**: UT-016 \
+**Type**: TEST
+**UID**: UT-016
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-009` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -366,15 +392,17 @@ Feature: DataCache の TTL
     Then miss となり ECU へ再取得する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-009`
+  **Role**: `Verifies`
+
 ### DtcParser — 1 件の DTC を解析する
 
-**Type**: TEST \
-**UID**: UT-017 \
+**Type**: TEST
+**UID**: UT-017
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-010` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -386,15 +414,17 @@ Feature: DtcParser の解析
     Then [(code="P0301", status=0x2F)] を返す
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-010`
+  **Role**: `Verifies`
+
 ### DtcParser — 空応答は空リスト
 
-**Type**: TEST \
-**UID**: UT-018 \
+**Type**: TEST
+**UID**: UT-018
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-010` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -406,15 +436,17 @@ Feature: DtcParser の解析
     Then 空リストを返す (エラーにしない)
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-010`
+  **Role**: `Verifies`
+
 ### FreezeFrameDecoder — (did,value) へ復号する
 
-**Type**: TEST \
-**UID**: UT-019 \
+**Type**: TEST
+**UID**: UT-019
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-011` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -426,15 +458,17 @@ Feature: FreezeFrameDecoder の復号
     Then [(0xF40C, 3200), (0xF40D, 0)] を返す
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-011`
+  **Role**: `Verifies`
+
 ### SpeedReader — 最新車速を 10ms 以内に反映する
 
-**Type**: TEST \
-**UID**: UT-020 \
+**Type**: TEST
+**UID**: UT-020
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-012` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -446,15 +480,17 @@ Feature: SpeedReader の周期更新
     Then 0 km/h を返す
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-012`
+  **Role**: `Verifies`
+
 ### DtcHistoryStore — 容量超過で最古を上書きする
 
-**Type**: TEST \
-**UID**: UT-021 \
+**Type**: TEST
+**UID**: UT-021
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-013` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -466,15 +502,17 @@ Feature: DtcHistoryStore のリングバッファ
     Then 件数は 1024、 1 件目は read で取得できない
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-013`
+  **Role**: `Verifies`
+
 ### DtcHistoryStore — 並行読取でも整合する
 
-**Type**: TEST \
-**UID**: UT-022 \
+**Type**: TEST
+**UID**: UT-022
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-013` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -486,15 +524,17 @@ Feature: DtcHistoryStore の並行性
     Then 各 read は破損のない完全なエントリを返す
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-013`
+  **Role**: `Verifies`
+
 ### PackageDownloader — 途中失敗から再開して完走する
 
-**Type**: TEST \
-**UID**: UT-023 \
+**Type**: TEST
+**UID**: UT-023
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-014` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -506,15 +546,17 @@ Feature: PackageDownloader の再開
     Then 指数バックオフで再取得し 3MB 完走する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-014`
+  **Role**: `Verifies`
+
 ### PackageDownloader — バックオフ上限で二重要求しない
 
-**Type**: TEST \
-**UID**: UT-024 \
+**Type**: TEST
+**UID**: UT-024
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-014` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -526,15 +568,17 @@ Feature: PackageDownloader のバックオフ
     Then バックオフは 30s で頭打ち、 同一チャンクの未完了要求が同時に 2 つ存在しない
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-014`
+  **Role**: `Verifies`
+
 ### SignatureVerifier — ECDSA 正署名は true
 
-**Type**: TEST \
-**UID**: UT-025 \
+**Type**: TEST
+**UID**: UT-025
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-015` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -546,15 +590,17 @@ Feature: SignatureVerifier の署名検証
     Then true を返す
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-015`
+  **Role**: `Verifies`
+
 ### SignatureVerifier — RSA-PSS 正署名は true
 
-**Type**: TEST \
-**UID**: UT-026 \
+**Type**: TEST
+**UID**: UT-026
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-015` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -566,15 +612,17 @@ Feature: SignatureVerifier の署名検証
     Then true を返す
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-015`
+  **Role**: `Verifies`
+
 ### SignatureVerifier — 改ざんは false
 
-**Type**: TEST \
-**UID**: UT-027 \
+**Type**: TEST
+**UID**: UT-027
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-015` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -586,15 +634,17 @@ Feature: SignatureVerifier の署名検証
     Then false を返す (内部状態を変えない純粋関数)
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-015`
+  **Role**: `Verifies`
+
 ### FlashSectorWriter — 正常書込は事前消去 + CRC 一致
 
-**Type**: TEST \
-**UID**: UT-028 \
+**Type**: TEST
+**UID**: UT-028
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-016` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -606,15 +656,17 @@ Feature: FlashSectorWriter の書込
     Then 書込前にセクタ消去、 書込後 CRC32 が D と一致し成功を返す
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-016`
+  **Role**: `Verifies`
+
 ### FlashSectorWriter — CRC 不一致は ERROR
 
-**Type**: TEST \
-**UID**: UT-029 \
+**Type**: TEST
+**UID**: UT-029
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-016` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -626,15 +678,17 @@ Feature: FlashSectorWriter の検証
     Then ERROR_FLASH_VERIFY を返す
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-016`
+  **Role**: `Verifies`
+
 ### VehicleStateMonitor — 全条件成立時のみ許可
 
-**Type**: TEST \
-**UID**: UT-030 \
+**Type**: TEST
+**UID**: UT-030
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-017` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -653,25 +707,21 @@ Feature: VehicleStateMonitor の判定
       | 0   | ON  | D     | ACC | false   |
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-017`
+  **Role**: `Verifies`
+
 ## 5.3 結合テスト (Integration Tests)
 
 **Type**: SECTION
 
 ### 認証フロー結合 (token -> verify -> scope)
 
-**Type**: TEST \
-**UID**: IT-001 \
+**Type**: TEST
+**UID**: IT-001
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -684,15 +734,23 @@ Feature: 認証フローの結合
     Then JWT (exp/scope/sub を含む) が発行され、 read:did で検証成功 → allow となる
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-003`
+  **Role**: `Verifies`
+
 ### DID 読出ブリッジ結合 (SOVD -> UDS -> JSON)
 
-**Type**: TEST \
-**UID**: IT-002 \
+**Type**: TEST
+**UID**: IT-002
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L2-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -705,15 +763,17 @@ Feature: DID 読出ブリッジ
     Then UDS 0x22 F40C へ変換され {"rpm": 824} で返る
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L2-002`
+  **Role**: `Verifies`
+
 ### DTC 読出ブリッジ結合 (UDS 0x19 -> Parser)
 
-**Type**: TEST \
-**UID**: IT-003 \
+**Type**: TEST
+**UID**: IT-003
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -725,18 +785,17 @@ Feature: DTC 読出ブリッジ
     Then 各 ECU へ UDS 0x19/02 が発行され、 集約 JSON で返る
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L2-001`
+  **Role**: `Verifies`
+
 ### DTC クリア — 走行中はガードで阻止
 
-**Type**: TEST \
-**UID**: IT-004 \
+**Type**: TEST
+**UID**: IT-004
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -748,15 +807,20 @@ Feature: クリアの車速ガード
     Then VehicleSpeedGuard が阻止し、 UDS 0x14 は発行されない (409)
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L2-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DTC-L2-004`
+  **Role**: `Verifies`
+
 ### DTC クリア — 停車中は実行
 
-**Type**: TEST \
-**UID**: IT-005 \
+**Type**: TEST
+**UID**: IT-005
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -768,15 +832,17 @@ Feature: クリアの実行
     Then UDS 0x14 が発行され成功する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L2-003`
+  **Role**: `Verifies`
+
 ### OTA — 正常パッケージは検証を通る
 
-**Type**: TEST \
-**UID**: IT-006 \
+**Type**: TEST
+**UID**: IT-006
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -788,15 +854,17 @@ Feature: ダウンロード + 署名検証
     Then 整合チェック成功 → 署名 valid → Verifying から Installing へ進む
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-001`
+  **Role**: `Verifies`
+
 ### OTA — 改ざんパッケージは破棄
 
-**Type**: TEST \
-**UID**: IT-007 \
+**Type**: TEST
+**UID**: IT-007
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -808,15 +876,17 @@ Feature: 署名検証
     Then 署名検証失敗で破棄され Installing に進まない
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-002`
+  **Role**: `Verifies`
+
 ### OTA フラッシュ + 状態ガードの緊急中断
 
-**Type**: TEST \
-**UID**: IT-008 \
+**Type**: TEST
+**UID**: IT-008
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -828,15 +898,17 @@ Feature: 書込中の状態ガード
     Then VehicleStateGuard が 50ms 周期で検知し書込を緊急中断、 安全側へ遷移
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-004`
+  **Role**: `Verifies`
+
 ### 認証エンドポイントが要求を受理する
 
-**Type**: TEST \
-**UID**: IT-009 \
+**Type**: TEST
+**UID**: IT-009
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -848,15 +920,17 @@ Feature: 認証エンドポイント
     Then 受理し処理する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-001`
+  **Role**: `Verifies`
+
 ### 起動時に証明書ストアの整合性を検証する
 
-**Type**: TEST \
-**UID**: IT-010 \
+**Type**: TEST
+**UID**: IT-010
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -868,15 +942,17 @@ Feature: 証明書ストア
     Then 整合性検証が実行され、 破損時は起動を異常通知する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-005`
+  **Role**: `Verifies`
+
 ### 失効リストを定期同期する
 
-**Type**: TEST \
-**UID**: IT-011 \
+**Type**: TEST
+**UID**: IT-011
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -888,15 +964,17 @@ Feature: 失効リスト同期
     Then ローカル失効キャッシュが更新される
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-007`
+  **Role**: `Verifies`
+
 ### WebSocket で複数 DID を同時購読する
 
-**Type**: TEST \
-**UID**: IT-012 \
+**Type**: TEST
+**UID**: IT-012
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L2-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -908,15 +986,17 @@ Feature: WebSocket 購読
     Then 各 DID が周期配信され、 32 同時まで受理される
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L2-004`
+  **Role**: `Verifies`
+
 ### バルクダウンロードを gzip 圧縮で返す
 
-**Type**: TEST \
-**UID**: IT-013 \
+**Type**: TEST
+**UID**: IT-013
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L2-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -928,15 +1008,17 @@ Feature: バルク圧縮
     Then Content-Encoding: gzip で圧縮転送される
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L2-005`
+  **Role**: `Verifies`
+
 ### 全 DTC を一括クリアする
 
-**Type**: TEST \
-**UID**: IT-014 \
+**Type**: TEST
+**UID**: IT-014
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -948,15 +1030,17 @@ Feature: 一括クリア
     Then 車速ガード通過後に全 DTC がクリアされる
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L1-005`
+  **Role**: `Verifies`
+
 ### 応答に DTC マスタ情報を同梱する
 
-**Type**: TEST \
-**UID**: IT-015 \
+**Type**: TEST
+**UID**: IT-015
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -968,15 +1052,17 @@ Feature: DTC マスタ
     Then 各 DTC に説明・推奨対処が同梱される
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L2-005`
+  **Role**: `Verifies`
+
 ### ロールバックがブートローダ切替で実行される
 
-**Type**: TEST \
-**UID**: IT-016 \
+**Type**: TEST
+**UID**: IT-016
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -988,15 +1074,17 @@ Feature: ロールバック実行
     Then ブートローダパラメータが書き換わり再起動が要求される
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-005`
+  **Role**: `Verifies`
+
 ### 進捗イベントが配信される
 
-**Type**: TEST \
-**UID**: IT-017 \
+**Type**: TEST
+**UID**: IT-017
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1008,15 +1096,17 @@ Feature: 進捗イベントバス
     Then ProgressEventBus 経由で SSE に進捗が配信される
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-006`
+  **Role**: `Verifies`
+
 ### 電源断後に最後の安全状態から再開する
 
-**Type**: TEST \
-**UID**: IT-018 \
+**Type**: TEST
+**UID**: IT-018
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1028,22 +1118,21 @@ Feature: 再開可能ステートマシン
     Then 最後の安全状態から再開する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-007`
+  **Role**: `Verifies`
+
 ## 5.4 システムテスト (System Tests)
 
 **Type**: SECTION
 
 ### 認証付きデータ読出 (end-to-end)
 
-**Type**: TEST \
-**UID**: ST-001 \
+**Type**: TEST
+**UID**: ST-001
 **TEST_LEVEL**: System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1055,15 +1144,20 @@ Feature: 認証付き DID 読出 E2E
     Then 200 と {"rpm": <値>}、 単一 DID p95 が 500ms 以内
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-001`
+  **Role**: `Verifies`
+
 ### 周期データストリーム
 
-**Type**: TEST \
-**UID**: ST-002 \
+**Type**: TEST
+**UID**: ST-002
 **TEST_LEVEL**: System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1075,18 +1169,17 @@ Feature: 周期ストリーム
     Then 各 DID が指定周期で配信され、 32 同時で安定
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L1-002`
+  **Role**: `Verifies`
+
 ### DTC 一覧取得とクリア
 
-**Type**: TEST \
-**UID**: ST-003 \
+**Type**: TEST
+**UID**: ST-003
 **TEST_LEVEL**: System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1098,21 +1191,20 @@ Feature: DTC 取得とクリア
     Then 取得・クリアが成功し、 操作が履歴に残る
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DTC-L1-007`
+  **Role**: `Verifies`
+
 ### OTA 更新 — 正常更新は新版で起動
 
-**Type**: TEST \
-**UID**: ST-004 \
+**Type**: TEST
+**UID**: ST-004
 **TEST_LEVEL**: System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1124,18 +1216,23 @@ Feature: OTA 正常更新 E2E
     Then Downloading->Verifying->Installing->Activated と進み、 新版で起動する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-008`
+  **Role**: `Verifies`
+
 ### OTA 更新 — 書込失敗で旧版を維持
 
-**Type**: TEST \
-**UID**: ST-005 \
+**Type**: TEST
+**UID**: ST-005
 **TEST_LEVEL**: System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1147,31 +1244,24 @@ Feature: OTA 失敗ロールバック E2E
     Then 状態は RolledBack となり、 旧バージョンで起動する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-008`
+  **Role**: `Verifies`
+
 ## 5.5 受入テスト (Acceptance Tests, Gherkin)
 
 **Type**: SECTION
 
 ### 認証付き DID 読み出しの成功
 
-**Type**: TEST \
-**UID**: AT-001 \
+**Type**: TEST
+**UID**: AT-001
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `UC-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `UC-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1183,18 +1273,29 @@ Feature: 認証付き DID 読み出し
     Then 200 と rpm 数値、 スコープ検証が DID 読出より前に行われる
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DATA-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `UC-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `UC-002`
+  **Role**: `Verifies`
+
 ### 未認証アクセスの拒否
 
-**Type**: TEST \
-**UID**: AT-002 \
+**Type**: TEST
+**UID**: AT-002
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-011` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1206,18 +1307,20 @@ Feature: 未認証アクセスの拒否
     Then 401、 車両データはボディに一切含まれない
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-011`
+  **Role**: `Verifies`
+
 ### スコープ不足で 403
 
-**Type**: TEST \
-**UID**: AT-003 \
+**Type**: TEST
+**UID**: AT-003
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1229,18 +1332,20 @@ Feature: 役割に応じたアクセス制御
     Then 403 Forbidden
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DATA-L1-006`
+  **Role**: `Verifies`
+
 ### 失効トークンの拒否
 
-**Type**: TEST \
-**UID**: AT-004 \
+**Type**: TEST
+**UID**: AT-004
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-010` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1252,21 +1357,20 @@ Feature: トークン失効
     Then 401 Unauthorized
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-010`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-002`
+  **Role**: `Verifies`
+
 ### 走行中の DTC クリア拒否
 
-**Type**: TEST \
-**UID**: AT-005 \
+**Type**: TEST
+**UID**: AT-005
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L0-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1278,21 +1382,23 @@ Feature: 走行中の DTC クリア禁止
     Then 409 Conflict、 DTC はクリアされない
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L0-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DTC-L1-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-007`
+  **Role**: `Verifies`
+
 ### 改ざんパッケージの拒否
 
-**Type**: TEST \
-**UID**: AT-006 \
+**Type**: TEST
+**UID**: AT-006
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L0-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L0-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1304,18 +1410,23 @@ Feature: OTA 改ざん検知
     Then 破棄され Installing に遷移せず Failed になる
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L0-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L0-006`
+  **Role**: `Verifies`
+
 ### 走行中フラッシュ書込の禁止
 
-**Type**: TEST \
-**UID**: AT-007 \
+**Type**: TEST
+**UID**: AT-007
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L0-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1327,15 +1438,20 @@ Feature: 走行中の更新禁止
     Then フラッシュ書込は開始されない
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L0-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-004`
+  **Role**: `Verifies`
+
 ### アクセストークンの有効期限
 
-**Type**: TEST \
-**UID**: AT-008 \
+**Type**: TEST
+**UID**: AT-008
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1347,18 +1463,17 @@ Feature: トークン有効期限
     Then exp は発行から 30 分
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-008`
+  **Role**: `Verifies`
+
 ### 更新進捗ストリーム (SSE)
 
-**Type**: TEST \
-**UID**: AT-009 \
+**Type**: TEST
+**UID**: AT-009
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-006` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-009` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1370,21 +1485,20 @@ Feature: 更新進捗の通知
     Then 各 ECU の進捗 (0..100%) とフェーズが配信される
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-006`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-009`
+  **Role**: `Verifies`
+
 ### 故障コード一覧の遠隔取得
 
-**Type**: TEST \
-**UID**: AT-010 \
+**Type**: TEST
+**UID**: AT-010
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UC-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1396,21 +1510,23 @@ Feature: DTC 一覧の遠隔取得
     Then 200、 P0301 が status="confirmed" で含まれる
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UC-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DTC-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-005`
+  **Role**: `Verifies`
+
 ### フリーズフレームの取得
 
-**Type**: TEST \
-**UID**: AT-011 \
+**Type**: TEST
+**UID**: AT-011
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L0-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1422,21 +1538,23 @@ Feature: フリーズフレーム取得
     Then 200、 発生時の DID 値 (rpm, coolant 等) が含まれる
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L0-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DTC-L1-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-006`
+  **Role**: `Verifies`
+
 ### 周期データの遠隔サンプリング
 
-**Type**: TEST \
-**UID**: AT-012 \
+**Type**: TEST
+**UID**: AT-012
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L0-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1448,15 +1566,23 @@ Feature: 周期サンプリング
     Then 各 DID が 100ms 周期でプッシュ配信される
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L0-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DATA-L1-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-004`
+  **Role**: `Verifies`
+
 ### スナップショットの一括取得
 
-**Type**: TEST \
-**UID**: AT-013 \
+**Type**: TEST
+**UID**: AT-013
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L0-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1468,18 +1594,17 @@ Feature: スナップショット取得
     Then 同一時刻の全 DID 値が 1 応答で返る
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L0-003`
+  **Role**: `Verifies`
+
 ### 大容量データの中断・再開可能な転送
 
-**Type**: TEST \
-**UID**: AT-014 \
+**Type**: TEST
+**UID**: AT-014
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L0-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1491,18 +1616,20 @@ Feature: バルクダウンロード (再開可能)
     Then 重複なく全データが取得できる
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L0-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DATA-L1-003`
+  **Role**: `Verifies`
+
 ### 役割別アクセス制御 (RBAC)
 
-**Type**: TEST \
-**UID**: AT-015 \
+**Type**: TEST
+**UID**: AT-015
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1520,18 +1647,20 @@ Feature: ロールベースアクセス制御
       | OEMEngineer | write:swupdate で更新投入 | 許可   |
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-004`
+  **Role**: `Verifies`
+
 ### TLS 1.3 で接続できる
 
-**Type**: TEST \
-**UID**: AT-016 \
+**Type**: TEST
+**UID**: AT-016
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1542,15 +1671,20 @@ Feature: 通信路の保護
     Then ハンドシェイク成立、 診断 API が利用できる
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-005`
+  **Role**: `Verifies`
+
 ### TLS ダウングレードの拒否
 
-**Type**: TEST \
-**UID**: AT-017 \
+**Type**: TEST
+**UID**: AT-017
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1561,15 +1695,17 @@ Feature: ダウングレード拒否
     Then 車両は接続を拒否する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-006`
+  **Role**: `Verifies`
+
 ### 相互 TLS が成立する (OEM 内部)
 
-**Type**: TEST \
-**UID**: AT-018 \
+**Type**: TEST
+**UID**: AT-018
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1581,15 +1717,17 @@ Feature: 相互 TLS (mTLS)
     Then 双方向認証が成立し接続できる
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-007`
+  **Role**: `Verifies`
+
 ### 不正なクライアント証明書は拒否される
 
-**Type**: TEST \
-**UID**: AT-019 \
+**Type**: TEST
+**UID**: AT-019
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1601,18 +1739,17 @@ Feature: 相互 TLS (mTLS)
     Then 接続が拒否される
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-007`
+  **Role**: `Verifies`
+
 ### OTA による遠隔ソフトウェア更新 (ユースケース)
 
-**Type**: TEST \
-**UID**: AT-020 \
+**Type**: TEST
+**UID**: AT-020
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UC-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1624,21 +1761,20 @@ Feature: OTA 遠隔更新
     Then Activated まで進み、 再起動後に新版で起動する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UC-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-008`
+  **Role**: `Verifies`
+
 ### 前バージョンへのロールバック
 
-**Type**: TEST \
-**UID**: AT-021 \
+**Type**: TEST
+**UID**: AT-021
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L0-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-005` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-010` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1650,15 +1786,23 @@ Feature: ロールバック
     Then 前バージョンへ即時ロールバック、 中は車両機能を制限する
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L0-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-005`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-010`
+  **Role**: `Verifies`
+
 ### 更新の中断耐性 (電源断からの再開)
 
-**Type**: TEST \
-**UID**: AT-022 \
+**Type**: TEST
+**UID**: AT-022
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1669,6 +1813,12 @@ Feature: 更新の中断耐性
     When 再起動する
     Then DL は中断地点から再開、 書込中だった場合は最初からやり直す
 ```
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-007`
+  **Role**: `Verifies`
 
 ## 5.6 被覆の考え方 (Coverage Policy)
 

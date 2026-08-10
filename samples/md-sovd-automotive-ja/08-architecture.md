@@ -1,7 +1,7 @@
 # SOVD アーキテクチャ 仕様 (System Architecture)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-ARCH \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-ARCH
 **Version**: 1.0
 
 本書は、 SOVD 車両診断システムの **アーキテクチャ (設計 / HOW)** をシステム全体の視点で
@@ -57,59 +57,67 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 #### TlsTerminator
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-001 \
+**Type**: COMPONENT
+**UID**: ARCH-C-001
 **CA_LAYER**: Framework
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `PLAT-L3-003` \
-  **Role**: `Implements`
 
 **Statement**: 外部通信の TLS 1.3 を終端する。
 
 **MODULE**: src/platform/tls_terminator.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `PLAT-L3-003`
+  **Role**: `Implements`
+
 #### ScopeAuthorizer
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-002 \
+**Type**: COMPONENT
+**UID**: ARCH-C-002
 **CA_LAYER**: UseCase
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `PLAT-L3-002` \
-  **Role**: `Implements`
 
 **Statement**: 要求スコープに基づき診断操作の認可可否を判定する。
 
 **MODULE**: src/platform/scope_authorizer.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `PLAT-L3-002`
+  **Role**: `Implements`
+
 #### UdsClient
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-003 \
+**Type**: COMPONENT
+**UID**: ARCH-C-003
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `PLAT-L3-001` \
-  **Role**: `Implements`
 
 **Statement**: 車載 ECU と UDS フレームを送受信する (タイムアウト・リトライ・NRC を含む信頼性制御)。
 
 **MODULE**: src/platform/uds_client.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `PLAT-L3-001`
+  **Role**: `Implements`
+
 #### JsonSerializer
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-004 \
+**Type**: COMPONENT
+**UID**: ARCH-C-004
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `PLAT-L3-004` \
-  **Role**: `Implements`
 
 **Statement**: 診断データを ASAM SOVD の JSON 形式へ変換する。
 
 **MODULE**: src/platform/json_serializer.c
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `PLAT-L3-004`
+  **Role**: `Implements`
 
 ### 認証ドメイン (03-auth)
 
@@ -117,31 +125,35 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 #### TokenVerifier
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-005 \
+**Type**: COMPONENT
+**UID**: ARCH-C-005
 **CA_LAYER**: UseCase
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L3-001` \
-  **Role**: `Implements`
 
 **Statement**: アクセストークン (JWT) の正当性 (署名・有効期限・claim) を検証する。
 
 **MODULE**: src/auth/token_verifier.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L3-001`
+  **Role**: `Implements`
+
 #### TokenCache
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-006 \
+**Type**: COMPONENT
+**UID**: ARCH-C-006
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L3-002` \
-  **Role**: `Implements`
 
 **Statement**: 検証済みトークンを LRU でキャッシュする。
 
 **MODULE**: src/auth/token_cache.c
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L3-002`
+  **Role**: `Implements`
 
 ### データアクセスドメイン (04-data-access)
 
@@ -149,45 +161,51 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 #### DataReadUseCase
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-007 \
+**Type**: COMPONENT
+**UID**: ARCH-C-007
 **CA_LAYER**: UseCase
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L2-002` \
-  **Role**: `Implements`
 
 **Statement**: DID 読出要求を統括し、 認可・解決・UDS 読出・JSON 変換の各基盤部品を協調させる。
 
 **MODULE**: src/data/data_read_usecase.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L2-002`
+  **Role**: `Implements`
+
 #### DidResolver
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-008 \
+**Type**: COMPONENT
+**UID**: ARCH-C-008
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L3-001` \
-  **Role**: `Implements`
 
 **Statement**: DID 番号を担当 ECU のアドレスへ解決する。
 
 **MODULE**: src/data/did_resolver.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L3-001`
+  **Role**: `Implements`
+
 #### DataCache
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-009 \
+**Type**: COMPONENT
+**UID**: ARCH-C-009
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L3-002` \
-  **Role**: `Implements`
 
 **Statement**: DID 値を TTL 付きでキャッシュする。
 
 **MODULE**: src/data/data_cache.c
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L3-002`
+  **Role**: `Implements`
 
 ### DTC ドメイン (05-dtc-diagnostics)
 
@@ -195,59 +213,67 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 #### DtcParser
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-010 \
+**Type**: COMPONENT
+**UID**: ARCH-C-010
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L3-001` \
-  **Role**: `Implements`
 
 **Statement**: UDS 0x19 のバイナリ応答を DTC リストへ解析する。
 
 **MODULE**: src/dtc/dtc_parser.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L3-001`
+  **Role**: `Implements`
+
 #### FreezeFrameDecoder
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-011 \
+**Type**: COMPONENT
+**UID**: ARCH-C-011
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L3-002` \
-  **Role**: `Implements`
 
 **Statement**: フリーズフレームのペイロードを (DID, 値) のリストへ復号する。
 
 **MODULE**: src/dtc/freeze_frame_decoder.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L3-002`
+  **Role**: `Implements`
+
 #### SpeedReader
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-012 \
+**Type**: COMPONENT
+**UID**: ARCH-C-012
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L3-003` \
-  **Role**: `Implements`
 
 **Statement**: 車速を周期取得し、 最新値を提供する (ASIL C 認定タスク)。
 
 **MODULE**: src/dtc/speed_reader.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L3-003`
+  **Role**: `Implements`
+
 #### DtcHistoryStore
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-013 \
+**Type**: COMPONENT
+**UID**: ARCH-C-013
 **CA_LAYER**: Entity
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L3-004` \
-  **Role**: `Implements`
 
 **Statement**: DTC 発生履歴をリングバッファで保持する。
 
 **MODULE**: src/dtc/dtc_history_store.c
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L3-004`
+  **Role**: `Implements`
 
 ### OTA ドメイン (06-sw-update)
 
@@ -255,59 +281,67 @@ Entity=橙 / Use Case=ゴールド / Adapter=緑 / Framework=青。
 
 #### PackageDownloader
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-014 \
+**Type**: COMPONENT
+**UID**: ARCH-C-014
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L3-001` \
-  **Role**: `Implements`
 
 **Statement**: 更新パッケージを再開可能な方式でダウンロードする。
 
 **MODULE**: src/swupdate/package_downloader.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L3-001`
+  **Role**: `Implements`
+
 #### SignatureVerifier
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-015 \
+**Type**: COMPONENT
+**UID**: ARCH-C-015
 **CA_LAYER**: UseCase
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L3-002` \
-  **Role**: `Implements`
 
 **Statement**: 更新パッケージの署名 (ECDSA P-256 / RSA-PSS 2048) を検証する。
 
 **MODULE**: src/swupdate/signature_verifier.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L3-002`
+  **Role**: `Implements`
+
 #### FlashSectorWriter
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-016 \
+**Type**: COMPONENT
+**UID**: ARCH-C-016
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L3-003` \
-  **Role**: `Implements`
 
 **Statement**: フラッシュセクタを消去・書込し、 書込結果を CRC で検証する。
 
 **MODULE**: src/swupdate/flash_sector_writer.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L3-003`
+  **Role**: `Implements`
+
 #### VehicleStateMonitor
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-017 \
+**Type**: COMPONENT
+**UID**: ARCH-C-017
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L3-004` \
-  **Role**: `Implements`
 
 **Statement**: フラッシュ書込の前提となる走行状態 (車速・PKB・シフト・IG) を判定する (ASIL D 認定)。
 
 **MODULE**: src/swupdate/vehicle_state_monitor.c
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L3-004`
+  **Role**: `Implements`
 
 ## 3.3 モジュール / ファイル構成 (Module / File Structure)
 

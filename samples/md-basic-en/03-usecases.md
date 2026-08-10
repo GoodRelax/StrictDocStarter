@@ -1,7 +1,7 @@
 # Use cases
 
-**Grammar**: basic.sgra \
-**UID**: DOC-USECASES \
+**Grammar**: basic.sgra
+**UID**: DOC-USECASES
 **Version**: 1.0
 
 This document writes down how a user uses the tool. Where the system requirements in
@@ -85,8 +85,8 @@ looks like this.
 ```text
 ## <Title, written as a verb phrase naming the goal>
 
-**Type**: USE_CASE \
-**UID**: UC-00X \
+**Type**: USE_CASE
+**UID**: UC-00X
 **UC_LEVEL**: UserGoal
 
 **Statement**: <the goal in one sentence>
@@ -162,9 +162,9 @@ a `SingleChoice`, whoever adds one has to pick one of the three.
 
 ## Convert an input file into the requested format
 
-**Type**: USE_CASE \
-**UID**: UC-001 \
-**UC_LEVEL**: UserGoal \
+**Type**: USE_CASE
+**UID**: UC-001
+**UC_LEVEL**: UserGoal
 **REVIEW_STATUS**: Open
 
 **Statement**: A user converts an input file into the requested output format and gets it at the output location.

@@ -1,7 +1,7 @@
 # 上位要求
 
-**Grammar**: basic.sgra \
-**UID**: DOC-UPPER \
+**Grammar**: basic.sgra
+**UID**: DOC-UPPER
 **Version**: 1.0
 
 本書は、 何を作るかだけを書く。 どう作るかは `06-lower.md` に分けてある。
@@ -106,8 +106,8 @@ EARS の定義は 1 つの出典に集約されている。 迷ったらここ�
 
 ## ファイルの変換
 
-**UID**: SYS-001 \
-**STATUS**: Approved \
+**UID**: SYS-001
+**STATUS**: Approved
 **REVIEW_STATUS**: NoFinding
 
 **Statement**: 本ツールは、 利用者が指定した入力ファイルを、 利用者が指定した出力形式へ変換すること。
@@ -115,37 +115,40 @@ EARS の定義は 1 つの出典に集約されている。 迷ったらここ�
 **Rationale**: 本ツールの存在理由そのものである。 これを外すと他の要求が意味を失う。
 
 **Relations**:
-- **Type**: `Parent` \
+
+- **Type**: `Parent`
   **ID**: `UC-001`
 
 ## 想定外の入力の拒否
 
-**UID**: SYS-002 \
-**STATUS**: Approved \
+**UID**: SYS-002
+**STATUS**: Approved
 **REVIEW_STATUS**: Fixed
 
 **Statement**: もし入力ファイルが利用者の指定した形式でないならば、 本ツールは、 変換を行わないこと。
-
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UC-001`
 
 **REVIEW_COMMENT**: 下位要求 SW-002 が、 変換を拒む条件を「検査する」という手順としてしか書いておらず、 どの入力を拒むのかを文の先頭から読み取れなかった。
 
 **REVIEW_ACTION**: SW-002 を、 条件から始まる形に書き直した。 拒む入力が文の先頭で分かる。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UC-001`
+
 ## 既存ファイルの保護
 
-**UID**: SYS-003 \
-**STATUS**: Reviewed \
+**UID**: SYS-003
+**STATUS**: Reviewed
 **REVIEW_STATUS**: Open
 
 **Statement**: もし出力先に同名のファイルが既にあるならば、 本ツールは、 そのファイルを上書きしないこと。
 
 **Rationale**: 無警告で既存ファイルを潰すと、 利用者は取り返しのつかない操作に気づけない。 既定は安全側に倒す。
 
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UC-001`
-
 **REVIEW_COMMENT**: 上書きしないとだけ決めており、 そのとき利用者へ何を返すのかが決まっていない。 `SW-003` は異常終了するとまでは書いているが、 何を知らせるかは書いていない。
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UC-001`

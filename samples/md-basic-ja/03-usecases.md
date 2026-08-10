@@ -1,7 +1,7 @@
 # ユースケース
 
-**Grammar**: basic.sgra \
-**UID**: DOC-USECASES \
+**Grammar**: basic.sgra
+**UID**: DOC-USECASES
 **Version**: 1.0
 
 本書は、 利用者が本ツールをどう使うかを書く。 `04-upper.md` の上位要求が
@@ -77,8 +77,8 @@ Cockburn は「完全形 (fully dressed)」として次の項目を挙げてい�
 ```text
 ## 〈目的を動詞句で書いた題名〉
 
-**Type**: USE_CASE \
-**UID**: UC-00X \
+**Type**: USE_CASE
+**UID**: UC-00X
 **UC_LEVEL**: UserGoal
 
 **Statement**: 〈目的を 1 文で〉
@@ -149,9 +149,9 @@ Cockburn は「完全形 (fully dressed)」として次の項目を挙げてい�
 
 ## 入力ファイルを指定形式へ変換する
 
-**Type**: USE_CASE \
-**UID**: UC-001 \
-**UC_LEVEL**: UserGoal \
+**Type**: USE_CASE
+**UID**: UC-001
+**UC_LEVEL**: UserGoal
 **REVIEW_STATUS**: Open
 
 **Statement**: 利用者が、 入力ファイルを指定した出力形式へ変換して出力先に得る。

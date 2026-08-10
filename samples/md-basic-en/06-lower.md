@@ -1,7 +1,7 @@
 # Software requirements
 
-**Grammar**: basic.sgra \
-**UID**: DOC-LOWER \
+**Grammar**: basic.sgra
+**UID**: DOC-LOWER
 **Version**: 1.0
 
 This document states how we implement each requirement in `04-upper.md`.
@@ -17,57 +17,61 @@ boundary changes nothing. A mix of `.md` and `.sdoc` behaves the same way.
 
 ## Running the conversion
 
-**UID**: SW-001 \
-**STATUS**: Approved \
+**UID**: SW-001
+**STATUS**: Approved
 **REVIEW_STATUS**: NoFinding
 
 **Statement**: The tool shall read the input file, convert it into the output format the user specifies, and write the result to the output file.
 
 **Relations**:
-- **Type**: `Parent` \
+
+- **Type**: `Parent`
   **ID**: `SYS-001`
 
 ## Checking the input format
 
-**UID**: SW-002 \
-**STATUS**: Approved \
+**UID**: SW-002
+**STATUS**: Approved
 **REVIEW_STATUS**: NoFinding
 
 **Statement**: IF the format of the input file differs from the format the user specifies, THEN the tool shall skip the conversion and exit with an error.
 
 **Relations**:
-- **Type**: `Parent` \
+
+- **Type**: `Parent`
   **ID**: `SYS-002`
 
 ## Checking the destination
 
-**UID**: SW-003 \
-**STATUS**: Approved \
+**UID**: SW-003
+**STATUS**: Approved
 **REVIEW_STATUS**: NotReviewed
 
 **Statement**: IF a file of the same name already sits at the destination, THEN the tool shall skip the write and exit with an error.
 
 **Relations**:
-- **Type**: `Parent` \
+
+- **Type**: `Parent`
   **ID**: `SYS-003`
 
 ## Atomic writing
 
-**UID**: SW-004 \
-**STATUS**: Draft \
+**UID**: SW-004
+**STATUS**: Draft
 **REVIEW_STATUS**: WontFix
 
 **Statement**: IF an interruption stops the write partway, THEN the tool shall not leave an incomplete file at the destination.
 
 **Rationale**: If an incomplete file from an interruption stays on disk, SW-003 counts it as an existing file on the next run and stops the tool. The user then sees an error exit with no visible cause.
 
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-003`
-
 **REVIEW_COMMENT**: Nobody decided where the temporary file goes. A rename stops being atomic once the two paths sit on different drives.
 
 **REVIEW_ACTION**: This set is a worked example of how to write, and it leaves implementation detail out. Decide this point in a real specification.
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SYS-003`
 
 ## How the pieces fit together
 

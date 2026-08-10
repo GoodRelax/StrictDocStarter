@@ -1,6 +1,6 @@
 # Markdown 形式の StrictDoc 仕様書 — AI 向け手引き
 
-**UID**: DOC-AI-GUIDE \
+**UID**: DOC-AI-GUIDE
 **Version**: 1.0
 
 本書は、 AI が Markdown 形式の StrictDoc 仕様書を書き、 そこから必要な情報を
@@ -174,8 +174,8 @@ sort -t"$(printf '\t')" -k2,2 -k1,1 <仕様書のフォルダ>/strictdoc-quirks.
 ```markdown
 # 文書のタイトル
 
-**Grammar**: basic.sgra \
-**UID**: DOC-UPPER \
+**Grammar**: basic.sgra
+**UID**: DOC-UPPER
 **Version**: 1.0
 
 H1 の直下は地の文になる。 UID が無いので要求ではない。
@@ -188,8 +188,8 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 
 ## 要求の名前
 
-**UID**: SW-001 \
-**STATUS**: Approved \
+**UID**: SW-001
+**STATUS**: Approved
 **REVIEW_STATUS**: NoFinding
 
 **Statement**: 本システムは、 〜すること。
@@ -201,8 +201,8 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 
 ## テストケースの名前
 
-**Type**: TEST_CASE \
-**UID**: TC-001 \
+**Type**: TEST_CASE
+**UID**: TC-001
 **TEST_RESULT**: NotRun
 
 **GIVEN**: 〜の状態である。
@@ -212,8 +212,8 @@ H1 の直下は地の文になる。 UID が無いので要求ではない。
 **THEN**: 〜になっている。
 
 **Relations**:
-- **Type**: `Parent` \
-  **ID**: `SW-001` \
+- **Type**: `Parent`
+  **ID**: `SW-001`
   **Role**: `Verifies`
 ```
 

@@ -1,7 +1,7 @@
 # System structure
 
-**Grammar**: basic.sgra \
-**UID**: DOC-ARCH \
+**Grammar**: basic.sgra
+**UID**: DOC-ARCH
 **Version**: 1.0
 
 This document is not a requirement. It shows, in one diagram, what we assemble and

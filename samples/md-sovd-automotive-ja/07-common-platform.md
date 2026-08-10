@@ -1,7 +1,7 @@
 # SOVD 共通プラットフォーム 要求仕様 (Common Platform / Shared Components)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-PLATFORM \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-PLATFORM
 **Version**: 1.0
 
 本書は、 複数の機能ドメイン (03-auth / 04-data-access / 05-dtc-diagnostics /
@@ -29,18 +29,11 @@
 
 ### UdsClient ユニット (共有 UDS トランスポート)
 
-**Type**: REQUIREMENT \
-**UID**: PLAT-L3-001 \
-**TYPE**: Functional \
-**ASIL**: QM \
+**Type**: REQUIREMENT
+**UID**: PLAT-L3-001
+**TYPE**: Functional
+**ASIL**: QM
 **LAYER**: L3_Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L2-002`
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-001`
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-003`
 
 **Statement**: UdsClient ユニットは、 ISO 14229-1 準拠の UDS フレーム送受信を担い、 タイムアウト・
 リトライ・NRC ハンドリングを提供すること。
@@ -49,19 +42,23 @@
 ブリッジ (DATA-L2-002) と、 DTC の 0x19 読出 (DTC-L2-001) ・0x14 クリア (DTC-L2-003)
 の双方から再利用される。 1 つのユニットが複数ドメインの上位要求を実現する収束 (N→1)。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L2-002`
+- **Type**: `Parent`
+  **ID**: `DTC-L2-001`
+- **Type**: `Parent`
+  **ID**: `DTC-L2-003`
+
 ### ScopeAuthorizer ユニット (共有 認可)
 
-**Type**: REQUIREMENT \
-**UID**: PLAT-L3-002 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: PLAT-L3-002
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L3_Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-003`
-- **Type**: `Parent` \
-  **ID**: `DATA-L2-006`
 
 **Statement**: ScopeAuthorizer ユニットは、 (required_scope, token_scopes) を入力として許可または
 拒否を返すこと。 拒否したとき、 ScopeAuthorizer ユニットは、 理由コード
@@ -70,17 +67,21 @@
 **Rationale**: 認証 (AUTH-L2-003) と車両データアクセス (DATA-L2-006) の双方でスコープ検証に
 再利用される共有ユニット。 1 つの下位要求が複数ドメインの上位要求を実現する収束 (N→1)。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-003`
+- **Type**: `Parent`
+  **ID**: `DATA-L2-006`
+
 ### TlsTerminator ユニット (共有 TLS 終端)
 
-**Type**: REQUIREMENT \
-**UID**: PLAT-L3-003 \
-**TYPE**: Functional \
-**ASIL**: QM \
-**CAL**: CAL3 \
+**Type**: REQUIREMENT
+**UID**: PLAT-L3-003
+**TYPE**: Functional
+**ASIL**: QM
+**CAL**: CAL3
 **LAYER**: L3_Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-004`
 
 **Statement**: TlsTerminator ユニットは、 OpenSSL ベースの TLS 終端を提供すること。
 起動したとき、 TlsTerminator ユニットは、 信頼ストアをロードすること。
@@ -90,21 +91,28 @@
 
 **VERIFICATION**: ハンドシェイク失敗時に、 上位へエラーイベントが通知されること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-004`
+
 ### JsonSerializer ユニット (共有 応答エンコード)
 
-**Type**: REQUIREMENT \
-**UID**: PLAT-L3-004 \
-**TYPE**: Functional \
-**ASIL**: QM \
+**Type**: REQUIREMENT
+**UID**: PLAT-L3-004
+**TYPE**: Functional
+**ASIL**: QM
 **LAYER**: L3_Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L2-002`
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-001`
 
 **Statement**: JsonSerializer ユニットは、 診断データ (DID 値: 整数・浮動小数・文字列・バイト列、
 DTC 等) を ASAM SOVD JSON 形式に変換すること。
 
 **Rationale**: SOVD の JSON 応答エンコードを担う共有ユニット。 データアクセス (DATA-L2-002) と
 DTC (DTC-L2-001) の応答生成から再利用される。
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L2-002`
+- **Type**: `Parent`
+  **ID**: `DTC-L2-001`

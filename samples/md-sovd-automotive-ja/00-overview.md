@@ -1,7 +1,7 @@
 # SOVD 車両診断システム 要求仕様 - 全体概要 (Overview / Foundation)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-OVERVIEW \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-OVERVIEW
 **Version**: 1.0
 
 本書は StrictDocStarter 同梱の SOVD (Service-Oriented Vehicle Diagnostics) 要求仕様

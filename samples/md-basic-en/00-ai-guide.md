@@ -1,6 +1,6 @@
 # Markdown StrictDoc specifications - a guide for AI
 
-**UID**: DOC-AI-GUIDE \
+**UID**: DOC-AI-GUIDE
 **Version**: 1.0
 
 This guide shows an AI how to write a Markdown StrictDoc specification and how to
@@ -190,8 +190,8 @@ five kinds of node: `DOCUMENT` / `TEXT` / `SECTION` / `REQUIREMENT` / a custom n
 ```markdown
 # Document title
 
-**Grammar**: basic.sgra \
-**UID**: DOC-UPPER \
+**Grammar**: basic.sgra
+**UID**: DOC-UPPER
 **Version**: 1.0
 
 Text directly under the H1 becomes free text. It has no UID, so it is not a requirement.
@@ -204,8 +204,8 @@ Free text inside the chapter. Without `Type`, StrictDoc reads this paragraph as 
 
 ## Requirement name
 
-**UID**: SW-001 \
-**STATUS**: Approved \
+**UID**: SW-001
+**STATUS**: Approved
 **REVIEW_STATUS**: NoFinding
 
 **Statement**: The system shall ...
@@ -214,8 +214,8 @@ Free text inside the chapter. Without `Type`, StrictDoc reads this paragraph as 
 
 ## Test case name
 
-**Type**: TEST_CASE \
-**UID**: TC-001 \
+**Type**: TEST_CASE
+**UID**: TC-001
 **TEST_RESULT**: NotRun
 
 **GIVEN**: ... is in the ... state.
@@ -225,8 +225,8 @@ Free text inside the chapter. Without `Type`, StrictDoc reads this paragraph as 
 **THEN**: ... has become ...
 
 **Relations**:
-- **Type**: `Parent` \
-  **ID**: `SW-001` \
+- **Type**: `Parent`
+  **ID**: `SW-001`
   **Role**: `Verifies`
 ```
 
@@ -1287,8 +1287,8 @@ exported HTML side. Run `--formats=html` first.
 jq -r '.DOCUMENTS[] | select(.UID | IN("DOC-AI-GUIDE", "DOC-AI-QUERIES", "DOC-GUIDE", "DOC-REVIEW") | not)
 | recurse(.NODES[]?) | (.STATEMENT? // "")
 | split("](") | .[1:][] | split(")")[0]
-| select(startswith("http") or startswith("#") | not)' <json> \
-  | tr -d '\r' | sort -u \
+| select(startswith("http") or startswith("#") | not)' <json>
+  | tr -d '\r' | sort -u
   | while read -r p; do [ -f "<output dir>/html/<specification folder name>/$p" ] || echo "NOT PUBLISHED  $p"; done
 ```
 
@@ -1318,7 +1318,7 @@ from anywhere counts as "used"). It does exclude `_assets/*.md` - those are
 documents, and `[LINK:]` points at them by UID, so they never show up as a path.
 
 ```bash
-comm -13 <(jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | split("](") | .[1:][] | split(")")[0]' <json> | tr -d '\r' | sort -u) \
+comm -13 <(jq -r '.DOCUMENTS[] | recurse(.NODES[]?) | (.STATEMENT? // "") | split("](") | .[1:][] | split(")")[0]' <json> | tr -d '\r' | sort -u)
          <(cd <specification folder> && find _assets -type f -not -name "*.md" | sort)
 ```
 

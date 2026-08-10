@@ -1,7 +1,7 @@
 # SOVD Architecture Specification (System Architecture)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-ARCH \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-ARCH
 **Version**: 1.0
 
 This document defines the **architecture (design / HOW)** of the SOVD vehicle diagnostics
@@ -62,59 +62,67 @@ refer to the scenarios in 10.
 
 #### TlsTerminator
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-001 \
+**Type**: COMPONENT
+**UID**: ARCH-C-001
 **CA_LAYER**: Framework
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `PLAT-L3-003` \
-  **Role**: `Implements`
 
 **Statement**: Terminates TLS 1.3 for external communication.
 
 **MODULE**: src/platform/tls_terminator.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `PLAT-L3-003`
+  **Role**: `Implements`
+
 #### ScopeAuthorizer
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-002 \
+**Type**: COMPONENT
+**UID**: ARCH-C-002
 **CA_LAYER**: UseCase
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `PLAT-L3-002` \
-  **Role**: `Implements`
 
 **Statement**: Determines whether a diagnostic operation is authorized based on the requested scope.
 
 **MODULE**: src/platform/scope_authorizer.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `PLAT-L3-002`
+  **Role**: `Implements`
+
 #### UdsClient
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-003 \
+**Type**: COMPONENT
+**UID**: ARCH-C-003
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `PLAT-L3-001` \
-  **Role**: `Implements`
 
 **Statement**: Sends and receives UDS frames to and from the in-vehicle ECUs (with reliability control including timeouts, retries, and NRC).
 
 **MODULE**: src/platform/uds_client.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `PLAT-L3-001`
+  **Role**: `Implements`
+
 #### JsonSerializer
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-004 \
+**Type**: COMPONENT
+**UID**: ARCH-C-004
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `PLAT-L3-004` \
-  **Role**: `Implements`
 
 **Statement**: Converts diagnostic data into the ASAM SOVD JSON format.
 
 **MODULE**: src/platform/json_serializer.c
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `PLAT-L3-004`
+  **Role**: `Implements`
 
 ### Authentication domain (03-auth)
 
@@ -122,31 +130,35 @@ refer to the scenarios in 10.
 
 #### TokenVerifier
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-005 \
+**Type**: COMPONENT
+**UID**: ARCH-C-005
 **CA_LAYER**: UseCase
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L3-001` \
-  **Role**: `Implements`
 
 **Statement**: Verifies the validity (signature, expiry, claims) of an access token (JWT).
 
 **MODULE**: src/auth/token_verifier.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L3-001`
+  **Role**: `Implements`
+
 #### TokenCache
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-006 \
+**Type**: COMPONENT
+**UID**: ARCH-C-006
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L3-002` \
-  **Role**: `Implements`
 
 **Statement**: Caches verified tokens using LRU.
 
 **MODULE**: src/auth/token_cache.c
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L3-002`
+  **Role**: `Implements`
 
 ### Data access domain (04-data-access)
 
@@ -154,45 +166,51 @@ refer to the scenarios in 10.
 
 #### DataReadUseCase
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-007 \
+**Type**: COMPONENT
+**UID**: ARCH-C-007
 **CA_LAYER**: UseCase
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L2-002` \
-  **Role**: `Implements`
 
 **Statement**: Orchestrates DID read requests, coordinating the platform parts for authorization, resolution, UDS read, and JSON conversion.
 
 **MODULE**: src/data/data_read_usecase.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L2-002`
+  **Role**: `Implements`
+
 #### DidResolver
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-008 \
+**Type**: COMPONENT
+**UID**: ARCH-C-008
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L3-001` \
-  **Role**: `Implements`
 
 **Statement**: Resolves a DID number to the address of the responsible ECU.
 
 **MODULE**: src/data/did_resolver.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L3-001`
+  **Role**: `Implements`
+
 #### DataCache
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-009 \
+**Type**: COMPONENT
+**UID**: ARCH-C-009
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L3-002` \
-  **Role**: `Implements`
 
 **Statement**: Caches DID values with a TTL.
 
 **MODULE**: src/data/data_cache.c
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L3-002`
+  **Role**: `Implements`
 
 ### DTC domain (05-dtc-diagnostics)
 
@@ -200,59 +218,67 @@ refer to the scenarios in 10.
 
 #### DtcParser
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-010 \
+**Type**: COMPONENT
+**UID**: ARCH-C-010
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L3-001` \
-  **Role**: `Implements`
 
 **Statement**: Parses the binary response of UDS 0x19 into a DTC list.
 
 **MODULE**: src/dtc/dtc_parser.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L3-001`
+  **Role**: `Implements`
+
 #### FreezeFrameDecoder
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-011 \
+**Type**: COMPONENT
+**UID**: ARCH-C-011
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L3-002` \
-  **Role**: `Implements`
 
 **Statement**: Decodes a freeze frame payload into a list of (DID, value).
 
 **MODULE**: src/dtc/freeze_frame_decoder.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L3-002`
+  **Role**: `Implements`
+
 #### SpeedReader
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-012 \
+**Type**: COMPONENT
+**UID**: ARCH-C-012
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L3-003` \
-  **Role**: `Implements`
 
 **Statement**: Acquires the vehicle speed periodically and provides the latest value (ASIL C certified task).
 
 **MODULE**: src/dtc/speed_reader.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L3-003`
+  **Role**: `Implements`
+
 #### DtcHistoryStore
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-013 \
+**Type**: COMPONENT
+**UID**: ARCH-C-013
 **CA_LAYER**: Entity
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L3-004` \
-  **Role**: `Implements`
 
 **Statement**: Holds the DTC occurrence history in a ring buffer.
 
 **MODULE**: src/dtc/dtc_history_store.c
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L3-004`
+  **Role**: `Implements`
 
 ### OTA domain (06-sw-update)
 
@@ -260,59 +286,67 @@ refer to the scenarios in 10.
 
 #### PackageDownloader
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-014 \
+**Type**: COMPONENT
+**UID**: ARCH-C-014
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L3-001` \
-  **Role**: `Implements`
 
 **Statement**: Downloads the update package in a resumable manner.
 
 **MODULE**: src/swupdate/package_downloader.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L3-001`
+  **Role**: `Implements`
+
 #### SignatureVerifier
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-015 \
+**Type**: COMPONENT
+**UID**: ARCH-C-015
 **CA_LAYER**: UseCase
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L3-002` \
-  **Role**: `Implements`
 
 **Statement**: Verifies the signature (ECDSA P-256 / RSA-PSS 2048) of the update package.
 
 **MODULE**: src/swupdate/signature_verifier.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L3-002`
+  **Role**: `Implements`
+
 #### FlashSectorWriter
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-016 \
+**Type**: COMPONENT
+**UID**: ARCH-C-016
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L3-003` \
-  **Role**: `Implements`
 
 **Statement**: Erases and writes flash sectors and verifies the write result with a CRC.
 
 **MODULE**: src/swupdate/flash_sector_writer.c
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L3-003`
+  **Role**: `Implements`
+
 #### VehicleStateMonitor
 
-**Type**: COMPONENT \
-**UID**: ARCH-C-017 \
+**Type**: COMPONENT
+**UID**: ARCH-C-017
 **CA_LAYER**: Adapter
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L3-004` \
-  **Role**: `Implements`
 
 **Statement**: Determines the driving state (vehicle speed, PKB, shift, IG) that is a precondition for a flash write (ASIL D certified).
 
 **MODULE**: src/swupdate/vehicle_state_monitor.c
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L3-004`
+  **Role**: `Implements`
 
 ## 3.3 Module / File Structure (Module / File Structure)
 

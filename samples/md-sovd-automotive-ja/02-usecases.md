@@ -1,7 +1,7 @@
 # SOVD ユースケース (Use Cases)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-USECASES \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-USECASES
 **Version**: 1.0
 
 本書は SOVD 車両診断システムの **ユースケース** (アクターがシステムを使って目標を達成する
@@ -61,14 +61,11 @@ UC-001 は全 UC の前提となる「認証・認可の土台」。 攻撃者�
 
 ### 整備士による遠隔・認証付き診断アクセス
 
-**Type**: REQUIREMENT \
-**UID**: UC-001 \
-**TYPE**: UseCase \
-**ASIL**: QM \
+**Type**: REQUIREMENT
+**UID**: UC-001
+**TYPE**: UseCase
+**ASIL**: QM
 **LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
 
 **Statement**:
 
@@ -92,20 +89,22 @@ UC-001 は全 UC の前提となる「認証・認可の土台」。 攻撃者�
 **VERIFICATION**: 認証済みクライアントで診断リソースの GET が HTTP 200 を返し、 対象データが
 取得できること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SYS-L0-001`
+
 ## UC-002 車両データアクセス (Vehicle Data Access)
 
 **Type**: SECTION
 
 ### 車両データの遠隔読み取り
 
-**Type**: REQUIREMENT \
-**UID**: UC-002 \
-**TYPE**: UseCase \
-**ASIL**: QM \
+**Type**: REQUIREMENT
+**UID**: UC-002
+**TYPE**: UseCase
+**ASIL**: QM
 **LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
 
 **Statement**:
 
@@ -129,20 +128,22 @@ UC-001 は全 UC の前提となる「認証・認可の土台」。 攻撃者�
 
 **VERIFICATION**: 認可されたクライアントで代表的な DID 群が取得でき、 未認可の項目は返らないこと。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SYS-L0-001`
+
 ## UC-003 故障診断 (DTC)
 
 **Type**: SECTION
 
 ### 故障診断 (取得・クリア)
 
-**Type**: REQUIREMENT \
-**UID**: UC-003 \
-**TYPE**: UseCase \
-**ASIL**: QM \
+**Type**: REQUIREMENT
+**UID**: UC-003
+**TYPE**: UseCase
+**ASIL**: QM
 **LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
 
 **Statement**:
 
@@ -165,20 +166,22 @@ UC-001 は全 UC の前提となる「認証・認可の土台」。 攻撃者�
 
 **VERIFICATION**: 代表的な DTC が、 status (active/pending/confirmed/permanent) 付きで取得できること。
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SYS-L0-001`
+
 ## UC-004 ソフトウェア更新 (OTA)
 
 **Type**: SECTION
 
 ### OTA 遠隔ソフトウェア更新
 
-**Type**: REQUIREMENT \
-**UID**: UC-004 \
-**TYPE**: UseCase \
-**ASIL**: QM \
+**Type**: REQUIREMENT
+**UID**: UC-004
+**TYPE**: UseCase
+**ASIL**: QM
 **LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
 
 **Statement**:
 
@@ -201,3 +204,8 @@ UC-001 は全 UC の前提となる「認証・認可の土台」。 攻撃者�
 
 **VERIFICATION**: 署名付きパッケージの配信 → 適用 → 進捗確認が一連で行え、 適用後に新バージョンで
 起動すること。
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SYS-L0-001`

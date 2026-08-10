@@ -1,7 +1,7 @@
 # Read this first
 
-**Grammar**: basic.sgra \
-**UID**: DOC-GUIDE \
+**Grammar**: basic.sgra
+**UID**: DOC-GUIDE
 **Version**: 1.0
 
 This document tells a beginner and an AI how to write a specification with StrictDoc.
@@ -122,8 +122,8 @@ StrictDoc would render each line as a separate paragraph, and this mark prevents
 ```text
 # Read this first
 
-**Grammar**: basic.sgra \
-**UID**: DOC-GUIDE \
+**Grammar**: basic.sgra
+**UID**: DOC-GUIDE
 **Version**: 1.0
 ```
 
@@ -170,7 +170,7 @@ point it at the UID of the parent. You write nothing on the upper node.
 
 ```text
 **Relations**:
-- **Type**: `Parent` \
+- **Type**: `Parent`
   **ID**: `SYS-001`
 ```
 
@@ -201,8 +201,8 @@ A `Role` gives the relation a meaning. You can leave the type as `Parent`.
 
 ```text
 **Relations**:
-- **Type**: `Parent` \
-  **ID**: `SW-001` \
+- **Type**: `Parent`
+  **ID**: `SW-001`
   **Role**: `Verifies`
 ```
 

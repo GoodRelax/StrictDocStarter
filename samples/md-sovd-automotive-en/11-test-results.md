@@ -1,7 +1,7 @@
 # SOVD Test Results (Test Results / Execution Records)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-TESTRESULTS \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-TESTRESULTS
 **Version**: 1.0
 
 This document is the **execution record** of each test in `10-test-spec.md`. Each result traces
@@ -21,307 +21,345 @@ but duplicate-request=FAIL).
 
 ### [PASS] TokenVerifier - a valid JWT is accepted
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-001 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-001
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-001` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host, gcc + unity)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-001`
+  **Role**: `ResultOf`
+
 ### [PASS] TokenVerifier - a tampered signature is rejected
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-002 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-002
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-002` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-002`
+  **Role**: `ResultOf`
 
 ### [PASS] TokenVerifier - an expired token is rejected
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-003 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-003
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-003` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-003`
+  **Role**: `ResultOf`
 
 ### [PASS] TokenCache - evicts the oldest entry on capacity overflow
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-004 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-004
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-004` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-004`
+  **Role**: `ResultOf`
 
 ### [PASS] TokenCache - hits while retained
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-005 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-005
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-005` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-005`
+  **Role**: `ResultOf`
 
 ### [PASS] ScopeAuthorizer - decides scope sufficiency/insufficiency
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-006 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-006
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-006` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-006`
+  **Role**: `ResultOf`
 
 ### [PASS] TlsTerminator - loads the trust store at startup
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-007 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-007
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-007` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host, OpenSSL mock)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-007`
+  **Role**: `ResultOf`
 
 ### [PASS] TlsTerminator - notifies a failure event on an invalid certificate
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-008 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-008
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-008` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host, OpenSSL mock)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-008`
+  **Role**: `ResultOf`
+
 ### [PASS] UdsClient - returns a normal response
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-009 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-009
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-009` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host, UDS stub)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-009`
+  **Role**: `ResultOf`
 
 ### [PASS] UdsClient - times out after retries when there is no response
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-010 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-010
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-010` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host, UDS stub)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-010`
+  **Role**: `ResultOf`
 
 ### [PASS] UdsClient - propagates the NRC
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-011 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-011
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-011` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host, UDS stub)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-011`
+  **Role**: `ResultOf`
+
 ### [PASS] JsonSerializer - converts each type to ASAM JSON
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-012 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-012
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-012` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-012`
+  **Role**: `ResultOf`
 
 ### [PASS] DidResolver - resolves a known DID
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-013 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-013
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-013` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-013`
+  **Role**: `ResultOf`
 
 ### [PASS] DidResolver - an unknown DID is an error
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-014 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-014
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-014` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-014`
+  **Role**: `ResultOf`
 
 ### [PASS] DataCache - hits within TTL
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-015 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-015
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-015` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-015`
+  **Role**: `ResultOf`
 
 ### [PASS] DataCache - misses after TTL elapses
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-016 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-016
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-016` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-016`
+  **Role**: `ResultOf`
 
 ### [PASS] DtcParser - parses a single DTC
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-017 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-017
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-017` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-017`
+  **Role**: `ResultOf`
 
 ### [PASS] DtcParser - an empty response yields an empty list
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-018 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-018
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-018` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-018`
+  **Role**: `ResultOf`
 
 ### [PASS] FreezeFrameDecoder - decodes to (did,value)
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-019 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-019
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-019` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-019`
+  **Role**: `ResultOf`
+
 ### [PASS] SpeedReader - reflects the latest vehicle speed within 10ms
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-020 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-020
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-020` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL (ASIL C task timing)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-020`
+  **Role**: `ResultOf`
+
 ### [PASS] DtcHistoryStore - overwrites the oldest entry on capacity overflow
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-021 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-021
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-021` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-021`
+  **Role**: `ResultOf`
+
 ### [CONDITIONAL] DtcHistoryStore - stays consistent under concurrent reads
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-022 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-022
 **RESULT**: CONDITIONAL
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-022` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
@@ -329,29 +367,33 @@ but duplicate-request=FAIL).
 
 **REMARK**: A single producer PASSes. Boundary coverage of high-load concurrent reads is incomplete.
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-022`
+  **Role**: `ResultOf`
+
 ### [PASS] PackageDownloader - resumes from a mid-transfer failure and completes
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-023 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-023
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-023` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host, network sim)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-023`
+  **Role**: `ResultOf`
+
 ### [FAIL] PackageDownloader - does not issue duplicate requests at the backoff limit
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-024 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-024
 **RESULT**: FAIL
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-024` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
@@ -360,89 +402,107 @@ but duplicate-request=FAIL).
 **REMARK**: Duplicate requests are occasionally observed when the backoff limit (30s) is reached. Under fix
 (re-test required).
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-024`
+  **Role**: `ResultOf`
+
 ### [PASS] SignatureVerifier - a valid ECDSA signature is true
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-025 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-025
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-025` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host, OpenSSL)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-025`
+  **Role**: `ResultOf`
 
 ### [PASS] SignatureVerifier - a valid RSA-PSS signature is true
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-026 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-026
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-026` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host, OpenSSL)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-026`
+  **Role**: `ResultOf`
 
 ### [PASS] SignatureVerifier - tampering is false
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-027 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-027
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-027` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: CI (host, OpenSSL)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-027`
+  **Role**: `ResultOf`
+
 ### [PASS] FlashSectorWriter - a normal write does pre-erase + CRC match
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-028 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-028
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-028` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL (flash emulator)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-028`
+  **Role**: `ResultOf`
 
 ### [PASS] FlashSectorWriter - a CRC mismatch is an ERROR
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-029 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-029
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-029` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL (flash emulator)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-029`
+  **Role**: `ResultOf`
+
 ### [PASS] VehicleStateMonitor - permits only when all conditions hold
 
-**Type**: TEST_RESULT \
-**UID**: TR-UT-030 \
+**Type**: TEST_RESULT
+**UID**: TR-UT-030
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UT-030` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL (ASIL D, signal injection)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UT-030`
+  **Role**: `ResultOf`
 
 ## Integration Test Results (Integration)
 
@@ -450,255 +510,291 @@ but duplicate-request=FAIL).
 
 ### [PASS] Authentication flow integration (token -> verify -> scope)
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-001 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-001
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-001` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-001`
+  **Role**: `ResultOf`
 
 ### [PASS] DID read bridge integration (SOVD -> UDS -> JSON)
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-002 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-002
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-002` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-002`
+  **Role**: `ResultOf`
 
 ### [PASS] DTC read bridge integration (UDS 0x19 -> Parser)
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-003 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-003
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-003` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-003`
+  **Role**: `ResultOf`
+
 ### [PASS] DTC clear - blocked by the guard while the vehicle is moving
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-004 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-004
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-004` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench (speed inject)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-004`
+  **Role**: `ResultOf`
+
 ### [PASS] DTC clear - executed while stationary
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-005 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-005
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-005` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-005`
+  **Role**: `ResultOf`
 
 ### [PASS] OTA - a normal package passes verification
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-006 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-006
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-006` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-006`
+  **Role**: `ResultOf`
 
 ### [PASS] OTA - a tampered package is discarded
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-007 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-007
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-007` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-007`
+  **Role**: `ResultOf`
+
 ### [PASS] OTA flash + emergency abort by the state guard
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-008 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-008
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-008` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench (state inject)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-008`
+  **Role**: `ResultOf`
+
 ### [PASS] The authentication endpoint accepts the request
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-009 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-009
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-009` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-009`
+  **Role**: `ResultOf`
 
 ### [PASS] The certificate store integrity is verified at startup
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-010 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-010
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-010` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-010`
+  **Role**: `ResultOf`
 
 ### [PASS] The revocation list is synchronized periodically
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-011 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-011
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-011` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-011`
+  **Role**: `ResultOf`
 
 ### [PASS] Multiple DIDs are subscribed simultaneously over WebSocket
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-012 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-012
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-012` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-012`
+  **Role**: `ResultOf`
 
 ### [PASS] A bulk download is returned with gzip compression
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-013 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-013
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-013` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-013`
+  **Role**: `ResultOf`
+
 ### [PASS] All DTCs are cleared at once
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-014 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-014
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-014` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench (speed inject)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-014`
+  **Role**: `ResultOf`
+
 ### [PASS] DTC master information is bundled in the response
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-015 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-015
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-015` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-015`
+  **Role**: `ResultOf`
 
 ### [PASS] Rollback is executed via a bootloader switch
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-016 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-016
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-016` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-016`
+  **Role**: `ResultOf`
 
 ### [PASS] Progress events are delivered
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-017 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-017
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-017` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-017`
+  **Role**: `ResultOf`
+
 ### [PASS] After a power loss, it resumes from the last safe state
 
-**Type**: TEST_RESULT \
-**UID**: TR-IT-018 \
+**Type**: TEST_RESULT
+**UID**: TR-IT-018
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `IT-018` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: HIL bench (power cut rig)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `IT-018`
+  **Role**: `ResultOf`
 
 ## System Test Results (System)
 
@@ -706,27 +802,25 @@ but duplicate-request=FAIL).
 
 ### [PASS] Authenticated data read (end-to-end)
 
-**Type**: TEST_RESULT \
-**UID**: TR-ST-001 \
+**Type**: TEST_RESULT
+**UID**: TR-ST-001
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ST-001` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: vehicle prototype
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ST-001`
+  **Role**: `ResultOf`
+
 ### [SKIP] Periodic data stream
 
-**Type**: TEST_RESULT \
-**UID**: TR-ST-002 \
+**Type**: TEST_RESULT
+**UID**: TR-ST-002
 **RESULT**: SKIP
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ST-002` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
@@ -734,43 +828,49 @@ but duplicate-request=FAIL).
 
 **REMARK**: Not run, as the environment for long-duration stability testing of SSE/WS is not yet in place.
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ST-002`
+  **Role**: `ResultOf`
+
 ### [PASS] DTC list retrieval and clear
 
-**Type**: TEST_RESULT \
-**UID**: TR-ST-003 \
+**Type**: TEST_RESULT
+**UID**: TR-ST-003
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ST-003` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: vehicle prototype
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ST-003`
+  **Role**: `ResultOf`
 
 ### [PASS] OTA update - a normal update boots on the new version
 
-**Type**: TEST_RESULT \
-**UID**: TR-ST-004 \
+**Type**: TEST_RESULT
+**UID**: TR-ST-004
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ST-004` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: vehicle prototype
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ST-004`
+  **Role**: `ResultOf`
+
 ### [CONDITIONAL] OTA update - keeps the old version on a write failure
 
-**Type**: TEST_RESULT \
-**UID**: TR-ST-005 \
+**Type**: TEST_RESULT
+**UID**: TR-ST-005
 **RESULT**: CONDITIONAL
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ST-005` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
@@ -779,117 +879,133 @@ but duplicate-request=FAIL).
 **REMARK**: The automatic rollback on a write failure was confirmed by manual triggering. Full automation is
 incomplete.
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ST-005`
+  **Role**: `ResultOf`
+
 ## Acceptance Test Results (Acceptance)
 
 **Type**: SECTION
 
 ### [PASS] Successful authenticated DID read
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-001 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-001
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-001` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop (SOVD tester)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-001`
+  **Role**: `ResultOf`
+
 ### [PASS] Rejection of unauthenticated access
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-002 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-002
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-002` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-002`
+  **Role**: `ResultOf`
 
 ### [PASS] 403 on insufficient scope
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-003 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-003
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-003` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-003`
+  **Role**: `ResultOf`
 
 ### [PASS] Rejection of a revoked token
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-004 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-004
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-004` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-004`
+  **Role**: `ResultOf`
 
 ### [PASS] Rejection of DTC clear while the vehicle is moving
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-005 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-005
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-005` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop (rolling road)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-005`
+  **Role**: `ResultOf`
+
 ### [PASS] Rejection of a tampered package
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-006 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-006
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-006` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-006`
+  **Role**: `ResultOf`
+
 ### [PASS] Prohibition of flash writing while the vehicle is moving
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-007 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-007
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-007` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop (rolling road)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-007`
+  **Role**: `ResultOf`
+
 ### [CONDITIONAL] Access token expiry
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-008 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-008
 **RESULT**: CONDITIONAL
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-008` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
@@ -897,15 +1013,17 @@ incomplete.
 
 **REMARK**: The default 30 minutes has been confirmed. The boundary case of the 60-minute limit is not yet run.
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-008`
+  **Role**: `ResultOf`
+
 ### [SKIP] Update progress stream (SSE)
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-009 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-009
 **RESULT**: SKIP
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-009` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
@@ -913,43 +1031,49 @@ incomplete.
 
 **REMARK**: Not run, as the SSE test environment is not yet in place.
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-009`
+  **Role**: `ResultOf`
+
 ### [PASS] Remote retrieval of the fault code list
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-010 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-010
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-010` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-010`
+  **Role**: `ResultOf`
 
 ### [PASS] Freeze frame retrieval
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-011 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-011
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-011` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-011`
+  **Role**: `ResultOf`
+
 ### [SKIP] Remote sampling of periodic data
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-012 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-012
 **RESULT**: SKIP
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-012` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
@@ -957,127 +1081,145 @@ incomplete.
 
 **REMARK**: Not run, as the SSE/WS environment is not yet in place (same cause as ST-002).
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-012`
+  **Role**: `ResultOf`
+
 ### [PASS] Bulk snapshot retrieval
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-013 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-013
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-013` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-013`
+  **Role**: `ResultOf`
+
 ### [PASS] Interruptible, resumable transfer of large data
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-014 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-014
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-014` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop (link drop sim)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-014`
+  **Role**: `ResultOf`
+
 ### [PASS] Role-based access control (RBAC)
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-015 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-015
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-015` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-015`
+  **Role**: `ResultOf`
+
 ### [PASS] Can connect over TLS 1.3
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-016 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-016
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-016` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop (TLS probe)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-016`
+  **Role**: `ResultOf`
 
 ### [PASS] Rejection of a TLS downgrade
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-017 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-017
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-017` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: workshop (TLS probe)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-017`
+  **Role**: `ResultOf`
+
 ### [PASS] Mutual TLS is established (OEM internal)
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-018 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-018
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-018` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: OEM lab (mTLS)
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-018`
+  **Role**: `ResultOf`
 
 ### [PASS] An invalid client certificate is rejected
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-019 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-019
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-019` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: OEM lab (mTLS)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-019`
+  **Role**: `ResultOf`
+
 ### [PASS] Remote software update via OTA (use case)
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-020 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-020
 **RESULT**: PASS
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-020` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
 **ENVIRONMENT**: vehicle prototype
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-020`
+  **Role**: `ResultOf`
+
 ### [CONDITIONAL] Rollback to the previous version
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-021 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-021
 **RESULT**: CONDITIONAL
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-021` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
@@ -1085,15 +1227,17 @@ incomplete.
 
 **REMARK**: Manual rollback PASSes. The automatic rollback from anomaly detection is not yet automated.
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-021`
+  **Role**: `ResultOf`
+
 ### [CONDITIONAL] Update interruption tolerance (resume from a power loss)
 
-**Type**: TEST_RESULT \
-**UID**: TR-AT-022 \
+**Type**: TEST_RESULT
+**UID**: TR-AT-022
 **RESULT**: CONDITIONAL
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AT-022` \
-  **Role**: `ResultOf`
 
 **EXECUTED_ON**: 2026-06-06
 
@@ -1101,3 +1245,9 @@ incomplete.
 
 **REMARK**: Resume from a power loss during download PASSes. Recovery from a write interruption was confirmed
 only for limited cases.
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AT-022`
+  **Role**: `ResultOf`

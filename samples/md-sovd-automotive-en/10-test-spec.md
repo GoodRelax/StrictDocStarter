@@ -1,7 +1,7 @@
 # SOVD Test Specification (Test Specification / Strategy)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-TESTSPEC \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-TESTSPEC
 **Version**: 1.0
 
 This document is the **test specification** for SOVD. As the right-hand side of the V-model, it
@@ -35,13 +35,9 @@ Fixed data: DID ``0xF40C`` = engine speed (rpm, Engine ECU addr ``0x10``),
 
 ### TokenVerifier - a valid JWT is accepted
 
-**Type**: TEST \
-**UID**: UT-001 \
+**Type**: TEST
+**UID**: UT-001
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -54,15 +50,17 @@ Feature: JWT verification by TokenVerifier
     Then valid=true and claims.scope contains "read:did"
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-005`
+  **Role**: `Verifies`
+
 ### TokenVerifier - a tampered signature is rejected
 
-**Type**: TEST \
-**UID**: UT-002 \
+**Type**: TEST
+**UID**: UT-002
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -74,15 +72,17 @@ Feature: JWT verification by TokenVerifier
     Then valid=false and reason="invalid_signature"
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-005`
+  **Role**: `Verifies`
+
 ### TokenVerifier - an expired token is rejected
 
-**Type**: TEST \
-**UID**: UT-003 \
+**Type**: TEST
+**UID**: UT-003
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -94,15 +94,17 @@ Feature: JWT verification by TokenVerifier
     Then valid=false and reason="expired"
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-005`
+  **Role**: `Verifies`
+
 ### TokenCache - evicts the oldest entry on capacity overflow
 
-**Type**: TEST \
-**UID**: UT-004 \
+**Type**: TEST
+**UID**: UT-004
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -114,15 +116,17 @@ Feature: LRU of TokenCache
     Then the count is 1,024, the 1st entry misses on get, and memory stays within 256 KB
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-006`
+  **Role**: `Verifies`
+
 ### TokenCache - hits while retained
 
-**Type**: TEST \
-**UID**: UT-005 \
+**Type**: TEST
+**UID**: UT-005
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -134,15 +138,17 @@ Feature: Lookup in TokenCache
     Then the verified result is returned as a hit
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-006`
+  **Role**: `Verifies`
+
 ### ScopeAuthorizer - decides scope sufficiency/insufficiency
 
-**Type**: TEST \
-**UID**: UT-006 \
+**Type**: TEST
+**UID**: UT-006
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -160,15 +166,17 @@ Feature: Authorization decision by ScopeAuthorizer
       | write:dtc | read:dtc          | deny     | insufficient_scope |
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-002`
+  **Role**: `Verifies`
+
 ### TlsTerminator - loads the trust store at startup
 
-**Type**: TEST \
-**UID**: UT-007 \
+**Type**: TEST
+**UID**: UT-007
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -180,15 +188,17 @@ Feature: Trust store of TlsTerminator
     Then the number of loaded CAs = 1
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-001`
+  **Role**: `Verifies`
+
 ### TlsTerminator - notifies a failure event on an invalid certificate
 
-**Type**: TEST \
-**UID**: UT-008 \
+**Type**: TEST
+**UID**: UT-008
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -200,15 +210,17 @@ Feature: Handshake of TlsTerminator
     Then it fails and notifies the upper layer with "handshake_failed"
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-001`
+  **Role**: `Verifies`
+
 ### UdsClient - returns a normal response
 
-**Type**: TEST \
-**UID**: UT-009 \
+**Type**: TEST
+**UID**: UT-009
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -220,15 +232,17 @@ Feature: Send/receive of UdsClient
     Then the returned byte sequence is 0338 (=824)
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-003`
+  **Role**: `Verifies`
+
 ### UdsClient - times out after retries when there is no response
 
-**Type**: TEST \
-**UID**: UT-010 \
+**Type**: TEST
+**UID**: UT-010
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -240,15 +254,17 @@ Feature: Timeout of UdsClient
     Then a Timeout error is returned after the prescribed number of retries
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-003`
+  **Role**: `Verifies`
+
 ### UdsClient - propagates the NRC
 
-**Type**: TEST \
-**UID**: UT-011 \
+**Type**: TEST
+**UID**: UT-011
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -260,15 +276,17 @@ Feature: NRC handling of UdsClient
     Then NRC=0x31 is propagated to the caller
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-003`
+  **Role**: `Verifies`
+
 ### JsonSerializer - converts each type to ASAM JSON
 
-**Type**: TEST \
-**UID**: UT-012 \
+**Type**: TEST
+**UID**: UT-012
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -288,15 +306,17 @@ Feature: Type conversion of JsonSerializer
       | bytes  | 0x03 0x38 | "0338" |
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-004`
+  **Role**: `Verifies`
+
 ### DidResolver - resolves a known DID
 
-**Type**: TEST \
-**UID**: UT-013 \
+**Type**: TEST
+**UID**: UT-013
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -308,15 +328,17 @@ Feature: Resolution by DidResolver
     Then addr 0x10 is returned (1 hash, O(1))
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-008`
+  **Role**: `Verifies`
+
 ### DidResolver - an unknown DID is an error
 
-**Type**: TEST \
-**UID**: UT-014 \
+**Type**: TEST
+**UID**: UT-014
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -328,15 +350,17 @@ Feature: Resolution by DidResolver
     Then NotFound is returned and it does not crash
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-008`
+  **Role**: `Verifies`
+
 ### DataCache - hits within TTL
 
-**Type**: TEST \
-**UID**: UT-015 \
+**Type**: TEST
+**UID**: UT-015
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-009` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -348,15 +372,17 @@ Feature: TTL of DataCache
     Then 824 is returned as a hit (no ECU communication)
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-009`
+  **Role**: `Verifies`
+
 ### DataCache - misses after TTL elapses
 
-**Type**: TEST \
-**UID**: UT-016 \
+**Type**: TEST
+**UID**: UT-016
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-009` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -368,15 +394,17 @@ Feature: TTL of DataCache
     Then it misses and re-fetches from the ECU
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-009`
+  **Role**: `Verifies`
+
 ### DtcParser - parses a single DTC
 
-**Type**: TEST \
-**UID**: UT-017 \
+**Type**: TEST
+**UID**: UT-017
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-010` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -388,15 +416,17 @@ Feature: Parsing by DtcParser
     Then [(code="P0301", status=0x2F)] is returned
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-010`
+  **Role**: `Verifies`
+
 ### DtcParser - an empty response yields an empty list
 
-**Type**: TEST \
-**UID**: UT-018 \
+**Type**: TEST
+**UID**: UT-018
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-010` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -408,15 +438,17 @@ Feature: Parsing by DtcParser
     Then an empty list is returned (not treated as an error)
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-010`
+  **Role**: `Verifies`
+
 ### FreezeFrameDecoder - decodes to (did,value)
 
-**Type**: TEST \
-**UID**: UT-019 \
+**Type**: TEST
+**UID**: UT-019
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-011` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -428,15 +460,17 @@ Feature: Decoding by FreezeFrameDecoder
     Then [(0xF40C, 3200), (0xF40D, 0)] is returned
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-011`
+  **Role**: `Verifies`
+
 ### SpeedReader - reflects the latest vehicle speed within 10ms
 
-**Type**: TEST \
-**UID**: UT-020 \
+**Type**: TEST
+**UID**: UT-020
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-012` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -448,15 +482,17 @@ Feature: Periodic update of SpeedReader
     Then 0 km/h is returned
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-012`
+  **Role**: `Verifies`
+
 ### DtcHistoryStore - overwrites the oldest entry on capacity overflow
 
-**Type**: TEST \
-**UID**: UT-021 \
+**Type**: TEST
+**UID**: UT-021
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-013` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -468,15 +504,17 @@ Feature: Ring buffer of DtcHistoryStore
     Then the count is 1,024 and the 1st entry can no longer be read
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-013`
+  **Role**: `Verifies`
+
 ### DtcHistoryStore - stays consistent under concurrent reads
 
-**Type**: TEST \
-**UID**: UT-022 \
+**Type**: TEST
+**UID**: UT-022
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-013` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -488,15 +526,17 @@ Feature: Concurrency of DtcHistoryStore
     Then each read returns a complete entry with no corruption
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-013`
+  **Role**: `Verifies`
+
 ### PackageDownloader - resumes from a mid-transfer failure and completes
 
-**Type**: TEST \
-**UID**: UT-023 \
+**Type**: TEST
+**UID**: UT-023
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-014` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -508,15 +548,17 @@ Feature: Resumption of PackageDownloader
     Then it re-fetches with exponential backoff and completes the full 3MB
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-014`
+  **Role**: `Verifies`
+
 ### PackageDownloader - does not issue duplicate requests at the backoff limit
 
-**Type**: TEST \
-**UID**: UT-024 \
+**Type**: TEST
+**UID**: UT-024
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-014` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -528,15 +570,17 @@ Feature: Backoff of PackageDownloader
     Then backoff caps at 30s, and no two outstanding requests for the same chunk exist simultaneously
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-014`
+  **Role**: `Verifies`
+
 ### SignatureVerifier - a valid ECDSA signature is true
 
-**Type**: TEST \
-**UID**: UT-025 \
+**Type**: TEST
+**UID**: UT-025
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-015` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -548,15 +592,17 @@ Feature: Signature verification by SignatureVerifier
     Then true is returned
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-015`
+  **Role**: `Verifies`
+
 ### SignatureVerifier - a valid RSA-PSS signature is true
 
-**Type**: TEST \
-**UID**: UT-026 \
+**Type**: TEST
+**UID**: UT-026
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-015` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -568,15 +614,17 @@ Feature: Signature verification by SignatureVerifier
     Then true is returned
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-015`
+  **Role**: `Verifies`
+
 ### SignatureVerifier - tampering is false
 
-**Type**: TEST \
-**UID**: UT-027 \
+**Type**: TEST
+**UID**: UT-027
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-015` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -588,15 +636,17 @@ Feature: Signature verification by SignatureVerifier
     Then false is returned (a pure function that does not change internal state)
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-015`
+  **Role**: `Verifies`
+
 ### FlashSectorWriter - a normal write does pre-erase + CRC match
 
-**Type**: TEST \
-**UID**: UT-028 \
+**Type**: TEST
+**UID**: UT-028
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-016` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -608,15 +658,17 @@ Feature: Writing by FlashSectorWriter
     Then the sector is erased before writing, and after writing the CRC32 matches D and success is returned
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-016`
+  **Role**: `Verifies`
+
 ### FlashSectorWriter - a CRC mismatch is an ERROR
 
-**Type**: TEST \
-**UID**: UT-029 \
+**Type**: TEST
+**UID**: UT-029
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-016` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -628,15 +680,17 @@ Feature: Verification by FlashSectorWriter
     Then ERROR_FLASH_VERIFY is returned
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-016`
+  **Role**: `Verifies`
+
 ### VehicleStateMonitor - permits only when all conditions hold
 
-**Type**: TEST \
-**UID**: UT-030 \
+**Type**: TEST
+**UID**: UT-030
 **TEST_LEVEL**: Unit
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `ARCH-C-017` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -655,25 +709,21 @@ Feature: Decision by VehicleStateMonitor
       | 0   | ON  | D     | ACC | false   |
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `ARCH-C-017`
+  **Role**: `Verifies`
+
 ## 5.3 Integration Tests
 
 **Type**: SECTION
 
 ### Authentication flow integration (token -> verify -> scope)
 
-**Type**: TEST \
-**UID**: IT-001 \
+**Type**: TEST
+**UID**: IT-001
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -686,15 +736,23 @@ Feature: Integration of the authentication flow
     Then a JWT (containing exp/scope/sub) is issued, verified successfully for read:did, and the result is allow
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-003`
+  **Role**: `Verifies`
+
 ### DID read bridge integration (SOVD -> UDS -> JSON)
 
-**Type**: TEST \
-**UID**: IT-002 \
+**Type**: TEST
+**UID**: IT-002
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L2-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -707,15 +765,17 @@ Feature: DID read bridge
     Then it is converted to UDS 0x22 F40C and returns {"rpm": 824}
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L2-002`
+  **Role**: `Verifies`
+
 ### DTC read bridge integration (UDS 0x19 -> Parser)
 
-**Type**: TEST \
-**UID**: IT-003 \
+**Type**: TEST
+**UID**: IT-003
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -727,18 +787,17 @@ Feature: DTC read bridge
     Then UDS 0x19/02 is issued to each ECU and an aggregated JSON is returned
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L2-001`
+  **Role**: `Verifies`
+
 ### DTC clear - blocked by the guard while the vehicle is moving
 
-**Type**: TEST \
-**UID**: IT-004 \
+**Type**: TEST
+**UID**: IT-004
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -750,15 +809,20 @@ Feature: Vehicle-speed guard on clear
     Then VehicleSpeedGuard blocks it and UDS 0x14 is not issued (409)
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L2-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DTC-L2-004`
+  **Role**: `Verifies`
+
 ### DTC clear - executed while stationary
 
-**Type**: TEST \
-**UID**: IT-005 \
+**Type**: TEST
+**UID**: IT-005
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -770,15 +834,17 @@ Feature: Clear execution
     Then UDS 0x14 is issued and succeeds
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L2-003`
+  **Role**: `Verifies`
+
 ### OTA - a normal package passes verification
 
-**Type**: TEST \
-**UID**: IT-006 \
+**Type**: TEST
+**UID**: IT-006
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -790,15 +856,17 @@ Feature: Download + signature verification
     Then the integrity check succeeds, the signature is valid, and it proceeds from Verifying to Installing
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-001`
+  **Role**: `Verifies`
+
 ### OTA - a tampered package is discarded
 
-**Type**: TEST \
-**UID**: IT-007 \
+**Type**: TEST
+**UID**: IT-007
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -810,15 +878,17 @@ Feature: Signature verification
     Then it is discarded on signature-verification failure and does not proceed to Installing
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-002`
+  **Role**: `Verifies`
+
 ### OTA flash + emergency abort by the state guard
 
-**Type**: TEST \
-**UID**: IT-008 \
+**Type**: TEST
+**UID**: IT-008
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -830,15 +900,17 @@ Feature: State guard during writing
     Then VehicleStateGuard detects it on a 50ms cycle, aborts the write as an emergency, and transitions to the safe side
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-004`
+  **Role**: `Verifies`
+
 ### The authentication endpoint accepts the request
 
-**Type**: TEST \
-**UID**: IT-009 \
+**Type**: TEST
+**UID**: IT-009
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -850,15 +922,17 @@ Feature: Authentication endpoint
     Then it is accepted and processed
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-001`
+  **Role**: `Verifies`
+
 ### The certificate store integrity is verified at startup
 
-**Type**: TEST \
-**UID**: IT-010 \
+**Type**: TEST
+**UID**: IT-010
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -870,15 +944,17 @@ Feature: Certificate store
     Then integrity verification is run, and on corruption the startup raises an abnormal notification
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-005`
+  **Role**: `Verifies`
+
 ### The revocation list is synchronized periodically
 
-**Type**: TEST \
-**UID**: IT-011 \
+**Type**: TEST
+**UID**: IT-011
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -890,15 +966,17 @@ Feature: Revocation list synchronization
     Then the local revocation cache is updated
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-007`
+  **Role**: `Verifies`
+
 ### Multiple DIDs are subscribed simultaneously over WebSocket
 
-**Type**: TEST \
-**UID**: IT-012 \
+**Type**: TEST
+**UID**: IT-012
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L2-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -910,15 +988,17 @@ Feature: WebSocket subscription
     Then each DID is delivered periodically, and up to 32 simultaneous subscriptions are accepted
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L2-004`
+  **Role**: `Verifies`
+
 ### A bulk download is returned with gzip compression
 
-**Type**: TEST \
-**UID**: IT-013 \
+**Type**: TEST
+**UID**: IT-013
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L2-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -930,15 +1010,17 @@ Feature: Bulk compression
     Then it is transferred compressed with Content-Encoding: gzip
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L2-005`
+  **Role**: `Verifies`
+
 ### All DTCs are cleared at once
 
-**Type**: TEST \
-**UID**: IT-014 \
+**Type**: TEST
+**UID**: IT-014
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -950,15 +1032,17 @@ Feature: Bulk clear
     Then all DTCs are cleared after passing the vehicle-speed guard
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L1-005`
+  **Role**: `Verifies`
+
 ### DTC master information is bundled in the response
 
-**Type**: TEST \
-**UID**: IT-015 \
+**Type**: TEST
+**UID**: IT-015
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L2-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -970,15 +1054,17 @@ Feature: DTC master
     Then a description and recommended action are bundled with each DTC
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L2-005`
+  **Role**: `Verifies`
+
 ### Rollback is executed via a bootloader switch
 
-**Type**: TEST \
-**UID**: IT-016 \
+**Type**: TEST
+**UID**: IT-016
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -990,15 +1076,17 @@ Feature: Rollback execution
     Then the bootloader parameters are rewritten and a reboot is requested
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-005`
+  **Role**: `Verifies`
+
 ### Progress events are delivered
 
-**Type**: TEST \
-**UID**: IT-017 \
+**Type**: TEST
+**UID**: IT-017
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1010,15 +1098,17 @@ Feature: Progress event bus
     Then the progress is delivered to SSE via ProgressEventBus
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-006`
+  **Role**: `Verifies`
+
 ### After a power loss, it resumes from the last safe state
 
-**Type**: TEST \
-**UID**: IT-018 \
+**Type**: TEST
+**UID**: IT-018
 **TEST_LEVEL**: Integration
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L2-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1030,22 +1120,21 @@ Feature: Resumable state machine
     Then it resumes from the last safe state
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L2-007`
+  **Role**: `Verifies`
+
 ## 5.4 System Tests
 
 **Type**: SECTION
 
 ### Authenticated data read (end-to-end)
 
-**Type**: TEST \
-**UID**: ST-001 \
+**Type**: TEST
+**UID**: ST-001
 **TEST_LEVEL**: System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-001` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1057,15 +1146,20 @@ Feature: Authenticated DID read E2E
     Then 200 and {"rpm": <value>}, with single-DID p95 within 500ms
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-001`
+  **Role**: `Verifies`
+
 ### Periodic data stream
 
-**Type**: TEST \
-**UID**: ST-002 \
+**Type**: TEST
+**UID**: ST-002
 **TEST_LEVEL**: System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1077,18 +1171,17 @@ Feature: Periodic stream
     Then each DID is delivered at the specified cycle and is stable with 32 simultaneously
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L1-002`
+  **Role**: `Verifies`
+
 ### DTC list retrieval and clear
 
-**Type**: TEST \
-**UID**: ST-003 \
+**Type**: TEST
+**UID**: ST-003
 **TEST_LEVEL**: System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1100,21 +1193,20 @@ Feature: DTC retrieval and clear
     Then retrieval and clear succeed, and the operation is recorded in the history
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DTC-L1-007`
+  **Role**: `Verifies`
+
 ### OTA update - a normal update boots on the new version
 
-**Type**: TEST \
-**UID**: ST-004 \
+**Type**: TEST
+**UID**: ST-004
 **TEST_LEVEL**: System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1126,18 +1218,23 @@ Feature: OTA normal update E2E
     Then it proceeds Downloading->Verifying->Installing->Activated and boots on the new version
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-008`
+  **Role**: `Verifies`
+
 ### OTA update - keeps the old version on a write failure
 
-**Type**: TEST \
-**UID**: ST-005 \
+**Type**: TEST
+**UID**: ST-005
 **TEST_LEVEL**: System
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1149,31 +1246,24 @@ Feature: OTA failure rollback E2E
     Then the state becomes RolledBack and it boots on the old version
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-008`
+  **Role**: `Verifies`
+
 ## 5.5 Acceptance Tests (Gherkin)
 
 **Type**: SECTION
 
 ### Successful authenticated DID read
 
-**Type**: TEST \
-**UID**: AT-001 \
+**Type**: TEST
+**UID**: AT-001
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `UC-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `UC-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1185,18 +1275,29 @@ Feature: Authenticated DID read
     Then 200 and a numeric rpm, with scope verification performed before the DID read
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DATA-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `UC-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `UC-002`
+  **Role**: `Verifies`
+
 ### Rejection of unauthenticated access
 
-**Type**: TEST \
-**UID**: AT-002 \
+**Type**: TEST
+**UID**: AT-002
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-011` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1208,18 +1309,20 @@ Feature: Rejection of unauthenticated access
     Then 401, and no vehicle data is included in the body at all
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-011`
+  **Role**: `Verifies`
+
 ### 403 on insufficient scope
 
-**Type**: TEST \
-**UID**: AT-003 \
+**Type**: TEST
+**UID**: AT-003
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L2-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1231,18 +1334,20 @@ Feature: Role-based access control
     Then 403 Forbidden
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L2-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DATA-L1-006`
+  **Role**: `Verifies`
+
 ### Rejection of a revoked token
 
-**Type**: TEST \
-**UID**: AT-004 \
+**Type**: TEST
+**UID**: AT-004
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-010` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-002` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1254,21 +1359,20 @@ Feature: Token revocation
     Then 401 Unauthorized
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-010`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-002`
+  **Role**: `Verifies`
+
 ### Rejection of DTC clear while the vehicle is moving
 
-**Type**: TEST \
-**UID**: AT-005 \
+**Type**: TEST
+**UID**: AT-005
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L0-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1280,21 +1384,23 @@ Feature: Prohibition of DTC clear while moving
     Then 409 Conflict, and the DTC is not cleared
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L0-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DTC-L1-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-007`
+  **Role**: `Verifies`
+
 ### Rejection of a tampered package
 
-**Type**: TEST \
-**UID**: AT-006 \
+**Type**: TEST
+**UID**: AT-006
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L0-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L0-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1306,18 +1412,23 @@ Feature: OTA tampering detection
     Then it is discarded, does not transition to Installing, and becomes Failed
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L0-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L0-006`
+  **Role**: `Verifies`
+
 ### Prohibition of flash writing while the vehicle is moving
 
-**Type**: TEST \
-**UID**: AT-007 \
+**Type**: TEST
+**UID**: AT-007
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L0-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1329,15 +1440,20 @@ Feature: Prohibition of updates while moving
     Then the flash write is not started
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L0-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-004`
+  **Role**: `Verifies`
+
 ### Access token expiry
 
-**Type**: TEST \
-**UID**: AT-008 \
+**Type**: TEST
+**UID**: AT-008
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1349,18 +1465,17 @@ Feature: Token expiry
     Then exp is 30 minutes from issuance
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-008`
+  **Role**: `Verifies`
+
 ### Update progress stream (SSE)
 
-**Type**: TEST \
-**UID**: AT-009 \
+**Type**: TEST
+**UID**: AT-009
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-006` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-009` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1372,21 +1487,20 @@ Feature: Update progress notification
     Then the progress (0..100%) and phase of each ECU are delivered
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-006`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-009`
+  **Role**: `Verifies`
+
 ### Remote retrieval of the fault code list
 
-**Type**: TEST \
-**UID**: AT-010 \
+**Type**: TEST
+**UID**: AT-010
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UC-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-001` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1398,21 +1512,23 @@ Feature: Remote retrieval of the DTC list
     Then 200, and P0301 is included with status="confirmed"
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UC-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DTC-L1-001`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-005`
+  **Role**: `Verifies`
+
 ### Freeze frame retrieval
 
-**Type**: TEST \
-**UID**: AT-011 \
+**Type**: TEST
+**UID**: AT-011
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L0-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1424,21 +1540,23 @@ Feature: Freeze frame retrieval
     Then 200, and the DID values at occurrence (rpm, coolant, etc.) are included
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L0-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DTC-L1-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-006`
+  **Role**: `Verifies`
+
 ### Remote sampling of periodic data
 
-**Type**: TEST \
-**UID**: AT-012 \
+**Type**: TEST
+**UID**: AT-012
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L0-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1450,15 +1568,23 @@ Feature: Periodic sampling
     Then each DID is push-delivered on a 100ms cycle
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L0-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DATA-L1-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-004`
+  **Role**: `Verifies`
+
 ### Bulk snapshot retrieval
 
-**Type**: TEST \
-**UID**: AT-013 \
+**Type**: TEST
+**UID**: AT-013
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L0-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1470,18 +1596,17 @@ Feature: Snapshot retrieval
     Then all DID values at the same instant are returned in 1 response
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L0-003`
+  **Role**: `Verifies`
+
 ### Interruptible, resumable transfer of large data
 
-**Type**: TEST \
-**UID**: AT-014 \
+**Type**: TEST
+**UID**: AT-014
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L0-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-003` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1493,18 +1618,20 @@ Feature: Bulk download (resumable)
     Then all data can be retrieved with no duplication
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L0-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `DATA-L1-003`
+  **Role**: `Verifies`
+
 ### Role-based access control (RBAC)
 
-**Type**: TEST \
-**UID**: AT-015 \
+**Type**: TEST
+**UID**: AT-015
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-002` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-004` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1522,18 +1649,20 @@ Feature: Role-based access control
       | OEMEngineer | submit an update with write:swupdate | allow  |
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-002`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-004`
+  **Role**: `Verifies`
+
 ### Can connect over TLS 1.3
 
-**Type**: TEST \
-**UID**: AT-016 \
+**Type**: TEST
+**UID**: AT-016
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L0-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-005` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1544,15 +1673,20 @@ Feature: Protection of the communication channel
     Then the handshake succeeds and the diagnostic API is available
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L0-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-005`
+  **Role**: `Verifies`
+
 ### Rejection of a TLS downgrade
 
-**Type**: TEST \
-**UID**: AT-017 \
+**Type**: TEST
+**UID**: AT-017
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-006` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1563,15 +1697,17 @@ Feature: Downgrade rejection
     Then the vehicle rejects the connection
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-006`
+  **Role**: `Verifies`
+
 ### Mutual TLS is established (OEM internal)
 
-**Type**: TEST \
-**UID**: AT-018 \
+**Type**: TEST
+**UID**: AT-018
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1583,15 +1719,17 @@ Feature: Mutual TLS (mTLS)
     Then mutual authentication is established and the connection succeeds
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-007`
+  **Role**: `Verifies`
+
 ### An invalid client certificate is rejected
 
-**Type**: TEST \
-**UID**: AT-019 \
+**Type**: TEST
+**UID**: AT-019
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1603,18 +1741,17 @@ Feature: Mutual TLS (mTLS)
     Then the connection is rejected
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-007`
+  **Role**: `Verifies`
+
 ### Remote software update via OTA (use case)
 
-**Type**: TEST \
-**UID**: AT-020 \
+**Type**: TEST
+**UID**: AT-020
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `UC-004` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-008` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1626,21 +1763,20 @@ Feature: OTA remote update
     Then it proceeds to Activated and boots on the new version after the reboot
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `UC-004`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-008`
+  **Role**: `Verifies`
+
 ### Rollback to the previous version
 
-**Type**: TEST \
-**UID**: AT-021 \
+**Type**: TEST
+**UID**: AT-021
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L0-003` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-005` \
-  **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `API-010` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1652,15 +1788,23 @@ Feature: Rollback
     Then it rolls back immediately to the previous version, restricting vehicle functions during the process
 ```
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L0-003`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `SWU-L1-005`
+  **Role**: `Verifies`
+- **Type**: `Parent`
+  **ID**: `API-010`
+  **Role**: `Verifies`
+
 ### Update interruption tolerance (resume from a power loss)
 
-**Type**: TEST \
-**UID**: AT-022 \
+**Type**: TEST
+**UID**: AT-022
 **TEST_LEVEL**: Acceptance
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-007` \
-  **Role**: `Verifies`
 
 **Statement**:
 
@@ -1671,6 +1815,12 @@ Feature: Update interruption tolerance
     When it reboots
     Then the download resumes from the interruption point, and if it was writing, it restarts from the beginning
 ```
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-007`
+  **Role**: `Verifies`
 
 ## 5.6 Coverage Policy
 

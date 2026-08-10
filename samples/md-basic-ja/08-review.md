@@ -1,7 +1,7 @@
 # レビューの進め方
 
-**Grammar**: basic.sgra \
-**UID**: DOC-REVIEW \
+**Grammar**: basic.sgra
+**UID**: DOC-REVIEW
 **Version**: 1.0
 
 本書は、 レビューの結果をどこにどう書くかを伝える。
@@ -72,8 +72,8 @@
 ```text
 ## 想定外の入力の拒否
 
-**UID**: SYS-002 \
-**STATUS**: Approved \
+**UID**: SYS-002
+**STATUS**: Approved
 **REVIEW_STATUS**: Fixed
 
 **Statement**: もし入力ファイルが利用者の指定した形式でないならば、 本ツールは、 変換を行わないこと。

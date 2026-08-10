@@ -1,7 +1,7 @@
 # SOVD Vehicle Diagnostics System Requirements Specification - Overview (Overview / Foundation)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-OVERVIEW \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-OVERVIEW
 **Version**: 1.0
 
 This document is the **Overview (Foundation)** of the SOVD (Service-Oriented Vehicle Diagnostics)

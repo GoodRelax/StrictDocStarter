@@ -1,7 +1,7 @@
 # SOVD API Contract Specification (HTTP API Contract)
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-API \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-API
 **Version**: 1.0
 
 This document is the **external HTTP API contract** of SOVD. It is the **promise** to SOVD
@@ -20,14 +20,10 @@ partner can implement against this document alone.
 
 ### Access token issuance (OAuth2 PKCE)
 
-**Type**: API \
-**UID**: API-001 \
-**METHOD**: POST \
+**Type**: API
+**UID**: API-001
+**METHOD**: POST
 **PATH**: /auth/token
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-001` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -39,16 +35,18 @@ partner can implement against this document alone.
 **RESPONSE**: 200 OK
 {"access_token": "<JWT>", "token_type": "Bearer", "expires_in": 1800, "scope": "read:did read:dtc"}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-001`
+  **Role**: `Satisfies`
+
 ### Token revocation
 
-**Type**: API \
-**UID**: API-002 \
-**METHOD**: POST \
+**Type**: API
+**UID**: API-002
+**METHOD**: POST
 **PATH**: /auth/revoke
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `AUTH-L1-009` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -58,21 +56,23 @@ partner can implement against this document alone.
 
 **RESPONSE**: 200 OK
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `AUTH-L1-009`
+  **Role**: `Satisfies`
+
 ## Data Access
 
 **Type**: SECTION
 
 ### Read of a single DID
 
-**Type**: API \
-**UID**: API-003 \
-**METHOD**: GET \
-**PATH**: /components/{ecu}/data/{did} \
+**Type**: API
+**UID**: API-003
+**METHOD**: GET
+**PATH**: /components/{ecu}/data/{did}
 **SCOPE**: read:did
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-001` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -86,17 +86,19 @@ partner can implement against this document alone.
 **RESPONSE**: 200 OK
 {"did": "0xF40C", "name": "rpm", "value": 824, "unit": "1/min"}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L1-001`
+  **Role**: `Satisfies`
+
 ### Periodic data stream (SSE)
 
-**Type**: API \
-**UID**: API-004 \
-**METHOD**: GET \
-**PATH**: /components/{ecu}/data/stream \
+**Type**: API
+**UID**: API-004
+**METHOD**: GET
+**PATH**: /components/{ecu}/data/stream
 **SCOPE**: read:did
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DATA-L1-002` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -107,21 +109,23 @@ partner can implement against this document alone.
 **RESPONSE**: 200 OK (text/event-stream)
 data: {"did":"0xF40C","value":824}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DATA-L1-002`
+  **Role**: `Satisfies`
+
 ## Fault Diagnostics (DTC)
 
 **Type**: SECTION
 
 ### DTC list retrieval
 
-**Type**: API \
-**UID**: API-005 \
-**METHOD**: GET \
-**PATH**: /components/{ecu}/faults \
+**Type**: API
+**UID**: API-005
+**METHOD**: GET
+**PATH**: /components/{ecu}/faults
 **SCOPE**: read:dtc
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-001` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -132,17 +136,19 @@ data: {"did":"0xF40C","value":824}
 **RESPONSE**: 200 OK
 [{"code": "P0301", "status": "confirmed"}]
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L1-001`
+  **Role**: `Satisfies`
+
 ### Freeze-frame retrieval
 
-**Type**: API \
-**UID**: API-006 \
-**METHOD**: GET \
-**PATH**: /components/{ecu}/faults/{code}/freeze-frame \
+**Type**: API
+**UID**: API-006
+**METHOD**: GET
+**PATH**: /components/{ecu}/faults/{code}/freeze-frame
 **SCOPE**: read:dtc
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-002` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -154,17 +160,19 @@ data: {"did":"0xF40C","value":824}
 **RESPONSE**: 200 OK
 {"code": "P0301", "frame": {"rpm": 3200, "coolant": 95}}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L1-002`
+  **Role**: `Satisfies`
+
 ### DTC clear
 
-**Type**: API \
-**UID**: API-007 \
-**METHOD**: DELETE \
-**PATH**: /components/{ecu}/faults/{code} \
+**Type**: API
+**UID**: API-007
+**METHOD**: DELETE
+**PATH**: /components/{ecu}/faults/{code}
 **SCOPE**: write:dtc
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `DTC-L1-003` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -176,21 +184,23 @@ data: {"did":"0xF40C","value":824}
 
 **RESPONSE**: 204 No Content  /  409 Conflict (vehicle moving)
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `DTC-L1-003`
+  **Role**: `Satisfies`
+
 ## Software Update (OTA)
 
 **Type**: SECTION
 
 ### Update package submission
 
-**Type**: API \
-**UID**: API-008 \
-**METHOD**: POST \
-**PATH**: /updates \
+**Type**: API
+**UID**: API-008
+**METHOD**: POST
+**PATH**: /updates
 **SCOPE**: write:swupdate
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-001` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -204,16 +214,18 @@ data: {"did":"0xF40C","value":824}
 **RESPONSE**: 202 Accepted
 {"update_id": "u-123", "state": "Downloading"}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-001`
+  **Role**: `Satisfies`
+
 ### Update progress stream (SSE)
 
-**Type**: API \
-**UID**: API-009 \
-**METHOD**: GET \
+**Type**: API
+**UID**: API-009
+**METHOD**: GET
 **PATH**: /updates/progress
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-006` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -223,17 +235,19 @@ data: {"did":"0xF40C","value":824}
 **RESPONSE**: 200 OK (text/event-stream)
 data: {"ecu":"engine","phase":"Verifying","percent":40}
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-006`
+  **Role**: `Satisfies`
+
 ### Rollback
 
-**Type**: API \
-**UID**: API-010 \
-**METHOD**: POST \
-**PATH**: /updates/rollback \
+**Type**: API
+**UID**: API-010
+**METHOD**: POST
+**PATH**: /updates/rollback
 **SCOPE**: write:swupdate
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SWU-L1-005` \
-  **Role**: `Satisfies`
 
 **Statement**:
 
@@ -243,3 +257,9 @@ data: {"ecu":"engine","phase":"Verifying","percent":40}
 
 **RESPONSE**: 202 Accepted
 {"state": "RolledBack"}
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SWU-L1-005`
+  **Role**: `Satisfies`

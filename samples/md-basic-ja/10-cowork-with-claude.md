@@ -1,7 +1,7 @@
 # Claude と組んで書く
 
-**Grammar**: basic.sgra \
-**UID**: DOC-COWORK \
+**Grammar**: basic.sgra
+**UID**: DOC-COWORK
 **Version**: 1.0
 
 本書は、 この一式に同梱した `strictdoc-md` スキルを使って、 Claude Code に

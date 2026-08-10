@@ -1,7 +1,7 @@
 # Working alongside Claude
 
-**Grammar**: basic.sgra \
-**UID**: DOC-COWORK \
+**Grammar**: basic.sgra
+**UID**: DOC-COWORK
 **Version**: 1.0
 
 This document tells you how to use the `strictdoc-md` skill bundled with this set to

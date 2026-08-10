@@ -1,7 +1,7 @@
 # 下位要求
 
-**Grammar**: basic.sgra \
-**UID**: DOC-LOWER \
+**Grammar**: basic.sgra
+**UID**: DOC-LOWER
 **Version**: 1.0
 
 本書は `04-upper.md` の各要求を、 テストで検証できる大きさまで割って書く。
@@ -13,57 +13,61 @@ SW-004 のように、 どう実現するかまで踏み込むものもある。
 
 ## 変換の実行
 
-**UID**: SW-001 \
-**STATUS**: Approved \
+**UID**: SW-001
+**STATUS**: Approved
 **REVIEW_STATUS**: NoFinding
 
 **Statement**: 本ツールは、 入力ファイルを読み、 利用者が指定した出力形式へ変換した結果を出力ファイルへ書き出すこと。
 
 **Relations**:
-- **Type**: `Parent` \
+
+- **Type**: `Parent`
   **ID**: `SYS-001`
 
 ## 入力形式の検査
 
-**UID**: SW-002 \
-**STATUS**: Approved \
+**UID**: SW-002
+**STATUS**: Approved
 **REVIEW_STATUS**: NoFinding
 
 **Statement**: もし入力ファイルの形式が利用者の指定した形式と異なるならば、 本ツールは、 変換を行わず異常終了すること。
 
 **Relations**:
-- **Type**: `Parent` \
+
+- **Type**: `Parent`
   **ID**: `SYS-002`
 
 ## 出力先の確認
 
-**UID**: SW-003 \
-**STATUS**: Approved \
+**UID**: SW-003
+**STATUS**: Approved
 **REVIEW_STATUS**: NotReviewed
 
 **Statement**: もし出力先に同名のファイルが既にあるならば、 本ツールは、 書き出しを行わず異常終了すること。
 
 **Relations**:
-- **Type**: `Parent` \
+
+- **Type**: `Parent`
   **ID**: `SYS-003`
 
 ## 書き込みの原子性
 
-**UID**: SW-004 \
-**STATUS**: Draft \
+**UID**: SW-004
+**STATUS**: Draft
 **REVIEW_STATUS**: WontFix
 
 **Statement**: もし書き出しが途中で中断したならば、 本ツールは、 出力先に不完全なファイルを残さないこと。
 
 **Rationale**: 中断で生まれた不完全なファイルが残ると、 次回の実行では SW-003 がそれを「既存ファイル」と見なして止まる。 利用者は原因の分からない異常終了を見ることになる。
 
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-003`
-
 **REVIEW_COMMENT**: 一時ファイルの置き場所が決まっていない。 同じドライブでないと改名が原子的にならない場合がある。
 
 **REVIEW_ACTION**: この一式は書き方の実例であり、 実装の詳細は扱わない。 実際の仕様書ではここを決めること。
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SYS-003`
 
 ## 実現の見取り図
 

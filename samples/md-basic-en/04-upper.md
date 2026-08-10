@@ -1,7 +1,7 @@
 # System requirements
 
-**Grammar**: basic.sgra \
-**UID**: DOC-UPPER \
+**Grammar**: basic.sgra
+**UID**: DOC-UPPER
 **Version**: 1.0
 
 This document states what we build and nothing else. It leaves how we build it to `06-lower.md`.
@@ -107,8 +107,8 @@ One source defines EARS. Read it whenever you are unsure.
 
 ## Converting a file
 
-**UID**: SYS-001 \
-**STATUS**: Approved \
+**UID**: SYS-001
+**STATUS**: Approved
 **REVIEW_STATUS**: NoFinding
 
 **Statement**: The tool shall convert the input file the user specifies into the output format the user specifies.
@@ -116,13 +116,14 @@ One source defines EARS. Read it whenever you are unsure.
 **Rationale**: This requirement is the reason the tool exists. If we drop it, every other requirement loses its meaning.
 
 **Relations**:
-- **Type**: `Parent` \
+
+- **Type**: `Parent`
   **ID**: `UC-001`
 
 ## Rejecting unexpected input
 
-**UID**: SYS-002 \
-**STATUS**: Approved \
+**UID**: SYS-002
+**STATUS**: Approved
 **REVIEW_STATUS**: Fixed
 
 **Statement**: IF the input file does not match the format the user specifies, THEN the tool shall not perform the conversion.
@@ -132,13 +133,14 @@ One source defines EARS. Read it whenever you are unsure.
 **REVIEW_ACTION**: We rewrote SW-002 so that it opens with the condition. The head of the sentence now names the input the tool refuses.
 
 **Relations**:
-- **Type**: `Parent` \
+
+- **Type**: `Parent`
   **ID**: `UC-001`
 
 ## Protecting an existing file
 
-**UID**: SYS-003 \
-**STATUS**: Reviewed \
+**UID**: SYS-003
+**STATUS**: Reviewed
 **REVIEW_STATUS**: Open
 
 **Statement**: IF a file of the same name already sits at the destination, THEN the tool shall not overwrite that file.
@@ -148,5 +150,6 @@ One source defines EARS. Read it whenever you are unsure.
 **REVIEW_COMMENT**: The requirement says "shall not overwrite" and stops there. Nobody decided what the tool does instead once it finds a file of the same name - abort, or write under another name?
 
 **Relations**:
-- **Type**: `Parent` \
+
+- **Type**: `Parent`
   **ID**: `UC-001`

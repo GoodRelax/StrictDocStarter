@@ -1,7 +1,7 @@
 # ブラウザ操作の手引き
 
-**Grammar**: basic.sgra \
-**UID**: DOC-BROWSER \
+**Grammar**: basic.sgra
+**UID**: DOC-BROWSER
 **Version**: 1.0
 
 本書は、 StrictDoc の画面から仕様書を作り、 直し、 見る方法を伝える。

@@ -1,7 +1,7 @@
 # SOVD Use Cases
 
-**Grammar**: sovd-grammar.sgra \
-**UID**: DOC-SOVD-USECASES \
+**Grammar**: sovd-grammar.sgra
+**UID**: DOC-SOVD-USECASES
 **Version**: 1.0
 
 This document defines the **use cases** of the SOVD vehicle diagnostics system (usage
@@ -66,14 +66,11 @@ picture.
 
 ### Remote authenticated diagnostic access by a mechanic
 
-**Type**: REQUIREMENT \
-**UID**: UC-001 \
-**TYPE**: UseCase \
-**ASIL**: QM \
+**Type**: REQUIREMENT
+**UID**: UC-001
+**TYPE**: UseCase
+**ASIL**: QM
 **LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
 
 **Statement**:
 
@@ -97,20 +94,22 @@ picture.
 **VERIFICATION**: A GET of a diagnostic resource by an authenticated client returns HTTP 200 and the target
 data can be retrieved.
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SYS-L0-001`
+
 ## UC-002 Vehicle Data Access
 
 **Type**: SECTION
 
 ### Remote read of vehicle data
 
-**Type**: REQUIREMENT \
-**UID**: UC-002 \
-**TYPE**: UseCase \
-**ASIL**: QM \
+**Type**: REQUIREMENT
+**UID**: UC-002
+**TYPE**: UseCase
+**ASIL**: QM
 **LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
 
 **Statement**:
 
@@ -134,20 +133,22 @@ bulk transfer follow the same authorization flow.
 
 **VERIFICATION**: A representative set of DIDs can be retrieved by an authorized client, and unauthorized items are not returned.
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SYS-L0-001`
+
 ## UC-003 Fault Diagnostics (DTC)
 
 **Type**: SECTION
 
 ### Fault diagnostics (retrieve / clear)
 
-**Type**: REQUIREMENT \
-**UID**: UC-003 \
-**TYPE**: UseCase \
-**ASIL**: QM \
+**Type**: REQUIREMENT
+**UID**: UC-003
+**TYPE**: UseCase
+**ASIL**: QM
 **LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
 
 **Statement**:
 
@@ -170,20 +171,22 @@ bulk transfer follow the same authorization flow.
 
 **VERIFICATION**: Representative DTCs can be retrieved together with their status (active/pending/confirmed/permanent).
 
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SYS-L0-001`
+
 ## UC-004 Software Update (OTA)
 
 **Type**: SECTION
 
 ### OTA remote software update
 
-**Type**: REQUIREMENT \
-**UID**: UC-004 \
-**TYPE**: UseCase \
-**ASIL**: QM \
+**Type**: REQUIREMENT
+**UID**: UC-004
+**TYPE**: UseCase
+**ASIL**: QM
 **LAYER**: L0_Stakeholder
-**Relations**:
-- **Type**: `Parent` \
-  **ID**: `SYS-L0-001`
 
 **Statement**:
 
@@ -206,3 +209,8 @@ bulk transfer follow the same authorization flow.
 
 **VERIFICATION**: Distribution -> application -> progress check of a signed package can be performed as a
 single sequence, and after application it boots on the new version.
+
+**Relations**:
+
+- **Type**: `Parent`
+  **ID**: `SYS-L0-001`

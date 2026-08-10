@@ -1,7 +1,7 @@
 # How we review
 
-**Grammar**: basic.sgra \
-**UID**: DOC-REVIEW \
+**Grammar**: basic.sgra
+**UID**: DOC-REVIEW
 **Version**: 1.0
 
 This document tells you where a review result goes and how you write it.
@@ -61,8 +61,8 @@ the end of the node.
 ```text
 ## Rejecting unexpected input
 
-**UID**: SYS-002 \
-**STATUS**: Approved \
+**UID**: SYS-002
+**STATUS**: Approved
 **REVIEW_STATUS**: Fixed
 
 **Statement**: IF the input file does not match the format the user specifies, THEN the tool shall not perform the conversion.

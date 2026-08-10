@@ -1,6 +1,6 @@
 # jq query collection - for AI
 
-**UID**: DOC-AI-QUERIES \
+**UID**: DOC-AI-QUERIES
 **Version**: 1.0
 
 This document expands "Pull only the part of the specification you need" of `00-ai-guide.md`.

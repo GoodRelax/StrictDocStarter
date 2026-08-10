@@ -1,7 +1,7 @@
 # Driving StrictDoc from the browser
 
-**Grammar**: basic.sgra \
-**UID**: DOC-BROWSER \
+**Grammar**: basic.sgra
+**UID**: DOC-BROWSER
 **Version**: 1.0
 
 This document tells you how to create, edit and read a specification from StrictDoc's

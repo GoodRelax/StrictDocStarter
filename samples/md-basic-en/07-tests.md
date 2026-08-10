@@ -1,7 +1,7 @@
 # Test cases
 
-**Grammar**: basic.sgra \
-**UID**: DOC-TESTS \
+**Grammar**: basic.sgra
+**UID**: DOC-TESTS
 **Version**: 1.0
 
 A test case is not a standard StrictDoc concept. We added a node type named
@@ -15,8 +15,8 @@ To use a grammar type from `.md`, you write the name of the type in `Type` direc
 ```text
 ## Scenario name
 
-**Type**: TEST_CASE \
-**UID**: TC-001 \
+**Type**: TEST_CASE
+**UID**: TC-001
 **TEST_RESULT**: Passed
 
 **GIVEN**: <something> sits in <some state>.
@@ -105,8 +105,8 @@ heading.
 
 ## The conversion succeeds
 
-**Type**: TEST_CASE \
-**UID**: TC-001 \
+**Type**: TEST_CASE
+**UID**: TC-001
 **TEST_RESULT**: Passed
 
 **GIVEN**: The user prepares one input file in the format they specified, and no file of the same name sits at the destination.
@@ -116,18 +116,19 @@ heading.
 **THEN**: The tool exits normally and creates an output file in the format the user specified.
 
 **Relations**:
-- **Type**: `Parent` \
-  **ID**: `SW-001` \
+
+- **Type**: `Parent`
+  **ID**: `SW-001`
   **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `UC-001` \
+- **Type**: `Parent`
+  **ID**: `UC-001`
   **Role**: `Verifies`
 
 ## An unexpected format is rejected
 
-**Type**: TEST_CASE \
-**UID**: TC-002 \
-**TEST_RESULT**: Failed \
+**Type**: TEST_CASE
+**UID**: TC-002
+**TEST_RESULT**: Failed
 **ISSUE_KEY**: PROJ-142
 
 **GIVEN**: The user prepares one input file that does not match the format they specified.
@@ -137,17 +138,18 @@ heading.
 **THEN**: The tool exits with an error and creates no output file.
 
 **Relations**:
-- **Type**: `Parent` \
-  **ID**: `SW-002` \
+
+- **Type**: `Parent`
+  **ID**: `SW-002`
   **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `UC-001` \
+- **Type**: `Parent`
+  **ID**: `UC-001`
   **Role**: `Verifies`
 
 ## An existing file is not overwritten
 
-**Type**: TEST_CASE \
-**UID**: TC-003 \
+**Type**: TEST_CASE
+**UID**: TC-003
 **TEST_RESULT**: NotRun
 
 **GIVEN**: The user puts a file at the destination under the same name as the output file the tool creates.
@@ -157,18 +159,19 @@ heading.
 **THEN**: The tool exits with an error and the contents of the existing file stay unchanged.
 
 **Relations**:
-- **Type**: `Parent` \
-  **ID**: `SW-003` \
+
+- **Type**: `Parent`
+  **ID**: `SW-003`
   **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `UC-001` \
+- **Type**: `Parent`
+  **ID**: `UC-001`
   **Role**: `Verifies`
 
 ## An interruption leaves no partial file
 
-**Type**: TEST_CASE \
-**UID**: TC-004 \
-**TEST_RESULT**: Blocked \
+**Type**: TEST_CASE
+**UID**: TC-004
+**TEST_RESULT**: Blocked
 **ISSUE_KEY**: PROJ-207
 
 **GIVEN**: The tool is partway through writing the output file.
@@ -180,9 +183,10 @@ heading.
 **TEST_REMARK**: The verification team has no procedure yet for stopping the process partway through the write. The team holds this scenario until that procedure exists.
 
 **Relations**:
-- **Type**: `Parent` \
-  **ID**: `SW-004` \
+
+- **Type**: `Parent`
+  **ID**: `SW-004`
   **Role**: `Verifies`
-- **Type**: `Parent` \
-  **ID**: `UC-001` \
+- **Type**: `Parent`
+  **ID**: `UC-001`
   **Role**: `Verifies`
