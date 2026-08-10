@@ -23,6 +23,7 @@ warns about it — it does **not** configure one for you.
 | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
 | `setup-strictdoc.bat`                            | One-time setup (admin): installs the StrictDoc toolchain + developer tools, and can optionally clone a repo. Shows a plan, then asks once. Fully configurable via `setup.config.json` — see [What setup installs](#what-setup-installs).              | Double-click → UAC → type `yes` |
 | `launch-strictdoc.bat`                           | Daily use: **drag a folder (or a `.sdoc` file) onto it** to open it in your browser — or double-click to be prompted. One window per document.                                                                                                        | Drag-and-drop or double-click   |
+| `open-strictdoc-launcher.bat`                    | Starts **StrictDoc's own** desktop launcher (`strictdoc launcher`, added in 0.22.0, still experimental) — see [The two launchers](#the-two-launchers). Takes no dropped folder; you pick one in the window.                                           | Double-click                    |
 | `change-color-mode.bat`                          | Switches the generated pages between **auto / light / dark**. Default is `auto`, which follows the Windows light/dark setting.                                                                                                                        | Double-click                    |
 | `try-json-query-en.bat`, `try-json-query-ja.bat` | A guided 7-step trial of querying a specification as JSON with `jq`: each step explains itself, waits for Enter, then runs the command it just showed. Drop a project folder on it, or double-click to use the bundled `md-basic-en` / `md-basic-ja`. | Drag-and-drop or double-click   |
 | `gather-logs.bat`                                | Collects logs + a diagnostics report into a ZIP for troubleshooting                                                                                                                                                                                   | Double-click                    |
@@ -78,6 +79,31 @@ StrictDoc website in your browser. There is no menu — **one window per documen
   prompt default and auto-updates to your last-used folder.
 - On a `.sdoc` **parse error** the server window may close instantly, so the launcher prints
   the actual error in its own window.
+
+### The two launchers
+
+StrictDoc ships a launcher of its own — `strictdoc launcher`, added in **0.22.0** and still
+marked experimental. `open-strictdoc-launcher.bat` starts it, so you can try it without
+remembering the command. It is a separate piece of work by a StrictDoc contributor, not a
+version of the one here.
+
+Use whichever fits the moment:
+
+|                       | `launch-strictdoc.bat`                                                                   | `open-strictdoc-launcher.bat`                                         |
+| --------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| How you open a folder | **Drag it on**                                                                           | Pick it in the window                                                 |
+| Documents at once     | **As many as you like** — one window and one port each                                   | **One.** A second attempt says the server is already running          |
+| Before starting       | Checks your sources are UTF-8 and warns about CRLF Markdown                              | —                                                                     |
+| Also does             | Colour mode, output kept in `output\strictdoc\`, `.gitignore` advice, config scaffolding | **Export, config editor, UID repair, `git pull` / `commit` / `push`** |
+| Needs                 | Nothing beyond this repository                                                           | A Python with `tkinter`                                               |
+
+**The bundled samples assume you can open several at once** — the whole point of shipping
+`md-basic-en` beside `md-basic-ja`, and `md-` beside `sd-`, is to put two windows side by side
+and compare. That is why `launch-strictdoc.bat` is still here.
+
+Everything else, StrictDoc does better itself, and the intent is to hand more over as its
+launcher grows. Note that the two write their generated pages to different places:
+`output\strictdoc\` here, `output\server\` there.
 
 ### Where the generated pages go
 

@@ -37,7 +37,12 @@ them, four test cases that verify those, and review status carried on the requir
 themselves — each group in its own file, so the traceability crosses file boundaries.
 
 **Copy that folder to start your own specification.** To open any other folder, drag it
-onto `launch-strictdoc.bat`. One document per window.
+onto `launch-strictdoc.bat`. One document per window, as many as you like at once.
+
+StrictDoc also has a launcher of its own now, and `open-strictdoc-launcher.bat` starts it.
+It opens one document at a time, and in exchange it exports, edits the project config,
+repairs UIDs and runs `git` for you —
+[the two side by side](docs/04-starter-guide.md#the-two-launchers).
 
 You can also [read the bundled samples in your browser](https://goodrelax.github.io/StrictDocStarter/) without installing
 anything — including a full 122-requirement automotive specification.

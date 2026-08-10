@@ -23,12 +23,16 @@ in-private-work/
 # ** rather than a leading slash because this file sits above the projects
 # rather than inside one: the samples are six project folders under samples/.
 #
-# Output that lands anywhere else is left visible on purpose. `strictdoc export`
-# without --output-dir scatters _cache/ and html/ directly into output/, and
-# `strictdoc server` writes output/server/. Seeing those in `git status` is the
-# signal that a command was run the wrong way; hiding them would only make the
-# mistake quieter.
+# output/server/ is StrictDoc's own default, and open-strictdoc-launcher.bat
+# starts the launcher that writes there. That is a supported way to work here, so
+# it is excluded too rather than left to pile up untracked.
+#
+# Output that lands anywhere else is still left visible on purpose. `strictdoc
+# export` without --output-dir scatters _cache/ and html/ directly into output/.
+# Seeing that in `git status` is the signal that a command was run the wrong way;
+# hiding it would only make the mistake quieter.
 **/output/strictdoc/
+**/output/server/
 
 # --- JSON exported by try-json-query-{en,ja}.bat (regenerated on every run) ---
 exported-json/
